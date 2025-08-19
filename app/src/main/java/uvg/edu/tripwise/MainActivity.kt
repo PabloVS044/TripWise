@@ -1,5 +1,6 @@
 package uvg.edu.tripwise
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,7 +36,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TripWiseTheme {
-                TripWiseLandingPage()
+                TripWiseLandingPage(
+                    onLoginClick = {
+                        val intent = Intent(this, UsersActivity::class.java)
+                        startActivity(intent)
+                    }
+                )
             }
         }
     }
@@ -43,7 +49,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TripWiseLandingPage() {
+fun TripWiseLandingPage(onLoginClick: () -> Unit = {}) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +63,7 @@ fun TripWiseLandingPage() {
                 )
             )
     ) {
-        item { TopAppBarSection() }
+        item { TopAppBarSection(onLoginClick = onLoginClick) }
         item { HeroSection() }
         item { FeaturesSection() }
         item { HowItWorksSection() }
@@ -69,7 +75,7 @@ fun TripWiseLandingPage() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopAppBarSection() {
+fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
     TopAppBar(
         title = {
             Row(
@@ -104,7 +110,7 @@ fun TopAppBarSection() {
             }
         },
         actions = {
-            TextButton(onClick = { /* TODO: Login */ }) {
+            TextButton(onClick = onLoginClick) {
                 Text("Iniciar Sesión", color = Color(0xFF2563EB))
             }
         },
