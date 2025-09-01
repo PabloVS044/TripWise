@@ -51,7 +51,7 @@ data class ApiProperty(
     val description: String,
     val location: String,
     val pricePerNight: Double,
-    val capacity: Int,
+    val capacity: Number, // Changed from Int to Number to handle potential float values
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,
@@ -60,7 +60,8 @@ data class ApiProperty(
     val latitude: Double,
     val longitude: Double,
     val createdAt: String,
-    val deleted: PropertyDeleted
+    val deleted: PropertyDeleted,
+    val reviews: List<Map<String, String>>? = null // Added to match backend schema
 )
 
 data class PropertyDeleted(
@@ -102,12 +103,12 @@ interface UserApiService {
     @DELETE("users/deleteUser/{id}")
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
-    @GET("properties")
-    suspend fun getProperties(): List<ApiProperty>
+    @GET("property")
+    suspend fun getProperties(): Response<List<ApiProperty>> // Changed to Response for error handling
 
-    @GET("properties/{id}")
+    @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
-    @DELETE("properties/deleteProperty/{id}")
+    @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 }
