@@ -13,7 +13,7 @@ data class Post(
     val description: String,
     val location: String,
     val pricePerNight: Int,
-    val Capacity: Int,
+    val capacity: Int,
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,

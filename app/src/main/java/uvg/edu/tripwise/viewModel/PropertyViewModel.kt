@@ -16,6 +16,9 @@ class PropertyViewModel(
     private val _properties = MutableStateFlow<List<Post>>(emptyList())
     val properties: StateFlow<List<Post>> = _properties.asStateFlow()
 
+    private val _selectedProperty = MutableStateFlow<Post?>(null)
+    val selectedProperty: StateFlow<Post?> = _selectedProperty.asStateFlow()
+
     init {
         loadProperties()
     }
@@ -27,6 +30,17 @@ class PropertyViewModel(
                 _properties.value = result
             } catch (e: Exception) {
                 // Manejo de errores
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun getPropertyById(id: String) {
+        viewModelScope.launch {
+            try {
+                val property = repo.getPropertyById(id)
+                _selectedProperty.value = property
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
         }

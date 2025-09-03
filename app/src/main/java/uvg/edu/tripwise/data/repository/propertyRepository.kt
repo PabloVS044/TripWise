@@ -11,5 +11,9 @@ class propertyRepository (
         val response = api.getProperties()
         return response
     }
-    
+
+    suspend fun getPropertyById(id: String): Post {
+        val property = api.getPropertyById(id)
+        return property
+    }
 }

@@ -117,6 +117,8 @@ interface UserApiService {
 interface PropertyApiService {
     @GET("property")
     suspend fun getProperties(): List<Post>
+    @GET("property/{id}")
+    suspend fun getPropertyById(@Path("id") id: String): Post
     @POST("property/create")
     suspend fun createProperty(): List<ApiProperty>
     @PUT("property/{id}")
