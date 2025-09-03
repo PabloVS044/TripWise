@@ -112,6 +112,23 @@ fun RegisterScreen(
         }
     }
 
+    // Función para mapear amenidades del frontend al backend
+    fun mapAmenities(frontendAmenities: Set<String>): List<String> {
+        return frontendAmenities.map {
+            when (it) {
+                "wifi" -> "WiFi gratuito"
+                "piscina" -> "Piscina"
+                "cocina" -> "Cocina"
+                "estacionamiento" -> "Estacionamiento"
+                "aire_acondicionado" -> "Aire acondicionado"
+                "tv" -> "TV"
+                "lavadora" -> "Lavadora"
+                "balcon" -> "Balcón"
+                else -> it
+            }
+        }
+    }
+
     // Función para registrar usuario
     fun registerUser() {
         coroutineScope.launch {
@@ -127,68 +144,74 @@ fun RegisterScreen(
                     role = selectedRole
                 )
 
+                Log.d("RegisterActivity", "Enviando request de usuario: $request")
                 val response = RetrofitInstance.api.createUser(request)
 
                 if (response.isSuccessful) {
                     val user = response.body()
+                    Log.d("RegisterActivity", "Usuario creado exitosamente: ${user?.id}")
 
                     // Si es anfitrión y tiene datos de propiedad, crear la propiedad
                     if (selectedRole == "owner" && propertyName.isNotBlank() && user != null) {
-                        val propertyRequest = ApiProperty(
-                            _id = "",
+                        // Validar que el precio y capacidad sean números válidos
+                        val price = pricePerNight.toDoubleOrNull()
+                        val cap = capacity.toIntOrNull()
+
+                        if (price == null || price <= 0) {
+                            snackbarHostState.showSnackbar("El precio por noche debe ser un número válido mayor a 0")
+                            return@launch
+                        }
+
+                        if (cap == null || cap <= 0) {
+                            snackbarHostState.showSnackbar("La capacidad debe ser un número válido mayor a 0")
+                            return@launch
+                        }
+
+                        val propertyRequest = CreatePropertyRequest(
                             name = propertyName,
                             description = propertyDescription,
                             location = propertyLocation,
-                            pricePerNight = pricePerNight.toDoubleOrNull() ?: 0.0,
-                            capacity = capacity.toIntOrNull() ?: 1,
+                            pricePerNight = price,
+                            capacity = cap,
                             pictures = listOf(
                                 "https://cf.bstatic.com/xdata/images/hotel/max1024x768/700469152.jpg?k=81f660295c981edce0f9e6ddd543a99ff966256c092b0a01cde4ee8125f382c0&o=",
                                 "https://cf.bstatic.com/xdata/images/hotel/max500/700469161.jpg?k=b58010e414155ba670315e4236e0e9307fd55b2003ecfa49f5af83509ac89468&o=",
                                 "https://cf.bstatic.com/xdata/images/hotel/max300/700469173.jpg?k=13697e4cd76f89696a2805452ed778c4cfca2e223bb64cfd21229eb1dacf725c&o="
                             ),
-                            amenities = selectedAmenities.map {
-                                when (it) {
-                                    "wifi" -> "WiFi gratuito"
-                                    "piscina" -> "Piscina"
-                                    "cocina" -> "Cocina"
-                                    "estacionamiento" -> "Estacionamiento"
-                                    "aire_acondicionado" -> "Aire acondicionado"
-                                    "tv" -> "TV"
-                                    "lavadora" -> "Lavadora"
-                                    "balcon" -> "Balcón"
-                                    else -> it
-                                }
-                            },
-                            propertyType = mapPropertyType(propertyType), // Asegúrate que devuelva "apartment", "house", etc.
+                            amenities = mapAmenities(selectedAmenities),
+                            propertyType = mapPropertyType(propertyType),
                             owner = user.id,
                             approved = "pending",
-                            latitude = 14.5984, // Usa valores reales si los tienes
-                            longitude = -90.5155,
-                            createdAt = "",
-                            deleted = PropertyDeleted(false, null)
+                            latitude = 14.5984, // Coordenadas de Guatemala City
+                            longitude = -90.5155
                         )
 
+                        Log.d("RegisterActivity", "Enviando request de propiedad: $propertyRequest")
                         val propertyResponse = RetrofitInstance.api.createProperty(propertyRequest)
-                        if (!propertyResponse.isSuccessful) {
-                            snackbarHostState.showSnackbar("Usuario creado, pero error al crear propiedad")
+
+                        if (propertyResponse.isSuccessful) {
+                            Log.d("RegisterActivity", "Propiedad creada exitosamente")
+                        } else {
+                            val errorBody = propertyResponse.errorBody()?.string()
+                            Log.e("RegisterActivity", "Error al crear propiedad: ${propertyResponse.code()} - $errorBody")
+                            snackbarHostState.showSnackbar("Usuario creado, pero error al crear propiedad: ${propertyResponse.code()}")
                             return@launch
                         }
                     }
 
                     // Aquí podrías agregar lógica para guardar los intereses si los necesitas
-                    // Por ahora el backend no tiene endpoint específico para actualizar intereses
-
                     snackbarHostState.showSnackbar("Registro exitoso")
                     onRegisterSuccess()
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    errorMessage = "Error al registrar usuario: $errorBody"
+                    Log.e("RegisterActivity", "Error al registrar usuario: ${response.code()} - $errorBody")
+                    errorMessage = "Error al registrar usuario: ${response.code()}"
                     snackbarHostState.showSnackbar(errorMessage!!)
                 }
             } catch (e: Exception) {
                 errorMessage = "Error: ${e.message}"
-                snackbarHostState.showSnackbar(errorMessage!!)
                 Log.e("RegisterActivity", "Register error", e)
+                snackbarHostState.showSnackbar(errorMessage!!)
             } finally {
                 isLoading = false
             }

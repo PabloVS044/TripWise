@@ -47,6 +47,7 @@ data class UpdateUserRequest(
     val interests: List<String>? = null
 )
 
+// Modelo para recibir propiedades del backend (con _id)
 data class ApiProperty(
     @SerializedName("_id") val _id: String,
     val name: String,
@@ -63,6 +64,21 @@ data class ApiProperty(
     val longitude: Double,
     val createdAt: String,
     val deleted: PropertyDeleted
+)
+
+data class CreatePropertyRequest(
+    val name: String,
+    val description: String,
+    val location: String,
+    val pricePerNight: Double,
+    val capacity: Int,
+    val pictures: List<String>,
+    val amenities: List<String>,
+    val propertyType: String,
+    val owner: String,
+    val approved: String,
+    val latitude: Double,
+    val longitude: Double
 )
 
 data class PropertyDeleted(
@@ -116,7 +132,7 @@ interface UserApiService {
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
     @POST("property/createProperty")
-    suspend fun createProperty(@Body property: ApiProperty): Response<ApiProperty>
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
 
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
