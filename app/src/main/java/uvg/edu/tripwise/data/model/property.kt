@@ -12,6 +12,6 @@ data class Post(
     val owner: String,
     val approved: String,
     val reviews: List<String>,
-    val latitude: Float,
-    val longitude: Float
+    val latitude: Double,
+    val longitude: Double
 )

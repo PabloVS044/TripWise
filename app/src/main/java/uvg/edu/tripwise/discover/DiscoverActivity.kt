@@ -22,11 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import org.w3c.dom.Text
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import uvg.edu.tripwise.viewModel.PropertyViewModel
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +43,8 @@ class DiscoverActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoverScreen() {
+fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+    val properties by viewModel.properties.collectAsState()
     var searchText by remember { mutableStateOf("Madrid") }
     
     // Coordenadas de Madrid como ejemplo
@@ -106,23 +109,13 @@ fun DiscoverScreen() {
                     myLocationButtonEnabled = false
                 )
             ) {
-                // Marcadores de ejemplo basados en la imagen
-                Marker(
-                    state = MarkerState(position = LatLng(40.4168, -3.7038)),
-                    title = "Madrid Centro"
-                )
-                Marker(
-                    state = MarkerState(position = LatLng(41.3851, 2.1734)),
-                    title = "Barcelona"
-                )
-                Marker(
-                    state = MarkerState(position = LatLng(39.4699, -0.3763)),
-                    title = "Valencia"
-                )
-                Marker(
-                    state = MarkerState(position = LatLng(37.3891, -5.9845)),
-                    title = "Sevilla"
-                )
+                properties.forEach { property ->
+                    Marker(
+                        state = MarkerState(position = LatLng(property.latitude, property.longitude)),
+                        title = property.name,
+                        snippet = property.description
+                    )
+                }
             }
         }
         
