@@ -46,8 +46,7 @@ class DiscoverActivity : ComponentActivity() {
 fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val properties by viewModel.properties.collectAsState()
     var searchText by remember { mutableStateOf("Madrid") }
-    
-    // Coordenadas de Madrid como ejemplo
+
     val madrid = LatLng(40.4168, -3.7038)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(madrid, 6f)
