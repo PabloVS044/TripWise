@@ -35,14 +35,16 @@ data class CreateUserRequest(
     val email: String,
     val password: String,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
 )
 
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
 )
 
 data class ApiProperty(
@@ -86,6 +88,11 @@ data class Property(
     val isDeleted: Boolean
 )
 
+data class Login (
+    val email: String,
+    val password: String
+)
+
 interface UserApiService {
     @GET("users")
     suspend fun getUsers(): List<ApiUser>
@@ -102,12 +109,18 @@ interface UserApiService {
     @DELETE("users/deleteUser/{id}")
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
-    @GET("properties")
+    @GET("property")
     suspend fun getProperties(): List<ApiProperty>
 
-    @GET("properties/{id}")
+    @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
-    @DELETE("properties/deleteProperty/{id}")
+    @POST("property/createProperty")
+    suspend fun createProperty(@Body property: ApiProperty): Response<ApiProperty>
+
+    @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+
+    @POST("login")
+    suspend fun login(@Body login: Login): Response<Map<String, String>>
 }
