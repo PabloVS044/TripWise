@@ -112,3 +112,14 @@ interface UserApiService {
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 }
+
+interface PropertyApiService {
+    @GET("property")
+    suspend fun getProperties(): List<ApiProperty>
+    @POST("property/create")
+    suspend fun createProperty(): List<ApiProperty>
+    @PUT("property/{id}")
+    suspend fun updateProperty(): List<ApiProperty>
+    @DELETE("property/{id}")
+    suspend fun deleteProperty(): List<ApiProperty>
+}
