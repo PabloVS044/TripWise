@@ -36,6 +36,7 @@ import uvg.edu.tripwise.viewModel.PropertyViewModel
 import coil.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.ui.res.painterResource
 import coil.request.ImageRequest
 
@@ -45,7 +46,22 @@ class DiscoverActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TripWiseTheme {
-                DiscoverScreen()
+                val name = intent.getStringExtra("name") ?: ""
+                val location = intent.getStringExtra("location") ?: ""
+                val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
+                val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
+                val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
+                val propertyType = intent.getStringExtra("propertyType") ?: ""
+                val approved = intent.getStringExtra("approved") ?: ""
+                DiscoverScreen(
+                    filterName = name,
+                    filterLocation = location,
+                    filterMinPrice = minPrice,
+                    filterMaxPrice = maxPrice,
+                    filterCapacity = capacity,
+                    filterType = propertyType,
+                    filterApproved = approved
+                )
             }
         }
     }
@@ -53,11 +69,46 @@ class DiscoverActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+fun DiscoverScreen(
+    viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    filterName: String = "",
+    filterLocation: String = "",
+    filterMinPrice: Double? = null,
+    filterMaxPrice: Double? = null,
+    filterCapacity: Int? = null,
+    filterType: String = "",
+    filterApproved: String = ""
+) {
+
+
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
     var searchText by remember { mutableStateOf("Madrid") }
+    val filteredProperties = properties.filter { property ->
+        val matchesName = filterName.takeIf { it.isNotBlank() }?.let {
+            property.name.contains(it, ignoreCase = true)
+        } ?: true
+
+        val matchesLocation = filterLocation.takeIf { it.isNotBlank() }?.let {
+            property.location.contains(it, ignoreCase = true)
+        } ?: true
+
+        val matchesMinPrice = filterMinPrice?.let { property.pricePerNight >= it } ?: true
+        val matchesMaxPrice = filterMaxPrice?.let { property.pricePerNight <= it } ?: true
+        val matchesCapacity = filterCapacity?.let { property.capacity >= it } ?: true
+
+        val matchesType = filterType.takeIf { it.isNotBlank() }?.let {
+            property.propertyType.contains(it, ignoreCase = true)
+        } ?: true
+
+        val matchesApproved = filterApproved.takeIf { it.isNotBlank() }?.let {
+            property.approved.contains(it, ignoreCase = true)
+        } ?: true
+
+        matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
+                matchesCapacity && matchesType && matchesApproved
+    }
 
 
     val madrid = LatLng(40.4168, -3.7038)
@@ -121,7 +172,7 @@ fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.c
                     myLocationButtonEnabled = false
                 )
             ) {
-                properties.forEach { property ->
+                filteredProperties.forEach { property ->
                     Marker(
                         state = MarkerState(position = LatLng(property.latitude, property.longitude)),
                         title = property.name,
