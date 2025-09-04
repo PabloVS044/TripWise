@@ -53,11 +53,7 @@ fun FilterScreen() {
     var minPrice by remember { mutableStateOf("") }
     var maxPrice by remember { mutableStateOf("") }
     var capacity by remember { mutableStateOf("") }
-
-    // ComboBox Location
-    val locations = listOf("España", "Guatemala", "Francia", "México")
-    var selectedLocation by remember { mutableStateOf(locations.first()) }
-    var locationExpanded by remember { mutableStateOf(false) }
+    var location by remember { mutableStateOf("") }
 
     // ComboBox Tipo de propiedad
     val propertyTypes = listOf("Apartamento", "Casa", "Hotel", "Hostel")
@@ -113,33 +109,13 @@ fun FilterScreen() {
         )
 
         // ComboBox Location
-        ExposedDropdownMenuBox(
-            expanded = locationExpanded,
-            onExpandedChange = { locationExpanded = !locationExpanded }
-        ) {
-            OutlinedTextField(
-                value = selectedLocation,
-                onValueChange = {},
-                label = { Text("Location") },
-                readOnly = true,
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(locationExpanded) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            ExposedDropdownMenu(
-                expanded = locationExpanded,
-                onDismissRequest = { locationExpanded = false }
-            ) {
-                locations.forEach { loc ->
-                    DropdownMenuItem(
-                        text = { Text(loc) },
-                        onClick = {
-                            selectedLocation = loc
-                            locationExpanded = false
-                        }
-                    )
-                }
-            }
-        }
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            label = { Text("Location") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
 
         // ComboBox Tipo de propiedad
         ExposedDropdownMenuBox(
@@ -209,7 +185,7 @@ fun FilterScreen() {
                     putExtra("minPrice", minPrice)
                     putExtra("maxPrice", maxPrice)
                     putExtra("capacity", capacity)
-                    putExtra("location", selectedLocation)
+                    putExtra("location", location)
                     putExtra("propertyType", selectedType)
                     putExtra("approved", selectedApproved)
                 }
