@@ -62,10 +62,8 @@ fun ForgotPasswordScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Status Bar
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,7 +106,6 @@ fun ForgotPasswordScreen(
         Spacer(modifier = Modifier.height(60.dp))
 
         if (!isEmailSent) {
-            // Forgot Password Form
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -133,7 +130,6 @@ fun ForgotPasswordScreen(
                     modifier = Modifier.padding(bottom = 40.dp)
                 )
 
-                // Reset Password Section
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -145,7 +141,6 @@ fun ForgotPasswordScreen(
                         modifier = Modifier.padding(bottom = 20.dp)
                     )
 
-                    // Email Field
                     Text(
                         text = "Email",
                         fontSize = 14.sp,
@@ -181,7 +176,6 @@ fun ForgotPasswordScreen(
                         singleLine = true
                     )
 
-                    // Error Message
                     errorMessage?.let { error ->
                         Surface(
                             modifier = Modifier
@@ -199,7 +193,6 @@ fun ForgotPasswordScreen(
                         }
                     }
 
-                    // Send Reset Email Button
                     Button(
                         onClick = {
                             if (email.isBlank()) {
@@ -215,8 +208,7 @@ fun ForgotPasswordScreen(
                             coroutineScope.launch {
                                 try {
                                     isLoading = true
-                                    // TODO: Implement actual forgot password logic with your API
-                                    kotlinx.coroutines.delay(2000) // Simulate API call
+                                    kotlinx.coroutines.delay(2000)
                                     isEmailSent = true
                                 } catch (e: Exception) {
                                     Log.e("ForgotPasswordActivity", "Reset password error", e)
@@ -253,7 +245,6 @@ fun ForgotPasswordScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Do you remember your password?
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
@@ -274,14 +265,12 @@ fun ForgotPasswordScreen(
                 }
             }
         } else {
-            // Email Sent Success State
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Success Icon
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -328,7 +317,6 @@ fun ForgotPasswordScreen(
                     modifier = Modifier.padding(bottom = 40.dp)
                 )
 
-                // Back to Login Button
                 Button(
                     onClick = onSignInClick,
                     modifier = Modifier
@@ -349,7 +337,6 @@ fun ForgotPasswordScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Resend Email
                 TextButton(
                     onClick = {
                         isEmailSent = false

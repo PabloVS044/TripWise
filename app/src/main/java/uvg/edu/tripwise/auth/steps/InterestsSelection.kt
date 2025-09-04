@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.auth.steps.StepIndicator
 
-// Modelo para representar cada interés
 data class InterestItem(
     val name: String,
     val icon: ImageVector,
@@ -34,7 +33,6 @@ fun InterestsScreen(
     onInterestsChanged: (Set<String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Lista de intereses disponibles
     val availableInterests = listOf(
         InterestItem("Aventura", Icons.Default.Hiking, "aventura"),
         InterestItem("Playa", Icons.Default.BeachAccess, "playa"),
@@ -58,7 +56,6 @@ fun InterestsScreen(
     ) {
         item { Spacer(modifier = Modifier.height(60.dp)) }
 
-        // Título principal
         item {
             Text(
                 text = "TripWise",
@@ -70,7 +67,6 @@ fun InterestsScreen(
             )
         }
 
-        // Subtítulo
         item {
             Text(
                 text = "Elige tu cuenta para comenzar tu próxima aventura",
@@ -83,7 +79,6 @@ fun InterestsScreen(
             )
         }
 
-        // Indicador de pasos
         item {
             Box(
                 modifier = Modifier
@@ -98,7 +93,6 @@ fun InterestsScreen(
             }
         }
 
-        // Título intereses
         item {
             Text(
                 text = "Tus intereses",
@@ -110,7 +104,6 @@ fun InterestsScreen(
             )
         }
 
-        // Subtítulo intereses
         item {
             Text(
                 text = "Elige tus intereses para personalizar tu experiencia",
@@ -123,7 +116,6 @@ fun InterestsScreen(
             )
         }
 
-        // Grid de intereses (2 por fila)
         items(availableInterests.chunked(2)) { rowItems ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -145,7 +137,6 @@ fun InterestsScreen(
                     )
                 }
 
-                // Para cuando quede un elemento solo en la fila
                 if (rowItems.size == 1) {
                     Spacer(modifier = Modifier.weight(1f))
                 }

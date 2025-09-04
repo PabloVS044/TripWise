@@ -39,7 +39,6 @@ fun RoleSelectionScreen(
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Header
         Text(
             text = "TripWise",
             fontSize = 32.sp,
@@ -56,14 +55,12 @@ fun RoleSelectionScreen(
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
-        // Step indicators - usando la versión centralizada
         StepIndicator(
             currentStep = 2,
             totalSteps = 3,
             modifier = Modifier.padding(bottom = 40.dp)
         )
 
-        // Content
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -87,7 +84,6 @@ fun RoleSelectionScreen(
                     .padding(bottom = 16.dp)
             )
 
-            // Viajero Option (backend: "user")
             RoleCard(
                 title = "Soy Viajero",
                 description = "Busco lugares increíbles para mis próximas aventuras",
@@ -96,7 +92,6 @@ fun RoleSelectionScreen(
                 onClick = { onRoleSelected("user") }
             )
 
-            // Anfitrión Option (backend: "owner")
             RoleCard(
                 title = "Soy Anfitrión",
                 description = "Quiero ofrecer mi propiedad a otros viajeros",
@@ -106,7 +101,7 @@ fun RoleSelectionScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(120.dp)) // Espacio para los botones
+        Spacer(modifier = Modifier.height(120.dp))
     }
 }
 

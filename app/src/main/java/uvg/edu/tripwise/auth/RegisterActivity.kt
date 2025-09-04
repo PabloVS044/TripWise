@@ -49,16 +49,13 @@ fun RegisterScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Estados para BasicInfoScreen
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // Estados para RoleSelectionScreen
     var selectedRole by remember { mutableStateOf<String?>(null) }
 
-    // Estados para PropertySetupScreen (solo para anfitrión)
     var propertyName by remember { mutableStateOf("") }
     var propertyDescription by remember { mutableStateOf("") }
     var propertyLocation by remember { mutableStateOf("") }
@@ -67,10 +64,8 @@ fun RegisterScreen(
     var propertyType by remember { mutableStateOf("") }
     var selectedAmenities by remember { mutableStateOf(setOf<String>()) }
 
-    // Estados para InterestsScreen (para ambos roles)
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
 
-    // Función para validar el paso actual
     fun canProceedFromCurrentStep(): Boolean {
         return when (currentStep) {
             0 -> {
@@ -96,23 +91,20 @@ fun RegisterScreen(
         }
     }
 
-    // Función para obtener el máximo de pasos según el rol
     fun getMaxSteps(): Int {
         return if (selectedRole == "owner") 4 else 3
     }
 
-    // Función para mapear tipos de propiedad del frontend al backend
     fun mapPropertyType(frontendType: String): String {
         return when (frontendType) {
             "casa" -> "house"
             "apartamento" -> "apartment"
             "cabana" -> "cottage"
-            "hotel" -> "villa" // Mapear hotel a villa por limitaciones del backend
+            "hotel" -> "villa"
             else -> "house"
         }
     }
 
-    // Función para mapear amenidades del frontend al backend
     fun mapAmenities(frontendAmenities: Set<String>): List<String> {
         return frontendAmenities.map {
             when (it) {
@@ -129,7 +121,6 @@ fun RegisterScreen(
         }
     }
 
-    // Función para registrar usuario
     fun registerUser() {
         coroutineScope.launch {
             try {
@@ -141,7 +132,8 @@ fun RegisterScreen(
                     email = email,
                     password = password,
                     pfp = null,
-                    role = selectedRole
+                    role = selectedRole,
+                    interests = selectedInterests.toList()
                 )
 
                 Log.d("RegisterActivity", "Enviando request de usuario: $request")
@@ -151,9 +143,7 @@ fun RegisterScreen(
                     val user = response.body()
                     Log.d("RegisterActivity", "Usuario creado exitosamente: ${user?.id}")
 
-                    // Si es anfitrión y tiene datos de propiedad, crear la propiedad
                     if (selectedRole == "owner" && propertyName.isNotBlank() && user != null) {
-                        // Validar que el precio y capacidad sean números válidos
                         val price = pricePerNight.toDoubleOrNull()
                         val cap = capacity.toIntOrNull()
 
@@ -182,7 +172,7 @@ fun RegisterScreen(
                             propertyType = mapPropertyType(propertyType),
                             owner = user.id,
                             approved = "pending",
-                            latitude = 14.5984, // Coordenadas de Guatemala City
+                            latitude = 14.5984,
                             longitude = -90.5155
                         )
 
@@ -199,7 +189,6 @@ fun RegisterScreen(
                         }
                     }
 
-                    // Aquí podrías agregar lógica para guardar los intereses si los necesitas
                     snackbarHostState.showSnackbar("Registro exitoso")
                     onRegisterSuccess()
                 } else {
@@ -262,7 +251,6 @@ fun RegisterScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // Si es viajero, ir directo a intereses
                     InterestsScreen(
                         selectedInterests = selectedInterests,
                         onInterestsChanged = { selectedInterests = it },
@@ -272,7 +260,6 @@ fun RegisterScreen(
             }
 
             3 -> {
-                // Esta pantalla solo se muestra para anfitriones (después de setup de propiedad)
                 if (selectedRole == "owner") {
                     InterestsScreen(
                         selectedInterests = selectedInterests,
@@ -283,7 +270,6 @@ fun RegisterScreen(
             }
         }
 
-        // Indicador de progreso
         LinearProgressIndicator(
             progress = (currentStep + 1).toFloat() / getMaxSteps(),
             modifier = Modifier
@@ -291,7 +277,6 @@ fun RegisterScreen(
                 .align(Alignment.TopCenter)
         )
 
-        // Botones de navegación
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,7 +284,6 @@ fun RegisterScreen(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Botón Atrás
             if (currentStep > 0) {
                 OutlinedButton(
                     onClick = { currentStep-- },
@@ -316,7 +300,6 @@ fun RegisterScreen(
                 }
             }
 
-            // Botón Siguiente/Registrar
             Button(
                 onClick = {
                     if (currentStep == getMaxSteps() - 1) {

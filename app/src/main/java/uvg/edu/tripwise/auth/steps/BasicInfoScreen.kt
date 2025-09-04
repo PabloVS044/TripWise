@@ -50,7 +50,6 @@ fun BasicInfoScreen(
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
-        // Header
         Text(
             text = "TripWise",
             fontSize = 32.sp,
@@ -73,7 +72,6 @@ fun BasicInfoScreen(
             modifier = Modifier.padding(bottom = 40.dp)
         )
 
-        // Content
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -171,7 +169,7 @@ fun BasicInfoScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(120.dp)) // Espacio para los botones
+        Spacer(modifier = Modifier.height(120.dp))
     }
 }
 

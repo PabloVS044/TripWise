@@ -52,7 +52,7 @@ class LoginActivity : ComponentActivity() {
                             "admin" -> Intent(this, UsersActivity::class.java)
                             "user" -> Intent(this, MainUserActivity::class.java)
                             "owner" -> Intent(this, MainHostActivity::class.java)
-                            else -> Intent(this, MainActivity::class.java) // fallback
+                            else -> Intent(this, MainActivity::class.java)
                         }
                         startActivity(intent)
                         finish()
@@ -189,7 +189,6 @@ fun LoginScreen(
                     modifier = Modifier.padding(bottom = 20.dp)
                 )
 
-                // Email Field
                 Text(
                     text = "Email",
                     fontSize = 14.sp,
