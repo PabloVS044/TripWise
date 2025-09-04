@@ -36,6 +36,30 @@
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
 
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".auth.ForgotPasswordActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".user.MainUserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+        <activity
+            android:name=".host.MainHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
     </application>
 
 </manifest>
