@@ -2,6 +2,8 @@ package uvg.edu.tripwise.auth
 
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.UsersActivity
+import uvg.edu.tripwise.user.MainUserActivity
+import uvg.edu.tripwise.host.MainHostActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.Login
 
@@ -45,8 +47,13 @@ class LoginActivity : ComponentActivity() {
                         startActivity(intent)
                         finish()
                     },
-                    onLoginSuccess = {
-                        val intent = Intent(this, UsersActivity::class.java)
+                    onLoginSuccess = { role ->
+                        val intent = when (role.lowercase()) {
+                            "admin" -> Intent(this, UsersActivity::class.java)
+                            "user" -> Intent(this, MainUserActivity::class.java)
+                            "owner" -> Intent(this, MainHostActivity::class.java)
+                            else -> Intent(this, MainActivity::class.java) // fallback
+                        }
                         startActivity(intent)
                         finish()
                     },
@@ -68,7 +75,7 @@ class LoginActivity : ComponentActivity() {
 @Composable
 fun LoginScreen(
     onBackToHome: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {},
+    onLoginSuccess: (String) -> Unit = {},
     onSignUpClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}
 ) {
@@ -79,22 +86,20 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Snackbar state
     val snackbarHostState = remember { SnackbarHostState() }
     var showSuccessSnackbar by remember { mutableStateOf(false) }
+    var userRole by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Handle success snackbar
     LaunchedEffect(showSuccessSnackbar) {
         if (showSuccessSnackbar) {
             snackbarHostState.showSnackbar(
                 message = "¡Inicio de sesión exitoso!",
                 duration = SnackbarDuration.Short
             )
-            // Delay before navigating to allow user to see the success message
             kotlinx.coroutines.delay(1000)
-            onLoginSuccess()
+            onLoginSuccess(userRole)
             showSuccessSnackbar = false
         }
     }
@@ -105,10 +110,8 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            // Status Bar
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,7 +153,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Welcome Back Title
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -174,7 +176,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Sign In Form
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -217,7 +218,6 @@ fun LoginScreen(
                     singleLine = true
                 )
 
-                // Password Field
                 Text(
                     text = "Password",
                     fontSize = 14.sp,
@@ -255,7 +255,6 @@ fun LoginScreen(
                     singleLine = true
                 )
 
-                // Remember Me and Forgot Password
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -289,7 +288,6 @@ fun LoginScreen(
                     )
                 }
 
-                // Error Message
                 errorMessage?.let { error ->
                     Surface(
                         modifier = Modifier
@@ -307,7 +305,6 @@ fun LoginScreen(
                     }
                 }
 
-                // Sign In Button
                 Button(
                     onClick = {
                         if (email.isBlank() || password.isBlank()) {
@@ -320,7 +317,6 @@ fun LoginScreen(
                                 isLoading = true
                                 errorMessage = null
 
-                                // Make API call to login
                                 val loginRequest = Login(email = email, password = password)
                                 val response = RetrofitInstance.api.login(loginRequest)
 
@@ -328,11 +324,11 @@ fun LoginScreen(
                                     val responseBody = response.body()
                                     val token = responseBody?.get("token")
                                     val userEmail = responseBody?.get("email")
+                                    val role = responseBody?.get("role") ?: "user"
 
-                                    Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail")
+                                    Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role")
 
-                                    // TODO: Save token in SharedPreferences or secure storage
-                                    // For now, just show success message and navigate
+                                    userRole = role
                                     showSuccessSnackbar = true
 
                                 } else {
@@ -379,7 +375,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Or continue with
                 Text(
                     text = "OR CONTINUE WITH",
                     fontSize = 12.sp,
@@ -391,14 +386,13 @@ fun LoginScreen(
                         .padding(bottom = 20.dp)
                 )
 
-                // Social Login Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SocialLoginButton(
                         text = "Google",
-                        icon = Icons.Default.Email, // You should replace this with actual Google icon
+                        icon = Icons.Default.Email,
                         onClick = { /* TODO: Google login */ },
                         modifier = Modifier.weight(1f)
                     )
@@ -413,7 +407,6 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Don't have an account
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -434,7 +427,6 @@ fun LoginScreen(
             }
         }
 
-        // Snackbar Host positioned at the bottom
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -443,7 +435,7 @@ fun LoginScreen(
         ) { snackbarData ->
             Snackbar(
                 snackbarData = snackbarData,
-                containerColor = Color(0xFF4CAF50), // Green background for success
+                containerColor = Color(0xFF4CAF50),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(8.dp)
             )

@@ -51,6 +51,15 @@
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
 
+        <activity
+            android:name=".user.MainUserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+        <activity
+            android:name=".host.MainHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
     </application>
 
 </manifest>
