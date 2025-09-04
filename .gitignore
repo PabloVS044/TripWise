@@ -1,0 +1,19 @@
+# Gradle files
+.gradle/
+build/
+/*/build/
+gradle-wrapper.jar
+
+# Android Studio
+.idea/
+*.iml
+local.properties
+
+# Generated files
+bin/
+gen/
+out/
+
+# OS generated files
+.DS_Store
+Thumbs.db

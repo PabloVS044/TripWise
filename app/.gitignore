@@ -1,1 +1,18 @@
+# Build files
 /build
+*.apk
+*.ap_
+*.dex
+
+# Gradle
+*.gradle
+!gradle-wrapper.properties
+
+# Android Studio
+*.iml
+.idea/
+local.properties
+
+# Generated files
+/gen
+/out
