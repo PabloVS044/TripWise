@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import org.w3c.dom.Text
+import uvg.edu.tripwise.BottomNavigation
 import uvg.edu.tripwise.data.model.Post
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
@@ -128,15 +130,18 @@ fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.c
         
         // Properties Found Section
         selectedProperty?.let { property ->
-            PropertyCard(property = property)
+            PropertyCard(
+                property = property,
+                onClose = {viewModel.clearSelectedProperty()}
+                )
         }
-        
+
         // Bottom Navigation
         BottomNavigationBar()
     }
 }
 @Composable
-fun PropertyCard(property: Post) {
+fun PropertyCard(property: Post, onClose: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -146,13 +151,25 @@ fun PropertyCard(property: Post) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = property.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = property.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                IconButton(onClick = onClose) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.Gray
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
@@ -177,7 +194,6 @@ fun PropertyCard(property: Post) {
         }
     }
 }
-
 @Composable
 fun BottomNavigationBar() {
     NavigationBar(
@@ -185,11 +201,11 @@ fun BottomNavigationBar() {
         modifier = Modifier.fillMaxWidth()
     ) {
         NavigationBarItem(
-            icon = { 
+            icon = {
                 Icon(
-                    imageVector = Icons.Default.Search, 
+                    imageVector = Icons.Default.Search,
                     contentDescription = "Search"
-                ) 
+                )
             },
             label = { Text("Search") },
             selected = true,
@@ -202,11 +218,11 @@ fun BottomNavigationBar() {
             )
         )
         NavigationBarItem(
-            icon = { 
+            icon = {
                 Icon(
-                    imageVector = Icons.Default.Home, 
+                    imageVector = Icons.Default.Home,
                     contentDescription = "Home"
-                ) 
+                )
             },
             label = { Text("Home") },
             selected = false,
@@ -219,11 +235,11 @@ fun BottomNavigationBar() {
             )
         )
         NavigationBarItem(
-            icon = { 
+            icon = {
                 Icon(
-                    imageVector = Icons.Default.Person, 
+                    imageVector = Icons.Default.Person,
                     contentDescription = "Profile"
-                ) 
+                )
             },
             label = { Text("Profile") },
             selected = false,

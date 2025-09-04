@@ -45,4 +45,8 @@ class PropertyViewModel(
             }
         }
     }
+
+    fun clearSelectedProperty() {
+        _selectedProperty.value = null
+    }
 }
