@@ -32,6 +32,11 @@ import uvg.edu.tripwise.BottomNavigation
 import uvg.edu.tripwise.data.model.Post
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
+import coil.compose.AsyncImage
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.res.painterResource
+import coil.request.ImageRequest
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,19 +186,34 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             // Aquí podrías cargar imagen con Coil o Glide
-            Box(
+            LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE0E0E0)),
-                contentAlignment = Alignment.Center
+                    .height(200.dp)
             ) {
-                Text("Property Image", color = Color.Gray)
+                items(property.pictures) { imageUrl ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = property.name,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .width(280.dp)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(android.R.drawable.ic_menu_gallery),
+                        error = painterResource(android.R.drawable.ic_menu_gallery)
+                    )
+                }
             }
+
         }
     }
 }
+
 @Composable
 fun BottomNavigationBar() {
     NavigationBar(
