@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import org.w3c.dom.Text
+import uvg.edu.tripwise.data.model.Post
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
 
@@ -45,7 +46,10 @@ class DiscoverActivity : ComponentActivity() {
 @Composable
 fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val properties by viewModel.properties.collectAsState()
+    val selectedProperty by viewModel.selectedProperty.collectAsState()
+    // Search Bar
     var searchText by remember { mutableStateOf("Madrid") }
+
 
     val madrid = LatLng(40.4168, -3.7038)
     val cameraPositionState = rememberCameraPositionState {
@@ -112,93 +116,65 @@ fun DiscoverScreen(viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.c
                     Marker(
                         state = MarkerState(position = LatLng(property.latitude, property.longitude)),
                         title = property.name,
-                        snippet = property.description
+                        snippet = property.description,
+                        onClick = {
+                            viewModel.getPropertyById(property._id)
+                            false
+                        }
                     )
                 }
             }
         }
         
         // Properties Found Section
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "2 propiedades encontradas",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "Generator Madrid",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black
-                )
-                
-                Text(
-                    text = "C. de San Bernardo, 2, Centro",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Property Image Placeholder
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFE0E0E0)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Property Image",
-                        color = Color.Gray,
-                        fontSize = 14.sp
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Action Buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { /* TODO: Implement disable action */ },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text("Disable", color = Color.Gray)
-                    }
-                    
-                    Button(
-                        onClick = { /* TODO: Implement details action */ },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
-                    ) {
-                        Text("Details", color = Color.White)
-                    }
-                }
-            }
+        selectedProperty?.let { property ->
+            PropertyCard(property = property)
         }
         
         // Bottom Navigation
         BottomNavigationBar()
+    }
+}
+@Composable
+fun PropertyCard(property: Post) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = property.name,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = property.description,
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Aquí podrías cargar imagen con Coil o Glide
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFE0E0E0)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Property Image", color = Color.Gray)
+            }
+        }
     }
 }
 
