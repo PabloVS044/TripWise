@@ -45,11 +45,12 @@
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
 
-        
+        <activity android:name=".discover.FilterActivity" />
         <activity
             android:name=".discover.DiscoverActivity"
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
     </application>
+
 
 </manifest>

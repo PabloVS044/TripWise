@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.discover
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -37,6 +38,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.res.painterResource
 import coil.request.ImageRequest
+
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -216,6 +218,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
 
 @Composable
 fun BottomNavigationBar() {
+    val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
         modifier = Modifier.fillMaxWidth()
@@ -229,7 +232,8 @@ fun BottomNavigationBar() {
             },
             label = { Text("Search") },
             selected = true,
-            onClick = { /* Current screen */ },
+            onClick = { val intent = Intent(context, DiscoverActivity::class.java)
+                context.startActivity(intent) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -254,6 +258,7 @@ fun BottomNavigationBar() {
                 unselectedTextColor = Color.Gray
             )
         )
+
         NavigationBarItem(
             icon = {
                 Icon(
@@ -263,7 +268,8 @@ fun BottomNavigationBar() {
             },
             label = { Text("Profile") },
             selected = false,
-            onClick = { /* TODO: Navigate to Profile */ },
+            onClick = { val intent = Intent(context, FilterActivity::class.java)
+                context.startActivity(intent) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
