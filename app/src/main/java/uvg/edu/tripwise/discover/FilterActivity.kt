@@ -56,12 +56,12 @@ fun FilterScreen() {
     var location by remember { mutableStateOf("") }
 
     // ComboBox Tipo de propiedad
-    val propertyTypes = listOf("Apartamento", "Casa", "Hotel", "Hostel")
+    val propertyTypes = listOf("Cualquiera", "Apartamento", "Casa", "Hotel", "Hostel")
     var selectedType by remember { mutableStateOf(propertyTypes.first()) }
     var typeExpanded by remember { mutableStateOf(false) }
 
     // ComboBox Aprobación
-    val approvalOptions = listOf("Sí", "No")
+    val approvalOptions = listOf("Cualquiera", "Sí", "No")
     var selectedApproved by remember { mutableStateOf(approvalOptions.first()) }
     var approvedExpanded by remember { mutableStateOf(false) }
 
@@ -185,13 +185,14 @@ fun FilterScreen() {
         Button(
             onClick = {
                 val intent = Intent(context, DiscoverActivity::class.java).apply {
-                    putExtra("name", name)
-                    putExtra("minPrice", minPrice)
-                    putExtra("maxPrice", maxPrice)
-                    putExtra("capacity", capacity)
-                    putExtra("location", location)
-                    putExtra("propertyType", selectedType)
-                    putExtra("approved", selectedApproved)
+                    putExtra("name", name.trim())
+                    putExtra("minPrice", minPrice.trim())
+                    putExtra("maxPrice", maxPrice.trim())
+                    putExtra("capacity", capacity.trim())
+                    putExtra("location", location.trim())
+                    // Solo enviar tipo de propiedad y aprobación si no es "Cualquiera"
+                    putExtra("propertyType", if (selectedType == "Cualquiera") "" else selectedType)
+                    putExtra("approved", if (selectedApproved == "Cualquiera") "" else selectedApproved)
                 }
                 context.startActivity(intent)
             },

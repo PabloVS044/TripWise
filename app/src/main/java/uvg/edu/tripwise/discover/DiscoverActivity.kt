@@ -84,36 +84,59 @@ fun DiscoverScreen(
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
-    var searchText by remember { mutableStateOf("Madrid") }
+    var searchText by remember { mutableStateOf("Guatemala") }
     val filteredProperties = properties.filter { property ->
-        val matchesName = filterName.takeIf { it.isNotBlank() }?.let {
-            property.name.contains(it, ignoreCase = true)
+        // Filtro por nombre 
+        val matchesName = filterName.takeIf { it.isNotBlank() }?.let { searchTerm ->
+            property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
-        val matchesLocation = filterLocation.takeIf { it.isNotBlank() }?.let {
-            property.location.contains(it, ignoreCase = true)
+        // Filtro por ubicación 
+        val matchesLocation = filterLocation.takeIf { it.isNotBlank() }?.let { searchTerm ->
+            property.location.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
-        val matchesMinPrice = filterMinPrice?.let { property.pricePerNight >= it } ?: true
-        val matchesMaxPrice = filterMaxPrice?.let { property.pricePerNight <= it } ?: true
-        val matchesCapacity = filterCapacity?.let { property.capacity >= it } ?: true
-
-        val matchesType = filterType.takeIf { it.isNotBlank() }?.let {
-            property.propertyType.contains(it, ignoreCase = true)
+        // Filtros de precio
+        val matchesMinPrice = filterMinPrice?.let { minPrice -> 
+            property.pricePerNight >= minPrice 
+        } ?: true
+        
+        val matchesMaxPrice = filterMaxPrice?.let { maxPrice -> 
+            property.pricePerNight <= maxPrice 
+        } ?: true
+        
+        // Filtro de capacidad 
+        val matchesCapacity = filterCapacity?.let { requiredCapacity -> 
+            property.capacity >= requiredCapacity 
         } ?: true
 
-        val matchesApproved = filterApproved.takeIf { it.isNotBlank() }?.let {
-            property.approved.contains(it, ignoreCase = true)
+        // Filtro por tipo de propiedad
+        val matchesType = filterType.takeIf { it.isNotBlank() && it != "Apartamento" }?.let { searchType ->
+            property.propertyType.trim().contains(searchType.trim(), ignoreCase = true)
         } ?: true
 
+        // Filtro por aprobación
+        val matchesApproved = filterApproved.takeIf { it.isNotBlank() && it != "Sí" }?.let { approvalStatus ->
+            when (approvalStatus.lowercase()) {
+                "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) || 
+                                     property.approved.contains("yes", ignoreCase = true) ||
+                                     property.approved.contains("true", ignoreCase = true)
+                "no" -> property.approved.contains("no", ignoreCase = true) || 
+                        property.approved.contains("false", ignoreCase = true)
+                else -> property.approved.contains(approvalStatus, ignoreCase = true)
+            }
+        } ?: true
+
+        // Todos los filtros deben coincidir
         matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
 
 
-    val madrid = LatLng(40.4168, -3.7038)
+    // Coordenadas de Guatemala como ubicación por defecto
+    val guatemala = LatLng(14.644734, -90.587886)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(madrid, 6f)
+        position = CameraPosition.fromLatLngZoom(guatemala, 8f)
     }
 
     Column(
