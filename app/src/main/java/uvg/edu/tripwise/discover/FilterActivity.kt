@@ -128,7 +128,9 @@ fun FilterScreen() {
                 label = { Text("Tipo de propiedad") },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
             )
             ExposedDropdownMenu(
                 expanded = typeExpanded,
@@ -157,7 +159,9 @@ fun FilterScreen() {
                 label = { Text("Aprobación") },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(approvedExpanded) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor()
             )
             ExposedDropdownMenu(
                 expanded = approvedExpanded,
