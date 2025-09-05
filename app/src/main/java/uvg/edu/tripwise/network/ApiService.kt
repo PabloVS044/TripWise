@@ -35,14 +35,16 @@ data class CreateUserRequest(
     val email: String,
     val password: String,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
 )
 
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
 )
 
 data class ApiProperty(
@@ -51,7 +53,7 @@ data class ApiProperty(
     val description: String,
     val location: String,
     val pricePerNight: Double,
-    val capacity: Number, // Changed from Int to Number to handle potential float values
+    val capacity: Int,
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,
@@ -60,8 +62,22 @@ data class ApiProperty(
     val latitude: Double,
     val longitude: Double,
     val createdAt: String,
-    val deleted: PropertyDeleted,
-    val reviews: List<Map<String, String>>? = null // Added to match backend schema
+    val deleted: PropertyDeleted
+)
+
+data class CreatePropertyRequest(
+    val name: String,
+    val description: String,
+    val location: String,
+    val pricePerNight: Double,
+    val capacity: Int,
+    val pictures: List<String>,
+    val amenities: List<String>,
+    val propertyType: String,
+    val owner: String,
+    val approved: String,
+    val latitude: Double,
+    val longitude: Double
 )
 
 data class PropertyDeleted(
@@ -87,6 +103,11 @@ data class Property(
     val isDeleted: Boolean
 )
 
+data class Login (
+    val email: String,
+    val password: String
+)
+
 interface UserApiService {
     @GET("users")
     suspend fun getUsers(): List<ApiUser>
@@ -104,11 +125,17 @@ interface UserApiService {
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
     @GET("property")
-    suspend fun getProperties(): Response<List<ApiProperty>> // Changed to Response for error handling
+    suspend fun getProperties(): List<ApiProperty>
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
+    @POST("property/createProperty")
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+
+    @POST("login")
+    suspend fun login(@Body login: Login): Response<Map<String, String>>
 }
