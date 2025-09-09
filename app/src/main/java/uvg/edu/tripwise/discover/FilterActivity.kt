@@ -31,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import java.util.logging.Filter
 
@@ -73,6 +75,15 @@ fun FilterScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        Row {
+            Text(
+                text = "Filtros para el mapa",
+                modifier = Modifier.weight(1f),
+                color = Color.Black,
+                fontSize = 32.sp,
+                textAlign = TextAlign.Center
+            )
+        }
         // Nombre
         OutlinedTextField(
             value = name,

@@ -36,6 +36,7 @@ import uvg.edu.tripwise.viewModel.PropertyViewModel
 import coil.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.ui.res.painterResource
 import coil.request.ImageRequest
@@ -336,11 +337,11 @@ fun BottomNavigationBar() {
         NavigationBarItem(
             icon = {
                 Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile"
+                    imageVector = Icons.Default.FilterAlt,
+                    contentDescription = "Filtros"
                 )
             },
-            label = { Text("Profile") },
+            label = { Text("Filtros") },
             selected = false,
             onClick = { val intent = Intent(context, FilterActivity::class.java)
                 context.startActivity(intent) },
