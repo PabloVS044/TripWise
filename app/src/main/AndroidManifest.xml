@@ -74,6 +74,11 @@
             android:exported="false"
             android:theme="@style/Theme.TripWise"/>
 
+        <activity
+            android:name=".host.PropertiesHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
     </application>
 
 
