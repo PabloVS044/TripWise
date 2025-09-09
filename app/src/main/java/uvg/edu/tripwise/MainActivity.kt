@@ -1,6 +1,7 @@
 package uvg.edu.tripwise
 
 import android.content.Intent
+import uvg.edu.tripwise.auth.LoginActivity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,7 +41,7 @@ class MainActivity : ComponentActivity() {
             TripWiseTheme {
                 TripWiseLandingPage(
                     onLoginClick = {
-                        val intent = Intent(this, UsersActivity::class.java)
+                        val intent = Intent(this, LoginActivity::class.java)
                         startActivity(intent)
                     }
                 )
