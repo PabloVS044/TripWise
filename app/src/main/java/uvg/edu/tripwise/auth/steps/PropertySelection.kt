@@ -59,7 +59,7 @@ fun PropertySetupScreen(
         AmenityItem(stringResource(R.string.parking), Icons.Default.LocalParking, "estacionamiento"),
         AmenityItem(stringResource(R.string.air_conditioning), Icons.Default.AcUnit, "aire_acondicionado"),
         AmenityItem(stringResource(R.string.tv), Icons.Default.Tv, "tv"),
-        AmenityItem(stringResource(R.string.washer), Icons.Default.LocalLaundryService, "lavadora"),
+        AmenityItem(stringResource(R.string.washing_machine), Icons.Default.LocalLaundryService, "lavadora"),
         AmenityItem(stringResource(R.string.balcony), Icons.Default.Balcony, "balcon")
     )
 

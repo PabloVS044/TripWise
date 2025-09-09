@@ -61,7 +61,7 @@ fun BasicInfoScreen(
         )
 
         Text(
-            text = stringResource(R.string.feacreate_account_message),
+            text = stringResource(R.string.create_account_message),
             fontSize = 16.sp,
             color = Color(0xFF6B7280),
             textAlign = TextAlign.Center,

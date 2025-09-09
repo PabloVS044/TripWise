@@ -12,6 +12,10 @@
     <string name="or_continue_with">OR CONTINUE WITH</string>
     <string name="google">Google</string>
     <string name="facebook">Facebook</string>
+    <string name="create_account_message">Crea tu cuenta para comenzar tu próxima aventura</string>
+    <string name="basic_info">Información Básica</string>
+    <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
+
 
     <!-- Login Screen -->
     <string name="welcome_back">Welcome Back</string>
@@ -129,4 +133,16 @@
     <string name="registration_successful">Registro exitoso</string>
     <string name="user_registration_error">Error al registrar usuario: %1$s</string>
     <string name="register_error">Error: %1$s</string>
+    <string name="choose_account_message">Elige tu cuenta para comenzar tu próxima aventura</string>
+    <string name="your_interests">Tus intereses</string>
+    <string name="choose_interests_message">Elige tus intereses para personalizar tu experiencia</string>
+    <string name="describe_property_message">Describe tu propiedad para atraer huéspedes</string>
+    <string name="your_property">Tu propiedad</string>
+    <string name="description">Descripción</string>
+    <string name="location">Ubicación</string>
+    <string name="property_type">Tipo de propiedad</string>
+    <string name="amenities">Amenidades</string>
+    <string name="select_role">Selecciona tu rol</string>
+    <string name="i_am_traveler">Soy Viajero</string>
+    <string name="i_am_host">Soy Anfitrión</string>
 </resources>
