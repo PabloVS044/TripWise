@@ -36,7 +36,23 @@ data class CreateUserRequest(
     val email: String,
     val password: String,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
+)
+
+data class CreatePropertyRequest(
+    val name: String,
+    val description: String,
+    val location: String,
+    val pricePerNight: Double,
+    val capacity: Int,
+    val pictures: List<String>,
+    val amenities: List<String>,
+    val propertyType: String,
+    val owner: String,
+    val approved: String,
+    val latitude: Double,
+    val longitude: Double
 )
 
 data class UpdateUserRequest(
@@ -69,6 +85,10 @@ data class PropertyDeleted(
     @SerializedName("is") val `is`: Boolean,
     val at: String? = null
 )
+data class Login (
+    val email: String,
+    val password: String
+)
 
 data class Property(
     val id: String,
@@ -76,7 +96,7 @@ data class Property(
     val description: String,
     val location: String,
     val pricePerNight: Double,
-    val capacity: Int,
+    val capacity: Number,
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,
@@ -105,13 +125,19 @@ interface UserApiService {
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
     @GET("property")
-    suspend fun getProperties(): Response<List<ApiProperty>> // Changed to Response for error handling
+    suspend fun getProperties(): List<ApiProperty>// Changed to Response for error handling
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+
+    @POST("login")
+    suspend fun login(@Body login: Login): Response<Map<String, String>>
+
+    @POST("property/createProperty")
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
 }
 
 interface PropertyApiService {
