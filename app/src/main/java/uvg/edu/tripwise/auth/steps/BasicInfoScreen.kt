@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.auth.steps.StepIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +53,7 @@ fun BasicInfoScreen(
         Spacer(modifier = Modifier.height(60.dp))
 
         Text(
-            text = "TripWise",
+            text = stringResource(R.string.app_name),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2563EB),
@@ -59,7 +61,7 @@ fun BasicInfoScreen(
         )
 
         Text(
-            text = "Crea tu cuenta para comenzar tu próxima aventura",
+            text = stringResource(R.string.feacreate_account_message),
             fontSize = 16.sp,
             color = Color(0xFF6B7280),
             textAlign = TextAlign.Center,
@@ -77,14 +79,14 @@ fun BasicInfoScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text = "Información Básica",
+                text = stringResource(R.string.basic_info),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
             Text(
-                text = "Completa tus datos personales",
+                text = stringResource(R.string.complete_personal_data),
                 fontSize = 14.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -93,7 +95,7 @@ fun BasicInfoScreen(
             OutlinedTextField(
                 value = fullName,
                 onValueChange = onFullNameChange,
-                label = { Text("Nombre Completo") },
+                label = { Text(stringResource(R.string.full_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -105,7 +107,7 @@ fun BasicInfoScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = onEmailChange,
-                label = { Text("Correo Electrónico") },
+                label = { Text(stringResource(R.string.email)) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -118,14 +120,14 @@ fun BasicInfoScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = onPasswordChange,
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.password)) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                            contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                         )
                     }
                 },
@@ -140,14 +142,14 @@ fun BasicInfoScreen(
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = onConfirmPasswordChange,
-                label = { Text("Confirmar Contraseña") },
+                label = { Text(stringResource(R.string.confirm_password)) },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
                     IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                         Icon(
                             imageVector = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+                            contentDescription = if (confirmPasswordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                         )
                     }
                 },
@@ -161,7 +163,7 @@ fun BasicInfoScreen(
                 supportingText = {
                     if (password.isNotEmpty() && confirmPassword.isNotEmpty() && password != confirmPassword) {
                         Text(
-                            text = "Las contraseñas no coinciden",
+                            text = stringResource(R.string.passwords_do_not_match),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -172,4 +174,3 @@ fun BasicInfoScreen(
         Spacer(modifier = Modifier.height(120.dp))
     }
 }
-

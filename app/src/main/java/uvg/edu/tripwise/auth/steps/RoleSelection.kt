@@ -15,10 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.auth.steps.StepIndicator
 
 @Composable
@@ -40,7 +42,7 @@ fun RoleSelectionScreen(
         Spacer(modifier = Modifier.height(60.dp))
 
         Text(
-            text = "TripWise",
+            text = stringResource(R.string.app_name),
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2563EB),
@@ -48,7 +50,7 @@ fun RoleSelectionScreen(
         )
 
         Text(
-            text = "Elige tu cuenta para comenzar tu próxima aventura",
+            text = stringResource(R.string.choose_account_message),
             fontSize = 16.sp,
             color = Color(0xFF6B7280),
             textAlign = TextAlign.Center,
@@ -66,7 +68,7 @@ fun RoleSelectionScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text = "Selecciona tu rol",
+                text = stringResource(R.string.select_role),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -75,7 +77,7 @@ fun RoleSelectionScreen(
             )
 
             Text(
-                text = "¿Cómo quieres usar nuestra plataforma?",
+                text = stringResource(R.string.how_to_use_platform),
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center,
@@ -85,16 +87,16 @@ fun RoleSelectionScreen(
             )
 
             RoleCard(
-                title = "Soy Viajero",
-                description = "Busco lugares increíbles para mis próximas aventuras",
+                title = stringResource(R.string.i_am_traveler),
+                description = stringResource(R.string.traveler_description),
                 icon = Icons.Default.TravelExplore,
                 isSelected = selectedRole == "user",
                 onClick = { onRoleSelected("user") }
             )
 
             RoleCard(
-                title = "Soy Anfitrión",
-                description = "Quiero ofrecer mi propiedad a otros viajeros",
+                title = stringResource(R.string.i_am_host),
+                description = stringResource(R.string.host_description),
                 icon = Icons.Default.Home,
                 isSelected = selectedRole == "owner",
                 onClick = { onRoleSelected("owner") }
@@ -176,7 +178,7 @@ private fun RoleCard(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.selected),
                     tint = Color(0xFF2563EB),
                     modifier = Modifier.size(24.dp)
                 )
