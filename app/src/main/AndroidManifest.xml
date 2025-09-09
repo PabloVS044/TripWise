@@ -77,6 +77,11 @@
             android:name=".reservation.ReservationPage1Activity"
             tools:ignore="MissingClass" />
 
+        <activity
+            android:name=".host.PropertiesHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
     </application>
 
 

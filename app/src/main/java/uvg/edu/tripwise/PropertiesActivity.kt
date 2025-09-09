@@ -38,12 +38,16 @@ import uvg.edu.tripwise.network.RetrofitInstance
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.host.PropertiesHost
+import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class PropertiesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PropertiesScreen()
+            TripWiseTheme {
+                PropertiesHost()
+            }
         }
     }
 }
