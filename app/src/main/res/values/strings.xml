@@ -63,6 +63,8 @@
     <!-- Register Screen -->
     <string name="create_account_subtitle">Crea tu cuenta para comenzar tu próxima aventura</string>
     <string name="login_button">Iniciar Sesión</string>
+    <string name="registration_error">No se pudo crear la cuenta</string>
+    <string name="error_generic">Error de conexión</string>
 
     <!-- Basic Info Screen -->
     <string name="basic_info_title">Información Básica</string>
@@ -84,6 +86,19 @@
     <string name="selected">Selected</string>
 
     <!-- Property Setup Screen -->
+    <string name="choose_account_message">Elige tu cuenta para comenzar tu próxima aventura</string>
+    <string name="your_interests">Tus intereses</string>
+    <string name="choose_interests_message">Elige tus intereses para personalizar tu experiencia</string>
+    <string name="describe_property_message">Describe tu propiedad para atraer huéspedes</string>
+    <string name="your_property">Tu propiedad</string>
+    <string name="description">Descripción</string>
+    <string name="location">Ubicación</string>
+    <string name="property_type">Tipo de propiedad</string>
+    <string name="amenities">Amenidades</string>
+    <string name="select_role">Selecciona tu rol</string>
+    <string name="i_am_traveler">Soy Viajero</string>
+    <string name="i_am_host">Soy Anfitrión</string>
+    <string name="no_account">Don\'t have an account?</string>
     <string name="property_setup_subtitle">Describe tu propiedad para atraer huéspedes</string>
     <string name="your_property_title">Tu propiedad</string>
     <string name="property_name">Nombre de la propiedad</string>
@@ -133,16 +148,5 @@
     <string name="registration_successful">Registro exitoso</string>
     <string name="user_registration_error">Error al registrar usuario: %1$s</string>
     <string name="register_error">Error: %1$s</string>
-    <string name="choose_account_message">Elige tu cuenta para comenzar tu próxima aventura</string>
-    <string name="your_interests">Tus intereses</string>
-    <string name="choose_interests_message">Elige tus intereses para personalizar tu experiencia</string>
-    <string name="describe_property_message">Describe tu propiedad para atraer huéspedes</string>
-    <string name="your_property">Tu propiedad</string>
-    <string name="description">Descripción</string>
-    <string name="location">Ubicación</string>
-    <string name="property_type">Tipo de propiedad</string>
-    <string name="amenities">Amenidades</string>
-    <string name="select_role">Selecciona tu rol</string>
-    <string name="i_am_traveler">Soy Viajero</string>
-    <string name="i_am_host">Soy Anfitrión</string>
+
 </resources>
