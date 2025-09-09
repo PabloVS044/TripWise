@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class LoginActivity : ComponentActivity() {
@@ -50,7 +51,7 @@ class LoginActivity : ComponentActivity() {
                     onLoginSuccess = { role ->
                         val intent = when (role.lowercase()) {
                             "admin" -> Intent(this, UsersActivity::class.java)
-                            "user" -> Intent(this, MainUserActivity::class.java)
+                            "user" -> Intent(this, DiscoverActivity::class.java)
                             "owner" -> Intent(this, MainHostActivity::class.java)
                             else -> Intent(this, MainActivity::class.java)
                         }
