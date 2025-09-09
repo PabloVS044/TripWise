@@ -192,24 +192,52 @@ fun FilterScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón Aplicar filtros
-        Button(
-            onClick = {
-                val intent = Intent(context, DiscoverActivity::class.java).apply {
-                    putExtra("name", name.trim())
-                    putExtra("minPrice", minPrice.trim())
-                    putExtra("maxPrice", maxPrice.trim())
-                    putExtra("capacity", capacity.trim())
-                    putExtra("location", location.trim())
-                    // Solo enviar tipo de propiedad y aprobación si no es "Cualquiera"
-                    putExtra("propertyType", if (selectedType == "Cualquiera") "" else selectedType)
-                    putExtra("approved", if (selectedApproved == "Cualquiera") "" else selectedApproved)
-                }
-                context.startActivity(intent)
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Aplicar filtros")
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            // Botón Aplicar filtros
+            Button(
+                onClick = {
+                    val intent = Intent(context, DiscoverActivity::class.java).apply {
+                        putExtra("name", name.trim())
+                        putExtra("minPrice", minPrice.trim())
+                        putExtra("maxPrice", maxPrice.trim())
+                        putExtra("capacity", capacity.trim())
+                        putExtra("location", location.trim())
+                        // Solo enviar tipo de propiedad y aprobación si no es "Cualquiera"
+                        putExtra("propertyType", if (selectedType == "Cualquiera") "" else selectedType)
+                        putExtra("approved", if (selectedApproved == "Cualquiera") "" else selectedApproved)
+                    }
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.weight(1f).padding(start = 4.dp)
+            ) {
+                Text("Aplicar filtros")
+            }
+
+            Button(
+                onClick = {
+                    // valores a su estado inicial
+                    name = ""
+                    minPrice = ""
+                    maxPrice = ""
+                    capacity = ""
+                    location = ""
+                    selectedType = ""
+                    selectedApproved = ""
+
+                    // Intent para regresar sin filtros
+                    val intent = Intent(context, DiscoverActivity::class.java)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 4.dp)
+            ) {
+                Text("Cancelar")
+            }
+
         }
     }
 }
