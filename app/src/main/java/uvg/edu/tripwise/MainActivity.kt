@@ -1,6 +1,7 @@
 package uvg.edu.tripwise
 
 import android.content.Intent
+import uvg.edu.tripwise.auth.LoginActivity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,12 +24,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.auth.RegisterActivity
+import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class MainActivity : ComponentActivity() {
@@ -38,7 +42,7 @@ class MainActivity : ComponentActivity() {
             TripWiseTheme {
                 TripWiseLandingPage(
                     onLoginClick = {
-                        val intent = Intent(this, UsersActivity::class.java)
+                        val intent = Intent(this, LoginActivity::class.java)
                         startActivity(intent)
                     }
                 )
@@ -122,6 +126,8 @@ fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
 
 @Composable
 fun HeroSection() {
+    val context = LocalContext.current
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,7 +186,10 @@ fun HeroSection() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = { /* TODO: Start Adventure */ },
+                onClick = { 
+                    val intent = Intent(context, RegisterActivity::class.java)
+                    context.startActivity(intent)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),

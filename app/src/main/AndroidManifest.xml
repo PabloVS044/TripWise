@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permisos para Google Maps -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +19,12 @@
         android:theme="@style/Theme.TripWise"
         tools:targetApi="31">
 
+        
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -36,6 +45,39 @@
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
 
+        <activity android:name=".discover.FilterActivity" />
+        <activity
+            android:name=".discover.DiscoverActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+        <activity
+            android:name=".auth.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".auth.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".auth.ForgotPasswordActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".user.MainUserActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+        <activity
+            android:name=".host.MainHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+        <activity
+            android:name=".reservation.ReservationPage1Activity"
+            tools:ignore="MissingClass" />
+
     </application>
+
 
 </manifest>
