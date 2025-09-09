@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TripWise</string>
+    <string name="filter_name">Filtros</string>
 </resources>

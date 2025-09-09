@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import uvg.edu.tripwise.data.model.Post
 
 data class ApiUser(
     @SerializedName("_id") val id: String,
@@ -39,32 +40,6 @@ data class CreateUserRequest(
     val interests: List<String>? = null
 )
 
-data class UpdateUserRequest(
-    val name: String? = null,
-    val email: String? = null,
-    val pfp: String? = null,
-    val role: String? = null,
-    val interests: List<String>? = null
-)
-
-data class ApiProperty(
-    @SerializedName("_id") val _id: String,
-    val name: String,
-    val description: String,
-    val location: String,
-    val pricePerNight: Double,
-    val capacity: Int,
-    val pictures: List<String>,
-    val amenities: List<String>,
-    val propertyType: String,
-    val owner: String,
-    val approved: String,
-    val latitude: Double,
-    val longitude: Double,
-    val createdAt: String,
-    val deleted: PropertyDeleted
-)
-
 data class CreatePropertyRequest(
     val name: String,
     val description: String,
@@ -80,9 +55,39 @@ data class CreatePropertyRequest(
     val longitude: Double
 )
 
+data class UpdateUserRequest(
+    val name: String? = null,
+    val email: String? = null,
+    val pfp: String? = null,
+    val role: String? = null
+)
+
+data class ApiProperty(
+    @SerializedName("_id") val _id: String,
+    val name: String,
+    val description: String,
+    val location: String,
+    val pricePerNight: Double,
+    val capacity: Number, // Changed from Int to Number to handle potential float values
+    val pictures: List<String>,
+    val amenities: List<String>,
+    val propertyType: String,
+    val owner: String,
+    val approved: String,
+    val latitude: Double,
+    val longitude: Double,
+    val createdAt: String,
+    val deleted: PropertyDeleted,
+    val reviews: List<Map<String, String>>? = null // Added to match backend schema
+)
+
 data class PropertyDeleted(
     @SerializedName("is") val `is`: Boolean,
     val at: String? = null
+)
+data class Login (
+    val email: String,
+    val password: String
 )
 
 data class Property(
@@ -91,7 +96,7 @@ data class Property(
     val description: String,
     val location: String,
     val pricePerNight: Double,
-    val capacity: Int,
+    val capacity: Number,
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,
@@ -101,11 +106,6 @@ data class Property(
     val longitude: Double,
     val createdAt: String,
     val isDeleted: Boolean
-)
-
-data class Login (
-    val email: String,
-    val password: String
 )
 
 interface UserApiService {
@@ -125,17 +125,30 @@ interface UserApiService {
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
     @GET("property")
-    suspend fun getProperties(): List<ApiProperty>
+    suspend fun getProperties(): List<ApiProperty>// Changed to Response for error handling
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
-
-    @POST("property/createProperty")
-    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
 
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 
     @POST("login")
     suspend fun login(@Body login: Login): Response<Map<String, String>>
+
+    @POST("property/createProperty")
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+}
+
+interface PropertyApiService {
+    @GET("property")
+    suspend fun getProperties(): List<Post>
+    @GET("property/{id}")
+    suspend fun getPropertyById(@Path("id") id: String): Post
+    @POST("property/create")
+    suspend fun createProperty(): List<ApiProperty>
+    @PUT("property/{id}")
+    suspend fun updateProperty(): List<ApiProperty>
+    @DELETE("property/{id}")
+    suspend fun deleteProperty(): List<ApiProperty>
 }
