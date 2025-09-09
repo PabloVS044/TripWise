@@ -3,7 +3,7 @@ package uvg.edu.tripwise.auth
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.UsersActivity
 import uvg.edu.tripwise.user.MainUserActivity
-import uvg.edu.tripwise.host.MainHostActivity
+import uvg.edu.tripwise.host.PropertiesHost
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.Login
 
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import uvg.edu.tripwise.discover.DiscoverActivity
+import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class LoginActivity : ComponentActivity() {
@@ -52,7 +53,7 @@ class LoginActivity : ComponentActivity() {
                         val intent = when (role.lowercase()) {
                             "admin" -> Intent(this, UsersActivity::class.java)
                             "user" -> Intent(this, DiscoverActivity::class.java)
-                            "owner" -> Intent(this, MainHostActivity::class.java)
+                            "owner" -> Intent(this, PropertiesHostActivity::class.java)
                             else -> Intent(this, MainActivity::class.java)
                         }
                         startActivity(intent)
