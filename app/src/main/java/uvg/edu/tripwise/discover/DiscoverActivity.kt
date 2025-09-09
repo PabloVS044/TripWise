@@ -37,6 +37,8 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Luggage
+import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.ui.res.painterResource
 import coil.request.ImageRequest
@@ -262,7 +264,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Aquí podrías cargar imagen con Coil o Glide
+            //cargar imagen con Coil o Glide
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -302,10 +304,10 @@ fun BottomNavigationBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
+                    contentDescription = "Buscar"
                 )
             },
-            label = { Text("Search") },
+            label = { Text("Buscar") },
             selected = true,
             onClick = { val intent = Intent(context, DiscoverActivity::class.java)
                 context.startActivity(intent) },
@@ -319,13 +321,14 @@ fun BottomNavigationBar() {
         NavigationBarItem(
             icon = {
                 Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home"
+                    imageVector = Icons.Default.Luggage,
+                    contentDescription = "Reservacion"
                 )
             },
-            label = { Text("Home") },
+            label = { Text("Reservacion") },
             selected = false,
-            onClick = { /* TODO: Navigate to Home */ },
+            onClick = { val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
+                context.startActivity(intent)},
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -352,6 +355,27 @@ fun BottomNavigationBar() {
                 unselectedTextColor = Color.Gray
             )
         )
+
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Perfil"
+                )
+            },
+            label = { Text("Perfil") },
+            selected = false,
+            onClick = {
+                /*navegación al perfil */
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFF1976D2),
+                selectedTextColor = Color(0xFF1976D2),
+                unselectedIconColor = Color.Gray,
+                unselectedTextColor = Color.Gray
+            )
+        )
+
     }
 }
 
