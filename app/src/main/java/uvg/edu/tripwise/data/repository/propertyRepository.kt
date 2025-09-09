@@ -16,4 +16,13 @@ class propertyRepository (
         val property = api.getPropertyById(id)
         return property
     }
+
+    suspend fun deleteProperty(id: String): Boolean {
+        return try {
+            api.deleteProperty(id) // Asume que PropertyApiService tiene un método deleteProperty(id: String)
+            true
+        } catch (e: Exception) {
+            false // En caso de error, devuelve false sin lanzar excepción para manejar en la UI
+        }
+    }
 }
