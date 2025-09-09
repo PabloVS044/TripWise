@@ -150,5 +150,5 @@ interface PropertyApiService {
     @PUT("property/{id}")
     suspend fun updateProperty(): List<ApiProperty>
     @DELETE("property/{id}")
-    suspend fun deleteProperty(): List<ApiProperty>
+    suspend fun deleteProperty(id: String): List<ApiProperty>
 }
