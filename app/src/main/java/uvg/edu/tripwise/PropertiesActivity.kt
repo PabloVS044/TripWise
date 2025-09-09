@@ -46,7 +46,7 @@ class PropertiesActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TripWiseTheme {
-                PropertiesHost()
+                PropertiesScreen()
             }
         }
     }
