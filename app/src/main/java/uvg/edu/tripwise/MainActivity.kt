@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.auth.RegisterActivity
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
@@ -186,7 +187,7 @@ fun HeroSection() {
         ) {
             Button(
                 onClick = { 
-                    val intent = Intent(context, DiscoverActivity::class.java)
+                    val intent = Intent(context, RegisterActivity::class.java)
                     context.startActivity(intent)
                 },
                 modifier = Modifier
