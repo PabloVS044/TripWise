@@ -1,4 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Common -->
     <string name="app_name">TripWise</string>
-    <string name="filter_name">Filtros</string>
+    <string name="time_display">9:30</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign up</string>
+    <string name="log_in">Log In</string>
+    <string name="back">Atrás</string>
+    <string name="next">Siguiente</string>
+    <string name="register">Registrar</string>
+    <string name="or_continue_with">OR CONTINUE WITH</string>
+    <string name="google">Google</string>
+    <string name="facebook">Facebook</string>
+    <string name="create_account_message">Crea tu cuenta para comenzar tu próxima aventura</string>
+    <string name="basic_info">Información Básica</string>
+    <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
+
+
+    <!-- Login Screen -->
+    <string name="welcome_back">Welcome Back</string>
+    <string name="sign_in_subtitle">Sign in to continue driving your adventure</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="remember_me">Remember me</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="dont_have_account">Don\'t have an account? </string>
+    <string name="sign_up_here">Sign up here</string>
+    <string name="back_to_home">Back to home</string>
+    <string name="hide_password">Hide password</string>
+    <string name="show_password">Show password</string>
+
+    <!-- Login Error Messages -->
+    <string name="please_fill_all_fields">Por favor completa todos los campos</string>
+    <string name="user_not_found">Usuario no encontrado</string>
+    <string name="incorrect_credentials">Credenciales incorrectas</string>
+    <string name="server_error">Error del servidor. Código: %1$s</string>
+    <string name="connection_error">Error de conexión. Verifica tu internet.</string>
+    <string name="login_successful">¡Inicio de sesión exitoso!</string>
+
+    <!-- Forgot Password Screen -->
+    <string name="forgot_password_title">Forgot password?</string>
+    <string name="forgot_password_subtitle">No worries! Enter your email and we\'ll send you\nreset instructions.</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="enter_email_placeholder">Enter your email here</string>
+    <string name="do_you_remember_password">Do you remember your password? </string>
+    <string name="sign_in_here">Sign In here</string>
+    <string name="back_to_login">Back to login</string>
+
+    <!-- Forgot Password Error Messages -->
+    <string name="please_enter_email">Por favor ingresa tu email</string>
+    <string name="please_enter_valid_email">Por favor ingresa un email válido</string>
+    <string name="error_sending_email">Error al enviar email. Intenta de nuevo.</string>
+
+    <!-- Email Sent Screen -->
+    <string name="email_sent_title">Email Sent!</string>
+    <string name="email_sent_message">We\'ve sent password reset instructions to\n%1$s</string>
+    <string name="email_sent_instructions">Check your email and follow the instructions to reset your password. If you don\'t see the email, check your spam folder.</string>
+    <string name="back_to_sign_in">Back to Sign In</string>
+    <string name="didnt_receive_email">Didn\'t receive the email? Send again</string>
+    <string name="success">Success</string>
+
+    <!-- Register Screen -->
+    <string name="create_account_subtitle">Crea tu cuenta para comenzar tu próxima aventura</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="registration_error">No se pudo crear la cuenta</string>
+    <string name="error_generic">Error de conexión</string>
+
+    <!-- Basic Info Screen -->
+    <string name="basic_info_title">Información Básica</string>
+    <string name="complete_personal_data">Completa tus datos personales</string>
+    <string name="full_name">Nombre Completo</string>
+    <string name="email_address">Correo Electrónico</string>
+    <string name="password_field">Contraseña</string>
+    <string name="confirm_password">Confirmar Contraseña</string>
+    <string name="passwords_dont_match">Las contraseñas no coinciden</string>
+
+    <!-- Role Selection Screen -->
+    <string name="choose_account_subtitle">Elige tu cuenta para comenzar tu próxima aventura</string>
+    <string name="select_role_title">Selecciona tu rol</string>
+    <string name="how_to_use_platform">¿Cómo quieres usar nuestra plataforma?</string>
+    <string name="traveler_title">Soy Viajero</string>
+    <string name="traveler_description">Busco lugares increíbles para mis próximas aventuras</string>
+    <string name="host_title">Soy Anfitrión</string>
+    <string name="host_description">Quiero ofrecer mi propiedad a otros viajeros</string>
+    <string name="selected">Selected</string>
+
+    <!-- Property Setup Screen -->
+    <string name="choose_account_message">Elige tu cuenta para comenzar tu próxima aventura</string>
+    <string name="your_interests">Tus intereses</string>
+    <string name="choose_interests_message">Elige tus intereses para personalizar tu experiencia</string>
+    <string name="describe_property_message">Describe tu propiedad para atraer huéspedes</string>
+    <string name="your_property">Tu propiedad</string>
+    <string name="description">Descripción</string>
+    <string name="location">Ubicación</string>
+    <string name="property_type">Tipo de propiedad</string>
+    <string name="amenities">Amenidades</string>
+    <string name="select_role">Selecciona tu rol</string>
+    <string name="i_am_traveler">Soy Viajero</string>
+    <string name="i_am_host">Soy Anfitrión</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="property_setup_subtitle">Describe tu propiedad para atraer huéspedes</string>
+    <string name="your_property_title">Tu propiedad</string>
+    <string name="property_name">Nombre de la propiedad</string>
+    <string name="property_description">Descripción</string>
+    <string name="property_location">Ubicación</string>
+    <string name="price_per_night">Precio/noche (Q)</string>
+    <string name="capacity">Capacidad</string>
+    <string name="property_type_title">Tipo de propiedad</string>
+    <string name="amenities_title">Amenidades</string>
+
+    <!-- Property Types -->
+    <string name="house">Casa</string>
+    <string name="apartment">Apartamento</string>
+    <string name="cabin">Cabaña</string>
+    <string name="hotel">Hotel</string>
+
+    <!-- Amenities -->
+    <string name="wifi">WiFi</string>
+    <string name="pool">Piscina</string>
+    <string name="kitchen">Cocina</string>
+    <string name="parking">Estacionamiento</string>
+    <string name="air_conditioning">Aire Acondicionado</string>
+    <string name="tv">TV</string>
+    <string name="washing_machine">Lavadora</string>
+    <string name="balcony">Balcón</string>
+
+    <!-- Interests Screen -->
+    <string name="your_interests_title">Tus intereses</string>
+    <string name="choose_interests_subtitle">Elige tus intereses para personalizar tu experiencia</string>
+
+    <!-- Interest Categories -->
+    <string name="adventure">Aventura</string>
+    <string name="beach">Playa</string>
+    <string name="mountain">Montaña</string>
+    <string name="city">Ciudad</string>
+    <string name="culture">Cultura</string>
+    <string name="gastronomy">Gastronomía</string>
+    <string name="history">Historia</string>
+    <string name="nature">Naturaleza</string>
+    <string name="relax">Relax</string>
+    <string name="photography">Fotografía</string>
+
+    <!-- Register Error Messages -->
+    <string name="invalid_price_per_night">El precio por noche debe ser un número válido mayor a 0</string>
+    <string name="invalid_capacity">La capacidad debe ser un número válido mayor a 0</string>
+    <string name="user_created_property_error">Usuario creado, pero error al crear propiedad: %1$s</string>
+    <string name="registration_successful">Registro exitoso</string>
+    <string name="user_registration_error">Error al registrar usuario: %1$s</string>
+    <string name="register_error">Error: %1$s</string>
+
 </resources>

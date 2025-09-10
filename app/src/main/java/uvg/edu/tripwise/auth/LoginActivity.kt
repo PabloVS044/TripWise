@@ -25,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -94,10 +96,18 @@ fun LoginScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
+    // Obtener todas las strings de recursos aquí, en el contexto composable
+    val loginSuccessfulMsg = stringResource(R.string.login_successful)
+    val pleaseFillAllFieldsMsg = stringResource(R.string.please_fill_all_fields)
+    val userNotFoundMsg = stringResource(R.string.user_not_found)
+    val incorrectCredentialsMsg = stringResource(R.string.incorrect_credentials)
+    val serverErrorMsg = stringResource(R.string.server_error)
+    val connectionErrorMsg = stringResource(R.string.connection_error)
+
     LaunchedEffect(showSuccessSnackbar) {
         if (showSuccessSnackbar) {
             snackbarHostState.showSnackbar(
-                message = "¡Inicio de sesión exitoso!",
+                message = loginSuccessfulMsg,
                 duration = SnackbarDuration.Short
             )
             kotlinx.coroutines.delay(1000)
@@ -125,28 +135,21 @@ fun LoginScreen(
                     IconButton(onClick = onBackToHome) {
                         Icon(
                             Icons.Default.ArrowBack,
-                            contentDescription = "Back to home",
+                            contentDescription = stringResource(R.string.back_to_home),
                             tint = Color.Black
                         )
                     }
                     Text(
-                        text = "Tripwise",
+                        text = stringResource(R.string.app_name),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFF2563EB)
                     )
                 }
 
-                Text(
-                    text = "9:30",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black
-                )
-
                 TextButton(onClick = onSignUpClick) {
                     Text(
-                        text = "Sign up",
+                        text = stringResource(R.string.sign_up),
                         color = Color(0xFF2563EB),
                         fontSize = 14.sp
                     )
@@ -162,7 +165,7 @@ fun LoginScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Welcome Back",
+                    text = stringResource(R.string.welcome_back),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -170,7 +173,7 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "Sign in to continue driving your adventure",
+                    text = stringResource(R.string.sign_in_subtitle),
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -184,7 +187,7 @@ fun LoginScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 Text(
-                    text = "Sign In",
+                    text = stringResource(R.string.sign_in),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black,
@@ -192,7 +195,7 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "Email",
+                    text = stringResource(R.string.email),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black,
@@ -220,7 +223,7 @@ fun LoginScreen(
                 )
 
                 Text(
-                    text = "Password",
+                    text = stringResource(R.string.password),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Black,
@@ -233,19 +236,19 @@ fun LoginScreen(
                         password = it
                         errorMessage = null
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
-                                if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (showPassword) "Hide password" else "Show password",
-                                tint = Color.Gray
+                                imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (showPassword) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                             )
                         }
                     },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFF2563EB),
@@ -263,9 +266,7 @@ fun LoginScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = rememberMe,
                             onCheckedChange = { rememberMe = it },
@@ -274,14 +275,14 @@ fun LoginScreen(
                             )
                         )
                         Text(
-                            text = "Remember me",
+                            text = stringResource(R.string.remember_me),
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
                     }
 
                     Text(
-                        text = "Forgot password?",
+                        text = stringResource(R.string.forgot_password),
                         fontSize = 14.sp,
                         color = Color(0xFF2563EB),
                         textDecoration = TextDecoration.Underline,
@@ -309,7 +310,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         if (email.isBlank() || password.isBlank()) {
-                            errorMessage = "Por favor completa todos los campos"
+                            errorMessage = pleaseFillAllFieldsMsg
                             return@Button
                         }
 
@@ -334,16 +335,16 @@ fun LoginScreen(
 
                                 } else {
                                     when (response.code()) {
-                                        404 -> errorMessage = "Usuario no encontrado"
-                                        401 -> errorMessage = "Credenciales incorrectas"
-                                        else -> errorMessage = "Error del servidor. Código: ${response.code()}"
+                                        404 -> errorMessage = userNotFoundMsg
+                                        401 -> errorMessage = incorrectCredentialsMsg
+                                        else -> errorMessage = "$serverErrorMsg ${response.code()}"
                                     }
                                     Log.e("LoginActivity", "Login failed: ${response.code()} - ${response.message()}")
                                 }
 
                             } catch (e: Exception) {
                                 Log.e("LoginActivity", "Login error", e)
-                                errorMessage = "Error de conexión. Verifica tu internet."
+                                errorMessage = connectionErrorMsg
                             } finally {
                                 isLoading = false
                             }
@@ -366,7 +367,7 @@ fun LoginScreen(
                         )
                     } else {
                         Text(
-                            text = "Sign In",
+                            text = stringResource(R.string.sign_in),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
@@ -377,7 +378,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "OR CONTINUE WITH",
+                    text = stringResource(R.string.or_continue_with),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.Gray,
@@ -392,14 +393,14 @@ fun LoginScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SocialLoginButton(
-                        text = "Google",
+                        text = stringResource(R.string.google),
                         icon = Icons.Default.Email,
                         onClick = { /* TODO: Google login */ },
                         modifier = Modifier.weight(1f)
                     )
 
                     SocialLoginButton(
-                        text = "Facebook",
+                        text = stringResource(R.string.facebook),
                         icon = Icons.Default.Facebook,
                         onClick = { /* TODO: Facebook login */ },
                         modifier = Modifier.weight(1f)
@@ -413,12 +414,12 @@ fun LoginScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Don't have an account? ",
+                        text = stringResource(R.string.no_account),
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                     Text(
-                        text = "Sign up here",
+                        text = stringResource(R.string.sign_up_here),
                         fontSize = 14.sp,
                         color = Color(0xFF2563EB),
                         fontWeight = FontWeight.Medium,
