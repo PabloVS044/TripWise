@@ -4,149 +4,217 @@
     <string name="app_name">TripWise</string>
     <string name="time_display">9:30</string>
     <string name="sign_in">Sign In</string>
-    <string name="sign_up">Sign up</string>
+    <string name="sign_up">Sign Up</string>
     <string name="log_in">Log In</string>
-    <string name="back">Atrás</string>
-    <string name="next">Siguiente</string>
-    <string name="register">Registrar</string>
-    <string name="or_continue_with">OR CONTINUE WITH</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="register">Register</string>
+    <string name="or_continue_with">Or Continue With</string>
     <string name="google">Google</string>
     <string name="facebook">Facebook</string>
-    <string name="create_account_message">Crea tu cuenta para comenzar tu próxima aventura</string>
-    <string name="basic_info">Información Básica</string>
-    <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
-
+    <string name="create_account_message">Create your account to start your next adventure</string>
+    <string name="basic_info">Basic Information</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
 
     <!-- Login Screen -->
     <string name="welcome_back">Welcome Back</string>
     <string name="sign_in_subtitle">Sign in to continue driving your adventure</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="remember_me">Remember me</string>
-    <string name="forgot_password">Forgot password?</string>
-    <string name="dont_have_account">Don\'t have an account? </string>
-    <string name="sign_up_here">Sign up here</string>
-    <string name="back_to_home">Back to home</string>
-    <string name="hide_password">Hide password</string>
-    <string name="show_password">Show password</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="sign_up_here">Sign Up Here</string>
+    <string name="back_to_home">Back to Home</string>
+    <string name="hide_password">Hide Password</string>
+    <string name="show_password">Show Password</string>
 
     <!-- Login Error Messages -->
-    <string name="please_fill_all_fields">Por favor completa todos los campos</string>
-    <string name="user_not_found">Usuario no encontrado</string>
-    <string name="incorrect_credentials">Credenciales incorrectas</string>
-    <string name="server_error">Error del servidor. Código: %1$s</string>
-    <string name="connection_error">Error de conexión. Verifica tu internet.</string>
-    <string name="login_successful">¡Inicio de sesión exitoso!</string>
+    <string name="please_fill_all_fields">Please fill in all fields</string>
+    <string name="user_not_found">User not found</string>
+    <string name="incorrect_credentials">Incorrect credentials</string>
+    <string name="server_error">Server error. Code: %1$s</string>
+    <string name="connection_error">Connection error. Check your internet.</string>
+    <string name="login_successful">Login successful!</string>
 
     <!-- Forgot Password Screen -->
-    <string name="forgot_password_title">Forgot password?</string>
-    <string name="forgot_password_subtitle">No worries! Enter your email and we\'ll send you\nreset instructions.</string>
+    <string name="forgot_password_title">Forgot Password?</string>
+    <string name="forgot_password_subtitle">No worries! Enter your email and we\'ll send you reset instructions.</string>
     <string name="reset_password">Reset Password</string>
     <string name="enter_email_placeholder">Enter your email here</string>
-    <string name="do_you_remember_password">Do you remember your password? </string>
-    <string name="sign_in_here">Sign In here</string>
-    <string name="back_to_login">Back to login</string>
+    <string name="do_you_remember_password">Do you remember your password?</string>
+    <string name="sign_in_here">Sign In Here</string>
+    <string name="back_to_login">Back to Login</string>
 
     <!-- Forgot Password Error Messages -->
-    <string name="please_enter_email">Por favor ingresa tu email</string>
-    <string name="please_enter_valid_email">Por favor ingresa un email válido</string>
-    <string name="error_sending_email">Error al enviar email. Intenta de nuevo.</string>
+    <string name="please_enter_email">Please enter your email</string>
+    <string name="please_enter_valid_email">Please enter a valid email</string>
+    <string name="error_sending_email">Error sending email. Try again.</string>
 
     <!-- Email Sent Screen -->
     <string name="email_sent_title">Email Sent!</string>
-    <string name="email_sent_message">We\'ve sent password reset instructions to\n%1$s</string>
+    <string name="email_sent_message">We\'ve sent password reset instructions to %1$s</string>
     <string name="email_sent_instructions">Check your email and follow the instructions to reset your password. If you don\'t see the email, check your spam folder.</string>
     <string name="back_to_sign_in">Back to Sign In</string>
     <string name="didnt_receive_email">Didn\'t receive the email? Send again</string>
     <string name="success">Success</string>
 
     <!-- Register Screen -->
-    <string name="create_account_subtitle">Crea tu cuenta para comenzar tu próxima aventura</string>
-    <string name="login_button">Iniciar Sesión</string>
-    <string name="registration_error">No se pudo crear la cuenta</string>
-    <string name="error_generic">Error de conexión</string>
+    <string name="create_account_subtitle">Create your account to start your next adventure</string>
+    <string name="login_button">Log In</string>
+    <string name="registration_error">Unable to create account</string>
+    <string name="error_generic">Connection error</string>
 
     <!-- Basic Info Screen -->
-    <string name="basic_info_title">Información Básica</string>
-    <string name="complete_personal_data">Completa tus datos personales</string>
-    <string name="full_name">Nombre Completo</string>
-    <string name="email_address">Correo Electrónico</string>
-    <string name="password_field">Contraseña</string>
-    <string name="confirm_password">Confirmar Contraseña</string>
-    <string name="passwords_dont_match">Las contraseñas no coinciden</string>
+    <string name="basic_info_title">Basic Information</string>
+    <string name="complete_personal_data">Complete your personal information</string>
+    <string name="full_name">Full Name</string>
+    <string name="email_address">Email Address</string>
+    <string name="password_field">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
 
     <!-- Role Selection Screen -->
-    <string name="choose_account_subtitle">Elige tu cuenta para comenzar tu próxima aventura</string>
-    <string name="select_role_title">Selecciona tu rol</string>
-    <string name="how_to_use_platform">¿Cómo quieres usar nuestra plataforma?</string>
-    <string name="traveler_title">Soy Viajero</string>
-    <string name="traveler_description">Busco lugares increíbles para mis próximas aventuras</string>
-    <string name="host_title">Soy Anfitrión</string>
-    <string name="host_description">Quiero ofrecer mi propiedad a otros viajeros</string>
+    <string name="choose_account_subtitle">Choose your account to start your next adventure</string>
+    <string name="select_role_title">Select Your Role</string>
+    <string name="how_to_use_platform">How do you want to use our platform?</string>
+    <string name="traveler_title">I\'m a Traveler</string>
+    <string name="traveler_description">I\'m looking for amazing places for my next adventures</string>
+    <string name="host_title">I\'m a Host</string>
+    <string name="host_description">I want to offer my property to other travelers</string>
     <string name="selected">Selected</string>
 
     <!-- Property Setup Screen -->
-    <string name="choose_account_message">Elige tu cuenta para comenzar tu próxima aventura</string>
-    <string name="your_interests">Tus intereses</string>
-    <string name="choose_interests_message">Elige tus intereses para personalizar tu experiencia</string>
-    <string name="describe_property_message">Describe tu propiedad para atraer huéspedes</string>
-    <string name="your_property">Tu propiedad</string>
-    <string name="description">Descripción</string>
-    <string name="location">Ubicación</string>
-    <string name="property_type">Tipo de propiedad</string>
-    <string name="amenities">Amenidades</string>
-    <string name="select_role">Selecciona tu rol</string>
-    <string name="i_am_traveler">Soy Viajero</string>
-    <string name="i_am_host">Soy Anfitrión</string>
+    <string name="choose_account_message">Choose your account to start your next adventure</string>
+    <string name="your_interests">Your Interests</string>
+    <string name="choose_interests_message">Choose your interests to personalize your experience</string>
+    <string name="describe_property_message">Describe your property to attract guests</string>
+    <string name="your_property">Your Property</string>
+    <string name="description">Description</string>
+    <string name="location">Location</string>
+    <string name="property_type">Property Type</string>
+    <string name="amenities">Amenities</string>
+    <string name="select_role">Select Your Role</string>
+    <string name="i_am_traveler">I\'m a Traveler</string>
+    <string name="i_am_host">I\'m a Host</string>
     <string name="no_account">Don\'t have an account?</string>
-    <string name="property_setup_subtitle">Describe tu propiedad para atraer huéspedes</string>
-    <string name="your_property_title">Tu propiedad</string>
-    <string name="property_name">Nombre de la propiedad</string>
-    <string name="property_description">Descripción</string>
-    <string name="property_location">Ubicación</string>
-    <string name="price_per_night">Precio/noche (Q)</string>
-    <string name="capacity">Capacidad</string>
-    <string name="property_type_title">Tipo de propiedad</string>
-    <string name="amenities_title">Amenidades</string>
+    <string name="property_setup_subtitle">Describe your property to attract guests</string>
+    <string name="your_property_title">Your Property</string>
+    <string name="property_name">Property Name</string>
+    <string name="property_description">Description</string>
+    <string name="property_location">Location</string>
+    <string name="price_per_night">Price/Night ($)</string>
+    <string name="capacity">Capacity</string>
+    <string name="property_type_title">Property Type</string>
+    <string name="amenities_title">Amenities</string>
 
     <!-- Property Types -->
-    <string name="house">Casa</string>
-    <string name="apartment">Apartamento</string>
-    <string name="cabin">Cabaña</string>
+    <string name="house">House</string>
+    <string name="apartment">Apartment</string>
+    <string name="cabin">Cabin</string>
     <string name="hotel">Hotel</string>
 
     <!-- Amenities -->
     <string name="wifi">WiFi</string>
-    <string name="pool">Piscina</string>
-    <string name="kitchen">Cocina</string>
-    <string name="parking">Estacionamiento</string>
-    <string name="air_conditioning">Aire Acondicionado</string>
+    <string name="pool">Pool</string>
+    <string name="kitchen">Kitchen</string>
+    <string name="parking">Parking</string>
+    <string name="air_conditioning">Air Conditioning</string>
     <string name="tv">TV</string>
-    <string name="washing_machine">Lavadora</string>
-    <string name="balcony">Balcón</string>
+    <string name="washing_machine">Washing Machine</string>
+    <string name="balcony">Balcony</string>
 
     <!-- Interests Screen -->
-    <string name="your_interests_title">Tus intereses</string>
-    <string name="choose_interests_subtitle">Elige tus intereses para personalizar tu experiencia</string>
+    <string name="your_interests_title">Your Interests</string>
+    <string name="choose_interests_subtitle">Choose your interests to personalize your experience</string>
 
     <!-- Interest Categories -->
-    <string name="adventure">Aventura</string>
-    <string name="beach">Playa</string>
-    <string name="mountain">Montaña</string>
-    <string name="city">Ciudad</string>
-    <string name="culture">Cultura</string>
-    <string name="gastronomy">Gastronomía</string>
-    <string name="history">Historia</string>
-    <string name="nature">Naturaleza</string>
+    <string name="adventure">Adventure</string>
+    <string name="beach">Beach</string>
+    <string name="mountain">Mountain</string>
+    <string name="city">City</string>
+    <string name="culture">Culture</string>
+    <string name="gastronomy">Gastronomy</string>
+    <string name="history">History</string>
+    <string name="nature">Nature</string>
     <string name="relax">Relax</string>
-    <string name="photography">Fotografía</string>
+    <string name="photography">Photography</string>
 
     <!-- Register Error Messages -->
-    <string name="invalid_price_per_night">El precio por noche debe ser un número válido mayor a 0</string>
-    <string name="invalid_capacity">La capacidad debe ser un número válido mayor a 0</string>
-    <string name="user_created_property_error">Usuario creado, pero error al crear propiedad: %1$s</string>
-    <string name="registration_successful">Registro exitoso</string>
-    <string name="user_registration_error">Error al registrar usuario: %1$s</string>
+    <string name="invalid_price_per_night">The price per night must be a valid number greater than 0</string>
+    <string name="invalid_capacity">The capacity must be a valid number greater than 0</string>
+    <string name="user_created_property_error">User created, but error creating property: %1$s</string>
+    <string name="registration_successful">Registration successful</string>
+    <string name="user_registration_error">Error registering user: %1$s</string>
     <string name="register_error">Error: %1$s</string>
+
+
+    <!-- HeroSection -->
+    <string name="powered_by_ai">Powered by AI</string>
+    <string name="hero_title">Travel Smart,\nLive Experiences</string>
+    <string name="hero_subtitle">Discover unique accommodations and receive personalized itineraries created by AI. TripWise combines the best bookings with intelligent recommendations.</string>
+    <string name="start_adventure_button">Start Adventure</string>
+    <string name="view_demo_button">View Demo</string>
+    <string name="stat_travelers">50K+</string>
+    <string name="stat_travelers_label">Happy Travelers</string>
+    <string name="stat_itineraries">1M+</string>
+    <string name="stat_itineraries_label">Itineraries Created</string>
+    <string name="stat_rating">4.9★</string>
+    <string name="stat_rating_label">Rating</string>
+
+    <!-- FeaturesSection -->
+    <string name="features_header">Key Features</string>
+    <string name="features_title">Everything you need to travel better</string>
+    <string name="features_subtitle">We combine the best booking technology with artificial intelligence</string>
+    <string name="feature_unique_accommodations_title">Unique Accommodations</string>
+    <string name="feature_unique_accommodations_description">Discover everything from local homes to boutique hotels</string>
+    <string name="feature_personalized_ai_title">Personalized AI</string>
+    <string name="feature_personalized_ai_description">Unique itineraries based on your destination and interests</string>
+    <string name="feature_local_recommendations_title">Local Recommendations</string>
+    <string name="feature_local_recommendations_description">Authentic suggestions only locals would know</string>
+    <string name="feature_smart_planning_title">Smart Planning</string>
+    <string name="feature_smart_planning_description">Optimize your time with efficient routes</string>
+    <string name="feature_authentic_experiences_title">Authentic Experiences</string>
+    <string name="feature_authentic_experiences_description">Connect with local culture</string>
+    <string name="feature_support_title">24/7 Support</string>
+    <string name="feature_support_description">Comprehensive assistance during your trip</string>
+
+    <!-- HowItWorksSection -->
+    <string name="how_it_works_header">Simple Process</string>
+    <string name="how_it_works_title">How TripWise Works</string>
+    <string name="how_it_works_subtitle">In just 3 simple steps, you’ll have the perfect accommodation and a personalized itinerary</string>
+    <string name="step_1_title">Search and Book</string>
+    <string name="step_1_description">Find the perfect accommodation for your destination</string>
+    <string name="step_2_title">AI Creates Your Itinerary</string>
+    <string name="step_2_description">Our intelligent agent creates a personalized itinerary</string>
+    <string name="step_3_title">Enjoy Your Trip</string>
+    <string name="step_3_description">Follow your itinerary and discover unique experiences</string>
+
+    <!-- TestimonialsSection -->
+    <string name="testimonials_header">Testimonials</string>
+    <string name="testimonials_title">What our travelers say</string>
+    <string name="testimonial_1_name">Maria Gonzalez</string>
+    <string name="testimonial_1_role">Frequent Traveler</string>
+    <string name="testimonial_1_content">TripWise completely transformed my trip to Guatemala. The AI-generated itinerary took me to amazing places.</string>
+    <string name="testimonial_1_initial">M</string>
+    <string name="testimonial_2_name">Carlos Mendoza</string>
+    <string name="testimonial_2_role">Digital Adventurer</string>
+    <string name="testimonial_2_content">The combination of unique accommodations and personalized itineraries is fantastic. Every recommendation was perfect.</string>
+    <string name="testimonial_2_initial">C</string>
+    <string name="testimonial_3_name">Ana Rodriguez</string>
+    <string name="testimonial_3_role">Family Mother</string>
+    <string name="testimonial_3_content">As a family, we needed activities for everyone. TripWise created the perfect itinerary for the whole week.</string>
+    <string name="testimonial_3_initial">A</string>
+
+    <!-- CTASection -->
+    <string name="cta_title">Ready for your next smart adventure?</string>
+    <string name="cta_subtitle">Join thousands of travelers who have already discovered the magic of traveling with TripWise. Your next destination is waiting.</string>
+    <string name="cta_email_placeholder">Enter your email</string>
+    <string name="cta_button">Get Started Free</string>
+    <string name="cta_footer">No credit card required • Cancel anytime</string>
+
+    <!-- FooterSection -->
+    <string name="footer_description">Travel smart, live unique experiences with the power of artificial intelligence.</string>
+    <string name="footer_copyright">© 2025 TripWise. All rights reserved.</string>
 
 </resources>
