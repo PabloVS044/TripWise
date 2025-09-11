@@ -206,6 +206,26 @@
     <string name="testimonial_3_content">As a family, we needed activities for everyone. TripWise created the perfect itinerary for the whole week.</string>
     <string name="testimonial_3_initial">A</string>
 
+    <!-- DiscoverPage -->
+    <string name="search_button">Search</string>
+    <string name="reservation_button">Reservation</string>
+    <string name="filter_button">Filters</string>
+    <string name="profile_button">Profile</string>
+    <string name="close_button">Close</string>
+
+    <!-- FilterPage -->
+    <string name="mapFilters">Map filters</string>
+    <string name="name_placeholder">Name</string>
+    <string name="max_placeholder">Max. price</string>
+    <string name="min_placeholder">Min. price</string>
+    <string name="capacity_placeholder">Capacity</string>
+    <string name="location_placeholder">Location</string>
+    <string name="ptype_placeholder">Property type</string>
+    <string name="approval_placeholder">approval</string>
+    <string name="apply_placeholder">Apply filters</string>
+    <string name="cancel_placeholder">Cancel</string>
+    <string name="any_placeholder">Any</string>
+
     <!-- CTASection -->
     <string name="cta_title">Ready for your next smart adventure?</string>
     <string name="cta_subtitle">Join thousands of travelers who have already discovered the magic of traveling with TripWise. Your next destination is waiting.</string>
