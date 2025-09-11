@@ -38,12 +38,16 @@ import uvg.edu.tripwise.network.RetrofitInstance
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.host.PropertiesHost
+import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class PropertiesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PropertiesScreen()
+            TripWiseTheme {
+                PropertiesScreen()
+            }
         }
     }
 }
@@ -67,35 +71,30 @@ fun PropertiesScreen() {
                 isError = false
                 Log.d("PropertiesActivity", "Loading properties...")
 
-                val response = RetrofitInstance.api.getProperties()
-                if (response.isSuccessful) {
-                    val apiProperties = response.body() ?: emptyList()
-                    Log.d("PropertiesActivity", "API Response: $apiProperties")
-                    properties = apiProperties.map { apiProperty ->
-                        Property(
-                            id = apiProperty._id,
-                            name = apiProperty.name,
-                            description = apiProperty.description,
-                            location = apiProperty.location,
-                            pricePerNight = apiProperty.pricePerNight,
-                            capacity = apiProperty.capacity.toInt(), // Convert Number to Int
-                            pictures = apiProperty.pictures,
-                            amenities = apiProperty.amenities,
-                            propertyType = apiProperty.propertyType,
-                            owner = apiProperty.owner,
-                            approved = apiProperty.approved,
-                            latitude = apiProperty.latitude,
-                            longitude = apiProperty.longitude,
-                            createdAt = apiProperty.createdAt,
-                            isDeleted = apiProperty.deleted.`is`
-                        )
-                    }
-                    filteredProperties = properties
-                    Log.d("PropertiesActivity", "Properties loaded: ${properties.size}")
-                } else {
-                    Log.e("PropertiesActivity", "API Error: ${response.code()} - ${response.errorBody()?.string()}")
-                    isError = true
+                val apiProperties = RetrofitInstance.api.getProperties()
+                Log.d("PropertiesActivity", "API Response: $apiProperties")
+
+                properties = apiProperties.map { apiProperty ->
+                    Property(
+                        id = apiProperty._id,
+                        name = apiProperty.name,
+                        description = apiProperty.description,
+                        location = apiProperty.location,
+                        pricePerNight = apiProperty.pricePerNight,
+                        capacity = apiProperty.capacity,
+                        pictures = apiProperty.pictures,
+                        amenities = apiProperty.amenities,
+                        propertyType = apiProperty.propertyType,
+                        owner = apiProperty.owner,
+                        approved = apiProperty.approved,
+                        latitude = apiProperty.latitude,
+                        longitude = apiProperty.longitude,
+                        createdAt = apiProperty.createdAt,
+                        isDeleted = apiProperty.deleted.`is`
+                    )
                 }
+                filteredProperties = properties
+                Log.d("PropertiesActivity", "Properties loaded: ${properties.size}")
             } catch (e: Exception) {
                 Log.e("PropertiesActivity", "Error loading properties", e)
                 isError = true

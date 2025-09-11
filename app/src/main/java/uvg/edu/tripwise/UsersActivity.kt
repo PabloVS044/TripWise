@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import uvg.edu.tripwise.network.ApiUser
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import uvg.edu.tripwise.PropertiesActivity
 
 class UsersActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
