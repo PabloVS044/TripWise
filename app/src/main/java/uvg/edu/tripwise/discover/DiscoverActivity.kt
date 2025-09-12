@@ -41,7 +41,9 @@ import androidx.compose.material.icons.filled.Luggage
 import androidx.compose.material.icons.filled.PlaylistAdd
 import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import coil.request.ImageRequest
+import uvg.edu.tripwise.R
 
 
 class DiscoverActivity : ComponentActivity() {
@@ -83,7 +85,7 @@ fun DiscoverScreen(
     filterApproved: String = ""
 ) {
 
-
+    val searchLabel = stringResource(R.string.search_button)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
@@ -172,7 +174,7 @@ fun DiscoverScreen(
                 )
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
+                    contentDescription = searchLabel,
                     tint = Color.Gray
                 )
             }
@@ -226,6 +228,7 @@ fun DiscoverScreen(
 }
 @Composable
 fun PropertyCard(property: Post, onClose: () -> Unit) {
+    val closeLabel = stringResource(R.string.close_button)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -249,7 +252,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = closeLabel,
                         tint = Color.Gray
                     )
                 }
@@ -293,8 +296,14 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
     }
 }
 
+
 @Composable
 fun BottomNavigationBar() {
+    val searchLabel = stringResource(R.string.search_button)
+    val reservationLabel = stringResource(R.string.reservation_button)
+    val filterLabel = stringResource(R.string.filter_button)
+    val profileLabel = stringResource(R.string.profile_button)
+
     val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
@@ -304,10 +313,10 @@ fun BottomNavigationBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar"
+                    contentDescription = searchLabel
                 )
             },
-            label = { Text("Buscar") },
+            label = { Text(searchLabel) },
             selected = true,
             onClick = { val intent = Intent(context, DiscoverActivity::class.java)
                 context.startActivity(intent) },
@@ -322,10 +331,10 @@ fun BottomNavigationBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Luggage,
-                    contentDescription = "Reservacion"
+                    contentDescription = reservationLabel
                 )
             },
-            label = { Text("Reservacion") },
+            label = { Text(reservationLabel) },
             selected = false,
             onClick = { val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
                 context.startActivity(intent)},
@@ -341,10 +350,10 @@ fun BottomNavigationBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.FilterAlt,
-                    contentDescription = "Filtros"
+                    contentDescription = filterLabel
                 )
             },
-            label = { Text("Filtros") },
+            label = { Text(filterLabel) },
             selected = false,
             onClick = { val intent = Intent(context, FilterActivity::class.java)
                 context.startActivity(intent) },
@@ -360,10 +369,10 @@ fun BottomNavigationBar() {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil"
+                    contentDescription = profileLabel
                 )
             },
-            label = { Text("Perfil") },
+            label = { Text(profileLabel) },
             selected = false,
             onClick = {
                 /*navegación al perfil */
