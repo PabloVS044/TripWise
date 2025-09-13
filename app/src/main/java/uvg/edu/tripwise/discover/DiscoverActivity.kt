@@ -6,10 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Luggage
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -20,31 +23,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
-import org.w3c.dom.Text
-import uvg.edu.tripwise.BottomNavigation
-import uvg.edu.tripwise.data.model.Post
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
-import coil.compose.AsyncImage
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material3.ModalBottomSheetDefaults.properties
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import coil.request.ImageRequest
-import uvg.edu.tripwise.R
-
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +74,7 @@ class DiscoverActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoverScreen(
-    viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    viewModel: PropertyViewModel = viewModel(),
     filterName: String = "",
     filterLocation: String = "",
     filterMinPrice: Double? = null,
@@ -88,31 +87,32 @@ fun DiscoverScreen(
     val searchLabel = stringResource(R.string.search_button)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
+
     // Search Bar
     var searchText by remember { mutableStateOf("Guatemala") }
     val filteredProperties = properties.filter { property ->
-        // Filtro por nombre 
+        // Filtro por nombre
         val matchesName = filterName.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
-        // Filtro por ubicación 
+        // Filtro por ubicación
         val matchesLocation = filterLocation.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.location.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
         // Filtros de precio
-        val matchesMinPrice = filterMinPrice?.let { minPrice -> 
-            property.pricePerNight >= minPrice 
+        val matchesMinPrice = filterMinPrice?.let { minPrice ->
+            property.pricePerNight >= minPrice
         } ?: true
-        
-        val matchesMaxPrice = filterMaxPrice?.let { maxPrice -> 
-            property.pricePerNight <= maxPrice 
+
+        val matchesMaxPrice = filterMaxPrice?.let { maxPrice ->
+            property.pricePerNight <= maxPrice
         } ?: true
-        
-        // Filtro de capacidad 
-        val matchesCapacity = filterCapacity?.let { requiredCapacity -> 
-            property.capacity >= requiredCapacity 
+
+        // Filtro de capacidad
+        val matchesCapacity = filterCapacity?.let { requiredCapacity ->
+            property.capacity >= requiredCapacity
         } ?: true
 
         // Filtro por tipo de propiedad
@@ -123,10 +123,10 @@ fun DiscoverScreen(
         // Filtro por aprobación
         val matchesApproved = filterApproved.takeIf { it.isNotBlank() && it != "Sí" }?.let { approvalStatus ->
             when (approvalStatus.lowercase()) {
-                "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) || 
-                                     property.approved.contains("yes", ignoreCase = true) ||
-                                     property.approved.contains("true", ignoreCase = true)
-                "no" -> property.approved.contains("no", ignoreCase = true) || 
+                "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) ||
+                        property.approved.contains("yes", ignoreCase = true) ||
+                        property.approved.contains("true", ignoreCase = true)
+                "no" -> property.approved.contains("no", ignoreCase = true) ||
                         property.approved.contains("false", ignoreCase = true)
                 else -> property.approved.contains(approvalStatus, ignoreCase = true)
             }
@@ -136,7 +136,6 @@ fun DiscoverScreen(
         matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
-
 
     // Coordenadas de Guatemala como ubicación por defecto
     val guatemala = LatLng(14.644734, -90.587886)
@@ -151,7 +150,7 @@ fun DiscoverScreen(
     ) {
         // Status Bar Space
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         // Search Bar
         Card(
             modifier = Modifier
@@ -179,7 +178,7 @@ fun DiscoverScreen(
                 )
             }
         }
-        
+
         // Google Maps
         Box(
             modifier = Modifier
@@ -201,33 +200,40 @@ fun DiscoverScreen(
                 )
             ) {
                 filteredProperties.forEach { property ->
-                    Marker(
-                        state = MarkerState(position = LatLng(property.latitude, property.longitude)),
-                        title = property.name,
-                        snippet = property.description,
-                        onClick = {
-                            viewModel.getPropertyById(property._id)
-                            false
-                        }
-                    )
+                    // Verificar que las coordenadas no sean nulas
+                    val latitude = property.latitude ?: 0.0
+                    val longitude = property.longitude ?: 0.0
+
+                    if (latitude != 0.0 && longitude != 0.0) {
+                        Marker(
+                            state = MarkerState(position = LatLng(latitude, longitude)),
+                            title = property.name,
+                            snippet = property.description,
+                            onClick = {
+                                viewModel.getPropertyById(property.id)
+                                false
+                            }
+                        )
+                    }
                 }
             }
         }
-        
+
         // Properties Found Section
         selectedProperty?.let { property ->
             PropertyCard(
                 property = property,
-                onClose = {viewModel.clearSelectedProperty()}
-                )
+                onClose = { viewModel.clearSelectedProperty() }
+            )
         }
 
         // Bottom Navigation
         BottomNavigationBar()
     }
 }
+
 @Composable
-fun PropertyCard(property: Post, onClose: () -> Unit) {
+fun PropertyCard(property: Property, onClose: () -> Unit) {
     val closeLabel = stringResource(R.string.close_button)
     Card(
         modifier = Modifier
@@ -267,7 +273,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            //cargar imagen con Coil o Glide
+            // Cargar imagen con Coil
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -296,7 +302,6 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
     }
 }
 
-
 @Composable
 fun BottomNavigationBar() {
     val searchLabel = stringResource(R.string.search_button)
@@ -318,8 +323,10 @@ fun BottomNavigationBar() {
             },
             label = { Text(searchLabel) },
             selected = true,
-            onClick = { val intent = Intent(context, DiscoverActivity::class.java)
-                context.startActivity(intent) },
+            onClick = {
+                val intent = Intent(context, DiscoverActivity::class.java)
+                context.startActivity(intent)
+            },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -336,8 +343,10 @@ fun BottomNavigationBar() {
             },
             label = { Text(reservationLabel) },
             selected = false,
-            onClick = { val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                context.startActivity(intent)},
+            onClick = {
+                val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
+                context.startActivity(intent)
+            },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -355,8 +364,10 @@ fun BottomNavigationBar() {
             },
             label = { Text(filterLabel) },
             selected = false,
-            onClick = { val intent = Intent(context, FilterActivity::class.java)
-                context.startActivity(intent) },
+            onClick = {
+                val intent = Intent(context, FilterActivity::class.java)
+                context.startActivity(intent)
+            },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -375,7 +386,7 @@ fun BottomNavigationBar() {
             label = { Text(profileLabel) },
             selected = false,
             onClick = {
-                /*navegación al perfil */
+                /* navegación al perfil */
             },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
@@ -384,7 +395,6 @@ fun BottomNavigationBar() {
                 unselectedTextColor = Color.Gray
             )
         )
-
     }
 }
 

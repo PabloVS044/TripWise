@@ -237,4 +237,42 @@
     <string name="footer_description">Travel smart, live unique experiences with the power of artificial intelligence.</string>
     <string name="footer_copyright">© 2025 TripWise. All rights reserved.</string>
 
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="total_users">Total Users</string>
+    <string name="total_properties">Total Properties</string>
+    <string name="users_overview">Users Overview</string>
+    <string name="properties_status">Properties Status</string>
+    <string name="quick_actions">Quick Actions</string>
+    <string name="active_users">Active Users</string>
+    <string name="inactive_users">Inactive Users</string>
+    <string name="approved">Approved</string>
+    <string name="pending">Pending</string>
+    <string name="rejected">Rejected</string>
+    <string name="manage_users">Manage Users</string>
+    <string name="manage_properties">Manage Properties</string>
+    <string name="search_users">Search users…</string>
+    <string name="search_properties">Search properties…</string>
+    <string name="loading_users">Loading users…</string>
+    <string name="loading_properties">Loading properties…</string>
+    <string name="error_loading_users">Error loading users</string>
+    <string name="error_loading_properties">Error loading properties</string>
+    <string name="retry">Retry</string>
+    <string name="no_users_found">No users found</string>
+    <string name="no_properties_found">No properties found</string>
+    <string name="no_match_search">No items match your search</string>
+    <string name="property_details">Property Details</string>
+    <string name="user_details">User Details</string>
+    <string name="property_not_found">Property not found</string>
+    <string name="name">Name</string>
+    <string name="type">Type</string>
+    <string name="status">Status</string>
+    <string name="property_id">Property ID</string>
+    <string name="user_id">User ID</string>
+    <string name="edit_property">Edit Property</string>
+    <string name="edit_user">Edit User</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="guests">guests</string>
+
 </resources>

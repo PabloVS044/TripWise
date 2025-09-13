@@ -1,9 +1,7 @@
 package uvg.edu.tripwise.auth
 
 import uvg.edu.tripwise.MainActivity
-import uvg.edu.tripwise.UsersActivity
-import uvg.edu.tripwise.user.MainUserActivity
-import uvg.edu.tripwise.host.PropertiesHost
+import uvg.edu.tripwise.admin.DashboardActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.Login
 
@@ -15,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -53,7 +50,7 @@ class LoginActivity : ComponentActivity() {
                     },
                     onLoginSuccess = { role ->
                         val intent = when (role.lowercase()) {
-                            "admin" -> Intent(this, UsersActivity::class.java)
+                            "admin" -> Intent(this, DashboardActivity::class.java)
                             "user" -> Intent(this, DiscoverActivity::class.java)
                             "owner" -> Intent(this, PropertiesHostActivity::class.java)
                             else -> Intent(this, MainActivity::class.java)
