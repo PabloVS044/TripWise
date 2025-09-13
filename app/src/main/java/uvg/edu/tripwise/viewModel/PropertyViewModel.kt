@@ -6,18 +6,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import uvg.edu.tripwise.data.repository.propertyRepository
-import uvg.edu.tripwise.data.model.Post
+import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.data.repository.PropertyRepository
 
-class PropertyViewModel(
-    private val repo: propertyRepository = propertyRepository()
-) : ViewModel() {
+class PropertyViewModel : ViewModel() {
+    private val repository = PropertyRepository()
 
-    private val _properties = MutableStateFlow<List<Post>>(emptyList())
-    val properties: StateFlow<List<Post>> = _properties.asStateFlow()
+    private val _properties = MutableStateFlow<List<Property>>(emptyList())
+    val properties: StateFlow<List<Property>> = _properties.asStateFlow()
 
-    private val _selectedProperty = MutableStateFlow<Post?>(null)
-    val selectedProperty: StateFlow<Post?> = _selectedProperty.asStateFlow()
+    private val _selectedProperty = MutableStateFlow<Property?>(null)
+    val selectedProperty: StateFlow<Property?> = _selectedProperty.asStateFlow()
 
     init {
         loadProperties()
@@ -26,11 +25,9 @@ class PropertyViewModel(
     fun loadProperties() {
         viewModelScope.launch {
             try {
-                val result = repo.getProperties()
-                _properties.value = result
+                _properties.value = repository.getProperties()
             } catch (e: Exception) {
-                // Manejo de errores
-                e.printStackTrace()
+                // Manejar error
             }
         }
     }
@@ -38,10 +35,10 @@ class PropertyViewModel(
     fun getPropertyById(id: String) {
         viewModelScope.launch {
             try {
-                val property = repo.getPropertyById(id)
+                val property = _properties.value.find { it.id == id }
                 _selectedProperty.value = property
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Manejar error
             }
         }
     }

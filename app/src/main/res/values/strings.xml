@@ -237,4 +237,7 @@
     <string name="footer_description">Travel smart, live unique experiences with the power of artificial intelligence.</string>
     <string name="footer_copyright">© 2025 TripWise. All rights reserved.</string>
 
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+
 </resources>
