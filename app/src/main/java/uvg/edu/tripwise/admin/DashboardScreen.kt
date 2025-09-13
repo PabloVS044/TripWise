@@ -15,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.components.BottomNavigation
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.PropertyRepository
@@ -82,10 +84,9 @@ fun DashboardScreen() {
         // Status Bar
         Spacer(modifier = Modifier.height(24.dp))
 
-
         // Title
         Text(
-            text = "Dashboard",
+            text = stringResource(R.string.dashboard),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -121,14 +122,14 @@ fun DashboardScreen() {
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         StatCard(
-                            title = "Total Users",
+                            title = stringResource(R.string.total_users),
                             value = totalUsers.toString(),
                             icon = Icons.Default.People,
                             color = Color(0xFF2563EB),
                             modifier = Modifier.weight(1f)
                         )
                         StatCard(
-                            title = "Total Properties",
+                            title = stringResource(R.string.total_properties),
                             value = totalProperties.toString(),
                             icon = Icons.Default.Home,
                             color = Color(0xFF10B981),
@@ -138,22 +139,22 @@ fun DashboardScreen() {
 
                     // Users Overview
                     OverviewCard(
-                        title = "Users Overview",
+                        title = stringResource(R.string.users_overview),
                         icon = Icons.Default.Person,
                         items = listOf(
-                            StatItem("Active Users", activeUsers.toString(), Color(0xFF10B981)),
-                            StatItem("Inactive Users", inactiveUsers.toString(), Color(0xFFEF4444))
+                            StatItem(stringResource(R.string.active_users), activeUsers.toString(), Color(0xFF10B981)),
+                            StatItem(stringResource(R.string.inactive_users), inactiveUsers.toString(), Color(0xFFEF4444))
                         )
                     )
 
                     // Properties Overview
                     OverviewCard(
-                        title = "Properties Status",
+                        title = stringResource(R.string.properties_status),
                         icon = Icons.Default.Home,
                         items = listOf(
-                            StatItem("Approved", approvedProperties.toString(), Color(0xFF10B981)),
-                            StatItem("Pending", pendingProperties.toString(), Color(0xFFF59E0B)),
-                            StatItem("Rejected", rejectedProperties.toString(), Color(0xFFEF4444))
+                            StatItem(stringResource(R.string.approved), approvedProperties.toString(), Color(0xFF10B981)),
+                            StatItem(stringResource(R.string.pending), pendingProperties.toString(), Color(0xFFF59E0B)),
+                            StatItem(stringResource(R.string.rejected), rejectedProperties.toString(), Color(0xFFEF4444))
                         )
                     )
 
@@ -282,7 +283,7 @@ fun QuickActionsCard() {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Quick Actions",
+                text = stringResource(R.string.quick_actions),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black
@@ -294,14 +295,14 @@ fun QuickActionsCard() {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 ActionButton(
-                    text = "Manage Users",
+                    text = stringResource(R.string.manage_users),
                     icon = Icons.Default.People,
                     onClick = {
                         context.startActivity(Intent(context, UsersActivity::class.java))
                     }
                 )
                 ActionButton(
-                    text = "Manage Properties",
+                    text = stringResource(R.string.manage_properties),
                     icon = Icons.Default.Home,
                     onClick = {
                         context.startActivity(Intent(context, PropertiesActivity::class.java))
