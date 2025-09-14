@@ -87,24 +87,17 @@ fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 26.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF2563EB), Color(0xFF7C3AED))
-                            ),
-                            RoundedCornerShape(12.dp)
-                        ),
+                        .size(50.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.logotripwise),
+                        contentDescription = stringResource(R.string.app_name),
+                        modifier = Modifier.size(50.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))

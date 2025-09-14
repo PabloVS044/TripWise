@@ -5,13 +5,18 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.auth.steps.*
@@ -68,7 +73,6 @@ fun RegisterScreen(
 
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
 
-    // Obtener todas las strings de recursos aquí, en el contexto composable
     val wifiText = stringResource(R.string.wifi)
     val poolText = stringResource(R.string.pool)
     val kitchenText = stringResource(R.string.kitchen)
@@ -237,6 +241,7 @@ fun RegisterScreen(
                     onEmailChange = { email = it },
                     onPasswordChange = { password = it },
                     onConfirmPasswordChange = { confirmPassword = it },
+                    totalSteps = getMaxSteps(),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -245,6 +250,7 @@ fun RegisterScreen(
                 RoleSelectionScreen(
                     selectedRole = selectedRole,
                     onRoleSelected = { selectedRole = it },
+                    totalSteps = getMaxSteps(),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -266,12 +272,14 @@ fun RegisterScreen(
                         onCapacityChange = { capacity = it },
                         onPropertyTypeChange = { propertyType = it },
                         onSelectedAmenitiesChange = { selectedAmenities = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     InterestsScreen(
                         selectedInterests = selectedInterests,
                         onInterestsChanged = { selectedInterests = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -282,6 +290,7 @@ fun RegisterScreen(
                     InterestsScreen(
                         selectedInterests = selectedInterests,
                         onInterestsChanged = { selectedInterests = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -292,7 +301,9 @@ fun RegisterScreen(
             progress = (currentStep + 1).toFloat() / getMaxSteps(),
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.TopCenter)
+                .align(Alignment.TopCenter),
+            color = Color(0xFF2563EB),
+            trackColor = Color(0xFFE5E7EB)
         )
 
         Row(
@@ -305,18 +316,34 @@ fun RegisterScreen(
             if (currentStep > 0) {
                 OutlinedButton(
                     onClick = { currentStep-- },
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFF2563EB))
                 ) {
-                    Text(stringResource(R.string.back))
+                    Text(
+                        text = stringResource(R.string.back),
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp
+                    )
                 }
             } else {
                 OutlinedButton(
                     onClick = onBackToLogin,
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFF2563EB))
                 ) {
-                    Text(stringResource(R.string.sign_in))
+                    Text(
+                        text = stringResource(R.string.sign_in),
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.width(12.dp))
 
             Button(
                 onClick = {
@@ -326,27 +353,44 @@ fun RegisterScreen(
                         currentStep++
                     }
                 },
-                enabled = canProceedFromCurrentStep() && !isLoading
+                enabled = canProceedFromCurrentStep() && !isLoading,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2563EB),
+                    contentColor = Color.White
+                )
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = Color.White,
+                        strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        if (currentStep == getMaxSteps() - 1) stringResource(R.string.register) else stringResource(R.string.next)
+                        text = if (currentStep == getMaxSteps() - 1) stringResource(R.string.register) else stringResource(R.string.next),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         }
 
-        // Snackbar para mensajes
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 80.dp)
-        )
+                .padding(16.dp)
+        ) { snackbarData ->
+            Snackbar(
+                snackbarData = snackbarData,
+                containerColor = Color(0xFF374151),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
     }
 }
