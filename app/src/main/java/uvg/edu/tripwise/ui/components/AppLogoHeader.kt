@@ -1,4 +1,4 @@
-package uvg.edu.tripwise.ui.components  // Adjust package if needed
+package uvg.edu.tripwise.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,12 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uvg.edu.tripwise.R  // Import your R file
+import uvg.edu.tripwise.R
 
 @Composable
 fun AppLogoHeader(
     modifier: Modifier = Modifier,
-    fontSize: TextUnit = 36.sp,  // Default medium size
+    fontSize: TextUnit = 36.sp,
     fontWeight: FontWeight = FontWeight.Bold,
     color: Color = Color(0xFF2563EB)
 ) {
@@ -36,8 +36,8 @@ fun AppLogoHeader(
             horizontalArrangement = Arrangement.Center
         ) {
             androidx.compose.foundation.Image(
-                painter = painterResource(id = R.drawable.logotripwise),  // Replace with your actual drawable ID, e.g., R.drawable.ic_logo
-                contentDescription = stringResource(R.string.app_name),  // Accessibility
+                painter = painterResource(id = R.drawable.logotripwise),
+                contentDescription = stringResource(R.string.app_name),
                 modifier = Modifier.size(fontSize.value.dp * 2.2f)
             )
             Spacer(modifier = Modifier.width(10.dp))
