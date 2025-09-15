@@ -16,21 +16,25 @@ fun StepIndicator(
     totalSteps: Int,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        repeat(totalSteps) { index ->
-            val isActive = index + 1 <= currentStep
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .background(
-                        color = if (isActive) Color(0xFF2563EB) else Color(0xFFE5E7EB),
-                        shape = CircleShape
-                    )
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            repeat(totalSteps) { index ->
+                val isActive = index + 1 <= currentStep
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(
+                            color = if (isActive) Color(0xFF2563EB) else Color(0xFFE5E7EB),
+                            shape = CircleShape
+                        )
+                )
+            }
         }
     }
 }

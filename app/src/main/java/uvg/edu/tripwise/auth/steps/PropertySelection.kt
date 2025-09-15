@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.R
-import uvg.edu.tripwise.auth.steps.StepIndicator
+import uvg.edu.tripwise.ui.components.AppLogoHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +43,7 @@ fun PropertySetupScreen(
     onCapacityChange: (String) -> Unit,
     onPropertyTypeChange: (String) -> Unit,
     onSelectedAmenitiesChange: (Set<String>) -> Unit,
+    totalSteps: Int = 4, // Added parameter, always 4 for owner
     modifier: Modifier = Modifier
 ) {
     val propertyTypes = listOf(
@@ -68,17 +69,16 @@ fun PropertySetupScreen(
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 120.dp)
     ) {
         item { Spacer(modifier = Modifier.height(60.dp)) }
         item {
-            Text(
-                text = stringResource(R.string.app_name),
+            AppLogoHeader(
+                modifier = Modifier.fillMaxWidth(),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2563EB),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                color = Color(0xFF2563EB)
             )
         }
         item {
@@ -101,7 +101,7 @@ fun PropertySetupScreen(
             ) {
                 StepIndicator(
                     currentStep = 3,
-                    totalSteps = 3
+                    totalSteps = totalSteps
                 )
             }
         }
@@ -249,7 +249,6 @@ fun PropertySetupScreen(
                 }
             }
         }
-        item { Spacer(modifier = Modifier.height(120.dp)) }
     }
 }
 

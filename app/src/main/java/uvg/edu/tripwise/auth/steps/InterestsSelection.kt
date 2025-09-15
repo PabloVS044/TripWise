@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.R
-import uvg.edu.tripwise.auth.steps.StepIndicator
+import uvg.edu.tripwise.ui.components.AppLogoHeader
 
 data class InterestItem(
     val name: String,
@@ -33,6 +33,7 @@ data class InterestItem(
 fun InterestsScreen(
     selectedInterests: Set<String>,
     onInterestsChanged: (Set<String>) -> Unit,
+    totalSteps: Int = 3, // Added parameter
     modifier: Modifier = Modifier
 ) {
     val availableInterests = listOf(
@@ -59,13 +60,11 @@ fun InterestsScreen(
         item { Spacer(modifier = Modifier.height(60.dp)) }
 
         item {
-            Text(
-                text = stringResource(R.string.app_name),
+            AppLogoHeader(
+                modifier = Modifier.fillMaxWidth(),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2563EB),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                color = Color(0xFF2563EB)
             )
         }
 
@@ -89,8 +88,8 @@ fun InterestsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 StepIndicator(
-                    currentStep = 3,
-                    totalSteps = 3
+                    currentStep = if (totalSteps == 4) 4 else 3,
+                    totalSteps = totalSteps
                 )
             }
         }
