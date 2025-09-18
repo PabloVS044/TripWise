@@ -83,7 +83,8 @@ fun DiscoverScreen(
     filterType: String = "",
     filterApproved: String = ""
 ) {
-    val context = LocalContext.current    val searchLabel = stringResource(R.string.search_button)
+    val context = LocalContext.current
+    val searchLabel = stringResource(R.string.search_button)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
@@ -569,6 +570,9 @@ fun FilterCard(
 @Composable
 fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
     val context = LocalContext.current
+    val searchLabel = stringResource(R.string.search_button)
+    val profileLabel = stringResource(R.string.profile_button)
+    val reservationLabel = stringResource(R.string.reservation_button)
     NavigationBar(
         containerColor = Color.White,
         modifier = Modifier.fillMaxWidth()
@@ -593,7 +597,26 @@ fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
                 unselectedTextColor = Color.Gray
             )
         )
-
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Luggage,
+                    contentDescription = reservationLabel
+                )
+            },
+            label = { Text(reservationLabel) },
+            selected = false,
+            onClick = {
+                val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
+                context.startActivity(intent)
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFF1976D2),
+                selectedTextColor = Color(0xFF1976D2),
+                unselectedIconColor = Color.Gray,
+                unselectedTextColor = Color.Gray
+            )
+        )
         NavigationBarItem(
             icon = {
                 Icon(
