@@ -82,7 +82,7 @@ fun DiscoverScreen(
     filterType: String = "",
     filterApproved: String = ""
 ) {
-
+    val context = LocalContext.current
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     
@@ -169,31 +169,48 @@ fun DiscoverScreen(
     ) {
         // Status Bar Space
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Search Bar
-        Card(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(25.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            // Card de búsqueda (solo diseño)
+            Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .weight(1f) // Ocupa todo el espacio disponible
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Text(
-                    text = searchText,
-                    modifier = Modifier.weight(1f),
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Buscar...",
+                        color = Color.Gray
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Ícono pequeño de filtros
+            IconButton(
+                onClick = { showFilters = !showFilters },
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            ) {
                 Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = Color.Gray
+                    imageVector = Icons.Default.FilterAlt,
+                    contentDescription = "Filtros",
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -578,24 +595,6 @@ fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
             selected = false,
             onClick = { val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
                 context.startActivity(intent)},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.FilterAlt,
-                    contentDescription = "Filtros"
-                )
-            },
-            label = { Text("Filtros") },
-            selected = false,
-            onClick = onFilterClick,
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
