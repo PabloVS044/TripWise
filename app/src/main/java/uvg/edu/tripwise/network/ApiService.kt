@@ -8,7 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
-import uvg.edu.tripwise.data.model.Post
+import uvg.edu.tripwise.data.model.Property
 
 data class ApiUser(
     @SerializedName("_id") val id: String,
@@ -142,13 +142,13 @@ interface UserApiService {
 
 interface PropertyApiService {
     @GET("property")
-    suspend fun getProperties(): List<Post>
+    suspend fun getProperties(): List<Property>
     @GET("property/{id}")
-    suspend fun getPropertyById(@Path("id") id: String): Post
+    suspend fun getPropertyById(@Path("id") id: String): Property
     @POST("property/create")
     suspend fun createProperty(): List<ApiProperty>
     @PUT("property/{id}")
     suspend fun updateProperty(): List<ApiProperty>
     @DELETE("property/{id}")
-    suspend fun deleteProperty(): List<ApiProperty>
+    suspend fun deleteProperty(id: String): List<ApiProperty>
 }

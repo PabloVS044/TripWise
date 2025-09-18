@@ -6,10 +6,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Luggage
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -20,29 +23,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.*
-import org.w3c.dom.Text
-import uvg.edu.tripwise.BottomNavigation
-import uvg.edu.tripwise.data.model.Post
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
-import coil.compose.AsyncImage
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material3.ModalBottomSheetDefaults.properties
-import androidx.compose.ui.res.painterResource
-import coil.request.ImageRequest
-
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +74,7 @@ class DiscoverActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoverScreen(
-    viewModel: PropertyViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    viewModel: PropertyViewModel = viewModel(),
     filterName: String = "",
     filterLocation: String = "",
     filterMinPrice: Double? = null,
@@ -82,10 +83,9 @@ fun DiscoverScreen(
     filterType: String = "",
     filterApproved: String = ""
 ) {
-    val context = LocalContext.current
+    val context = LocalContext.current    val searchLabel = stringResource(R.string.search_button)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
-    
     // Search Bar
     var searchText by remember { mutableStateOf("Guatemala") }
     
@@ -141,10 +141,10 @@ fun DiscoverScreen(
         // Filtro por aprobación
         val matchesApproved = selectedApproved.takeIf { it.isNotBlank() && it != "Cualquiera" }?.let { approvalStatus ->
             when (approvalStatus.lowercase()) {
-                "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) || 
-                                     property.approved.contains("yes", ignoreCase = true) ||
-                                     property.approved.contains("true", ignoreCase = true)
-                "no" -> property.approved.contains("no", ignoreCase = true) || 
+                "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) ||
+                        property.approved.contains("yes", ignoreCase = true) ||
+                        property.approved.contains("true", ignoreCase = true)
+                "no" -> property.approved.contains("no", ignoreCase = true) ||
                         property.approved.contains("false", ignoreCase = true)
                 else -> property.approved.contains(approvalStatus, ignoreCase = true)
             }
@@ -154,7 +154,6 @@ fun DiscoverScreen(
         matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
-
 
     // Coordenadas de Guatemala como ubicación por defecto
     val guatemala = LatLng(14.644734, -90.587886)
@@ -272,33 +271,41 @@ fun DiscoverScreen(
                 )
             ) {
                 filteredProperties.forEach { property ->
-                    Marker(
-                        state = MarkerState(position = LatLng(property.latitude, property.longitude)),
-                        title = property.name,
-                        snippet = property.description,
-                        onClick = {
-                            viewModel.getPropertyById(property._id)
-                            false
-                        }
-                    )
+                    // Verificar que las coordenadas no sean nulas
+                    val latitude = property.latitude ?: 0.0
+                    val longitude = property.longitude ?: 0.0
+
+                    if (latitude != 0.0 && longitude != 0.0) {
+                        Marker(
+                            state = MarkerState(position = LatLng(latitude, longitude)),
+                            title = property.name,
+                            snippet = property.description,
+                            onClick = {
+                                viewModel.getPropertyById(property.id)
+                                false
+                            }
+                        )
+                    }
                 }
             }
         }
-        
+
         // Properties Found Section
         selectedProperty?.let { property ->
             PropertyCard(
                 property = property,
-                onClose = {viewModel.clearSelectedProperty()}
-                )
+                onClose = { viewModel.clearSelectedProperty() }
+            )
         }
 
         // Bottom Navigation
         BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
     }
 }
+
 @Composable
-fun PropertyCard(property: Post, onClose: () -> Unit) {
+fun PropertyCard(property: Property, onClose: () -> Unit) {
+    val closeLabel = stringResource(R.string.close_button)
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -322,7 +329,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = closeLabel,
                         tint = Color.Gray
                     )
                 }
@@ -337,7 +344,7 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            //cargar imagen con Coil o Glide
+            // Cargar imagen con Coil
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -570,31 +577,15 @@ fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Buscar"
+                    contentDescription = searchLabel
                 )
             },
-            label = { Text("Buscar") },
+            label = { Text(searchLabel) },
             selected = true,
-            onClick = { val intent = Intent(context, DiscoverActivity::class.java)
-                context.startActivity(intent) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Luggage,
-                    contentDescription = "Reservacion"
-                )
+            onClick = {
+                val intent = Intent(context, DiscoverActivity::class.java)
+                context.startActivity(intent)
             },
-            label = { Text("Reservacion") },
-            selected = false,
-            onClick = { val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                context.startActivity(intent)},
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
@@ -607,13 +598,13 @@ fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
             icon = {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil"
+                    contentDescription = profileLabel
                 )
             },
-            label = { Text("Perfil") },
+            label = { Text(profileLabel) },
             selected = false,
             onClick = {
-                /*navegación al perfil */
+                /* navegación al perfil */
             },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
@@ -622,7 +613,6 @@ fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
                 unselectedTextColor = Color.Gray
             )
         )
-
     }
 }
 

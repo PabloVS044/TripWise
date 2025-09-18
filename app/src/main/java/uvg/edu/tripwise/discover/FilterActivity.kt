@@ -31,9 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import java.util.logging.Filter
 
@@ -51,6 +53,18 @@ class FilterActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterScreen() {
+    val filterMapLabel = stringResource(R.string.mapFilters)
+    val namePlaceholder = stringResource(R.string.name_placeholder)
+    val capacityPlaceholder = stringResource(R.string.capacity_placeholder)
+    val maxPlaceholder = stringResource(R.string.max_placeholder)
+    val minPlaceholder = stringResource(R.string.min_placeholder)
+    val locationPlaceholder = stringResource(R.string.location_placeholder)
+    val pTypePlaceholder = stringResource(R.string.ptype_placeholder)
+    val approvalPlaceholder = stringResource(R.string.approval_placeholder)
+    val applyPlaceholder = stringResource(R.string.apply_placeholder)
+    val cancelPlaceholder = stringResource(R.string.cancel_placeholder)
+    val anyPlaceholder = stringResource(R.string.any_placeholder)
+
     var name by remember { mutableStateOf("") }
     var minPrice by remember { mutableStateOf("") }
     var maxPrice by remember { mutableStateOf("") }
@@ -58,12 +72,12 @@ fun FilterScreen() {
     var location by remember { mutableStateOf("") }
 
     // ComboBox Tipo de propiedad
-    val propertyTypes = listOf("Cualquiera", "Apartamento", "Casa", "Hotel", "Hostel")
+    val propertyTypes = listOf(anyPlaceholder, "Apartamento", "Casa", "Hotel", "Hostel")
     var selectedType by remember { mutableStateOf(propertyTypes.first()) }
     var typeExpanded by remember { mutableStateOf(false) }
 
     // ComboBox Aprobación
-    val approvalOptions = listOf("Cualquiera", "Sí", "No")
+    val approvalOptions = listOf(anyPlaceholder, "Sí", "No")
     var selectedApproved by remember { mutableStateOf(approvalOptions.first()) }
     var approvedExpanded by remember { mutableStateOf(false) }
 
@@ -77,7 +91,7 @@ fun FilterScreen() {
     ) {
         Row {
             Text(
-                text = "Filtros para el mapa",
+                text = filterMapLabel,
                 modifier = Modifier.weight(1f),
                 color = Color.Black,
                 fontSize = 32.sp,
@@ -88,7 +102,7 @@ fun FilterScreen() {
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Nombre") },
+            label = { Text(namePlaceholder) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -97,14 +111,14 @@ fun FilterScreen() {
             OutlinedTextField(
                 value = minPrice,
                 onValueChange = { minPrice = it },
-                label = { Text("Precio Min") },
+                label = { Text(minPlaceholder) },
                 modifier = Modifier.weight(1f),
                 singleLine = true
             )
             OutlinedTextField(
                 value = maxPrice,
                 onValueChange = { maxPrice = it },
-                label = { Text("Precio Max") },
+                label = { Text(maxPlaceholder) },
                 modifier = Modifier.weight(1f),
                 singleLine = true
             )
@@ -114,7 +128,7 @@ fun FilterScreen() {
         OutlinedTextField(
             value = capacity,
             onValueChange = { capacity = it },
-            label = { Text("Capacidad") },
+            label = { Text(capacityPlaceholder) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -123,7 +137,7 @@ fun FilterScreen() {
         OutlinedTextField(
             value = location,
             onValueChange = { location = it },
-            label = { Text("Location") },
+            label = { Text(locationPlaceholder) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -136,7 +150,7 @@ fun FilterScreen() {
             OutlinedTextField(
                 value = selectedType,
                 onValueChange = {},
-                label = { Text("Tipo de propiedad") },
+                label = { Text(pTypePlaceholder) },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
                 modifier = Modifier
@@ -167,7 +181,7 @@ fun FilterScreen() {
             OutlinedTextField(
                 value = selectedApproved,
                 onValueChange = {},
-                label = { Text("Aprobación") },
+                label = { Text(approvalPlaceholder) },
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(approvedExpanded) },
                 modifier = Modifier
@@ -205,15 +219,15 @@ fun FilterScreen() {
                         putExtra("maxPrice", maxPrice.trim())
                         putExtra("capacity", capacity.trim())
                         putExtra("location", location.trim())
-                        // Solo enviar tipo de propiedad y aprobación si no es "Cualquiera"
-                        putExtra("propertyType", if (selectedType == "Cualquiera") "" else selectedType)
-                        putExtra("approved", if (selectedApproved == "Cualquiera") "" else selectedApproved)
+                        // Solo enviar tipo de propiedad y aprobación si no es "Any"
+                        putExtra("propertyType", if (selectedType == anyPlaceholder) "" else selectedType)
+                        putExtra("approved", if (selectedApproved == anyPlaceholder) "" else selectedApproved)
                     }
                     context.startActivity(intent)
                 },
                 modifier = Modifier.weight(1f).padding(start = 4.dp)
             ) {
-                Text("Aplicar filtros")
+                Text(applyPlaceholder)
             }
 
             Button(
@@ -235,7 +249,7 @@ fun FilterScreen() {
                     .weight(1f)
                     .padding(start = 4.dp)
             ) {
-                Text("Cancelar")
+                Text(cancelPlaceholder)
             }
 
         }

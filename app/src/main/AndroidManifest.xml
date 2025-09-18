@@ -36,14 +36,18 @@
         </activity>
 
         <activity
-            android:name=".UsersActivity"
+            android:name=".admin.UsersActivity"
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
 
         <activity
-            android:name=".PropertiesActivity"
+            android:name=".admin.PropertiesActivity"
             android:exported="false"
             android:theme="@style/Theme.TripWise" />
+
+        <activity
+            android:name=".admin.DashboardActivity"
+            android:exported="false" />
 
         <activity android:name=".discover.FilterActivity" />
         <activity
@@ -76,6 +80,25 @@
         <activity
             android:name=".reservation.ReservationPage1Activity"
             tools:ignore="MissingClass" />
+
+        <activity
+            android:name=".reservation.ReservationPage2Activity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"
+            tools:ignore="MissingClass" />
+
+        <activity
+            android:name=".host.PropertiesHostActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
+        <activity
+            android:name=".admin.UserDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".admin.PropertyDetailActivity"
+            android:exported="false" />
 
     </application>
 

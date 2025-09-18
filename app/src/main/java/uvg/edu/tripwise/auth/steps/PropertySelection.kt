@@ -17,12 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uvg.edu.tripwise.auth.steps.StepIndicator
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.ui.components.AppLogoHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,24 +43,25 @@ fun PropertySetupScreen(
     onCapacityChange: (String) -> Unit,
     onPropertyTypeChange: (String) -> Unit,
     onSelectedAmenitiesChange: (Set<String>) -> Unit,
+    totalSteps: Int = 4, // Added parameter, always 4 for owner
     modifier: Modifier = Modifier
 ) {
     val propertyTypes = listOf(
-        PropertyTypeItem("Casa", Icons.Default.House, "casa"),
-        PropertyTypeItem("Apartamento", Icons.Default.Apartment, "apartamento"),
-        PropertyTypeItem("Cabaña", Icons.Default.Cabin, "cabana"),
-        PropertyTypeItem("Hotel", Icons.Default.Hotel, "hotel")
+        PropertyTypeItem(stringResource(R.string.house), Icons.Default.House, "casa"),
+        PropertyTypeItem(stringResource(R.string.apartment), Icons.Default.Apartment, "apartamento"),
+        PropertyTypeItem(stringResource(R.string.cabin), Icons.Default.Cabin, "cabana"),
+        PropertyTypeItem(stringResource(R.string.hotel), Icons.Default.Hotel, "hotel")
     )
 
     val availableAmenities = listOf(
-        AmenityItem("WiFi", Icons.Default.Wifi, "wifi"),
-        AmenityItem("Piscina", Icons.Default.Pool, "piscina"),
-        AmenityItem("Cocina", Icons.Default.Kitchen, "cocina"),
-        AmenityItem("Estacionamiento", Icons.Default.LocalParking, "estacionamiento"),
-        AmenityItem("Aire Acondicionado", Icons.Default.AcUnit, "aire_acondicionado"),
-        AmenityItem("TV", Icons.Default.Tv, "tv"),
-        AmenityItem("Lavadora", Icons.Default.LocalLaundryService, "lavadora"),
-        AmenityItem("Balcón", Icons.Default.Balcony, "balcon")
+        AmenityItem(stringResource(R.string.wifi), Icons.Default.Wifi, "wifi"),
+        AmenityItem(stringResource(R.string.pool), Icons.Default.Pool, "piscina"),
+        AmenityItem(stringResource(R.string.kitchen), Icons.Default.Kitchen, "cocina"),
+        AmenityItem(stringResource(R.string.parking), Icons.Default.LocalParking, "estacionamiento"),
+        AmenityItem(stringResource(R.string.air_conditioning), Icons.Default.AcUnit, "aire_acondicionado"),
+        AmenityItem(stringResource(R.string.tv), Icons.Default.Tv, "tv"),
+        AmenityItem(stringResource(R.string.washing_machine), Icons.Default.LocalLaundryService, "lavadora"),
+        AmenityItem(stringResource(R.string.balcony), Icons.Default.Balcony, "balcon")
     )
 
     LazyColumn(
@@ -66,22 +69,21 @@ fun PropertySetupScreen(
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 120.dp)
     ) {
         item { Spacer(modifier = Modifier.height(60.dp)) }
         item {
-            Text(
-                text = "TripWise",
+            AppLogoHeader(
+                modifier = Modifier.fillMaxWidth(),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2563EB),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                color = Color(0xFF2563EB)
             )
         }
         item {
             Text(
-                text = "Describe tu propiedad para atraer huéspedes",
+                text = stringResource(R.string.describe_property_message),
                 fontSize = 16.sp,
                 color = Color(0xFF6B7280),
                 modifier = Modifier
@@ -99,13 +101,13 @@ fun PropertySetupScreen(
             ) {
                 StepIndicator(
                     currentStep = 3,
-                    totalSteps = 3
+                    totalSteps = totalSteps
                 )
             }
         }
         item {
             Text(
-                text = "Tu propiedad",
+                text = stringResource(R.string.your_property),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -116,7 +118,7 @@ fun PropertySetupScreen(
             OutlinedTextField(
                 value = propertyName,
                 onValueChange = onPropertyNameChange,
-                label = { Text("Nombre de la propiedad") },
+                label = { Text(stringResource(R.string.property_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -129,7 +131,7 @@ fun PropertySetupScreen(
             OutlinedTextField(
                 value = propertyDescription,
                 onValueChange = onPropertyDescriptionChange,
-                label = { Text("Descripción") },
+                label = { Text(stringResource(R.string.description)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -145,7 +147,7 @@ fun PropertySetupScreen(
             OutlinedTextField(
                 value = propertyLocation,
                 onValueChange = onPropertyLocationChange,
-                label = { Text("Ubicación") },
+                label = { Text(stringResource(R.string.location)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -162,7 +164,7 @@ fun PropertySetupScreen(
                 OutlinedTextField(
                     value = pricePerNight,
                     onValueChange = onPricePerNightChange,
-                    label = { Text("Precio/noche (Q)") },
+                    label = { Text(stringResource(R.string.price_per_night)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -174,7 +176,7 @@ fun PropertySetupScreen(
                 OutlinedTextField(
                     value = capacity,
                     onValueChange = onCapacityChange,
-                    label = { Text("Capacidad") },
+                    label = { Text(stringResource(R.string.capacity)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
@@ -187,7 +189,7 @@ fun PropertySetupScreen(
         }
         item {
             Text(
-                text = "Tipo de propiedad",
+                text = stringResource(R.string.property_type),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
@@ -209,7 +211,7 @@ fun PropertySetupScreen(
         }
         item {
             Text(
-                text = "Amenidades",
+                text = stringResource(R.string.amenities),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.Black,
@@ -247,7 +249,6 @@ fun PropertySetupScreen(
                 }
             }
         }
-        item { Spacer(modifier = Modifier.height(120.dp)) }
     }
 }
 
