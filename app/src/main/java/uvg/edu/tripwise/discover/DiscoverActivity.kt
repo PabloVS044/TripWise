@@ -83,43 +83,63 @@ fun DiscoverScreen(
     filterApproved: String = ""
 ) {
 
-
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
+    
     // Search Bar
     var searchText by remember { mutableStateOf("Guatemala") }
+    
+    // Filter dropdown state
+    var showFilters by remember { mutableStateOf(false) }
+    
+    // Filter states
+    var name by remember { mutableStateOf(filterName) }
+    var minPrice by remember { mutableStateOf(filterMinPrice?.toString() ?: "") }
+    var maxPrice by remember { mutableStateOf(filterMaxPrice?.toString() ?: "") }
+    var capacity by remember { mutableStateOf(filterCapacity?.toString() ?: "") }
+    var location by remember { mutableStateOf(filterLocation) }
+    
+    // ComboBox Tipo de propiedad
+    val propertyTypes = listOf("Cualquiera", "Apartamento", "Casa", "Hotel", "Hostel")
+    var selectedType by remember { mutableStateOf(if (filterType.isBlank()) propertyTypes.first() else filterType) }
+    var typeExpanded by remember { mutableStateOf(false) }
+    
+    // ComboBox Aprobación
+    val approvalOptions = listOf("Cualquiera", "Sí", "No")
+    var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
+    var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
         // Filtro por nombre 
-        val matchesName = filterName.takeIf { it.isNotBlank() }?.let { searchTerm ->
+        val matchesName = name.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
         // Filtro por ubicación 
-        val matchesLocation = filterLocation.takeIf { it.isNotBlank() }?.let { searchTerm ->
+        val matchesLocation = location.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.location.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
         // Filtros de precio
-        val matchesMinPrice = filterMinPrice?.let { minPrice -> 
-            property.pricePerNight >= minPrice 
+        val matchesMinPrice = minPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { minPriceValue -> 
+            property.pricePerNight >= minPriceValue 
         } ?: true
         
-        val matchesMaxPrice = filterMaxPrice?.let { maxPrice -> 
-            property.pricePerNight <= maxPrice 
+        val matchesMaxPrice = maxPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { maxPriceValue -> 
+            property.pricePerNight <= maxPriceValue 
         } ?: true
         
         // Filtro de capacidad 
-        val matchesCapacity = filterCapacity?.let { requiredCapacity -> 
+        val matchesCapacity = capacity.takeIf { it.isNotBlank() }?.toIntOrNull()?.let { requiredCapacity -> 
             property.capacity >= requiredCapacity 
         } ?: true
 
         // Filtro por tipo de propiedad
-        val matchesType = filterType.takeIf { it.isNotBlank() && it != "Apartamento" }?.let { searchType ->
+        val matchesType = selectedType.takeIf { it.isNotBlank() && it != "Cualquiera" }?.let { searchType ->
             property.propertyType.trim().contains(searchType.trim(), ignoreCase = true)
         } ?: true
 
         // Filtro por aprobación
-        val matchesApproved = filterApproved.takeIf { it.isNotBlank() && it != "Sí" }?.let { approvalStatus ->
+        val matchesApproved = selectedApproved.takeIf { it.isNotBlank() && it != "Cualquiera" }?.let { approvalStatus ->
             when (approvalStatus.lowercase()) {
                 "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) || 
                                      property.approved.contains("yes", ignoreCase = true) ||
@@ -178,6 +198,42 @@ fun DiscoverScreen(
             }
         }
         
+        // Filter Card
+        if (showFilters) {
+            FilterCard(
+                name = name,
+                onNameChange = { name = it },
+                minPrice = minPrice,
+                onMinPriceChange = { minPrice = it },
+                maxPrice = maxPrice,
+                onMaxPriceChange = { maxPrice = it },
+                capacity = capacity,
+                onCapacityChange = { capacity = it },
+                location = location,
+                onLocationChange = { location = it },
+                selectedType = selectedType,
+                onTypeChange = { selectedType = it },
+                typeExpanded = typeExpanded,
+                onTypeExpandedChange = { typeExpanded = it },
+                propertyTypes = propertyTypes,
+                selectedApproved = selectedApproved,
+                onApprovedChange = { selectedApproved = it },
+                approvedExpanded = approvedExpanded,
+                onApprovedExpandedChange = { approvedExpanded = it },
+                approvalOptions = approvalOptions,
+                onClearFilters = {
+                    name = ""
+                    minPrice = ""
+                    maxPrice = ""
+                    capacity = ""
+                    location = ""
+                    selectedType = propertyTypes.first()
+                    selectedApproved = approvalOptions.first()
+                },
+                onClose = { showFilters = false }
+            )
+        }
+        
         // Google Maps
         Box(
             modifier = Modifier
@@ -221,7 +277,7 @@ fun DiscoverScreen(
         }
 
         // Bottom Navigation
-        BottomNavigationBar()
+        BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
     }
 }
 @Composable
@@ -293,8 +349,201 @@ fun PropertyCard(property: Post, onClose: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomNavigationBar() {
+fun FilterCard(
+    name: String,
+    onNameChange: (String) -> Unit,
+    minPrice: String,
+    onMinPriceChange: (String) -> Unit,
+    maxPrice: String,
+    onMaxPriceChange: (String) -> Unit,
+    capacity: String,
+    onCapacityChange: (String) -> Unit,
+    location: String,
+    onLocationChange: (String) -> Unit,
+    selectedType: String,
+    onTypeChange: (String) -> Unit,
+    typeExpanded: Boolean,
+    onTypeExpandedChange: (Boolean) -> Unit,
+    propertyTypes: List<String>,
+    selectedApproved: String,
+    onApprovedChange: (String) -> Unit,
+    approvedExpanded: Boolean,
+    onApprovedExpandedChange: (Boolean) -> Unit,
+    approvalOptions: List<String>,
+    onClearFilters: () -> Unit,
+    onClose: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Filtros",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                IconButton(onClick = onClose) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar",
+                        tint = Color.Gray
+                    )
+                }
+            }
+            
+            // Nombre
+            OutlinedTextField(
+                value = name,
+                onValueChange = onNameChange,
+                label = { Text("Nombre") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Precio Min / Max
+            Row(
+                modifier = Modifier.fillMaxWidth(), 
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = minPrice,
+                    onValueChange = onMinPriceChange,
+                    label = { Text("Precio Min") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = maxPrice,
+                    onValueChange = onMaxPriceChange,
+                    label = { Text("Precio Max") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+            }
+
+            // Capacidad
+            OutlinedTextField(
+                value = capacity,
+                onValueChange = onCapacityChange,
+                label = { Text("Capacidad") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            // Location
+            OutlinedTextField(
+                value = location,
+                onValueChange = onLocationChange,
+                label = { Text("Ubicación") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // ComboBox Tipo de propiedad
+            ExposedDropdownMenuBox(
+                expanded = typeExpanded,
+                onExpandedChange = onTypeExpandedChange
+            ) {
+                OutlinedTextField(
+                    value = selectedType,
+                    onValueChange = {},
+                    label = { Text("Tipo de propiedad") },
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = typeExpanded,
+                    onDismissRequest = { onTypeExpandedChange(false) }
+                ) {
+                    propertyTypes.forEach { type ->
+                        DropdownMenuItem(
+                            text = { Text(type) },
+                            onClick = {
+                                onTypeChange(type)
+                                onTypeExpandedChange(false)
+                            }
+                        )
+                    }
+                }
+            }
+
+            // ComboBox Aprobación
+            ExposedDropdownMenuBox(
+                expanded = approvedExpanded,
+                onExpandedChange = onApprovedExpandedChange
+            ) {
+                OutlinedTextField(
+                    value = selectedApproved,
+                    onValueChange = {},
+                    label = { Text("Aprobación") },
+                    readOnly = true,
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(approvedExpanded) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+                ExposedDropdownMenu(
+                    expanded = approvedExpanded,
+                    onDismissRequest = { onApprovedExpandedChange(false) }
+                ) {
+                    approvalOptions.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                onApprovedChange(option)
+                                onApprovedExpandedChange(false)
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Botones
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onClearFilters,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                ) {
+                    Text("Limpiar", color = Color.White)
+                }
+                Button(
+                    onClick = onClose,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Aplicar")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
     val context = LocalContext.current
     NavigationBar(
         containerColor = Color.White,
@@ -346,8 +595,7 @@ fun BottomNavigationBar() {
             },
             label = { Text("Filtros") },
             selected = false,
-            onClick = { val intent = Intent(context, FilterActivity::class.java)
-                context.startActivity(intent) },
+            onClick = onFilterClick,
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1976D2),
                 selectedTextColor = Color(0xFF1976D2),
