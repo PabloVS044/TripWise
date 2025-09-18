@@ -85,6 +85,7 @@ fun DiscoverScreen(
 ) {
     val context = LocalContext.current
     val searchLabel = stringResource(R.string.search_button)
+    val anyPlaceholder = stringResource(R.string.any_placeholder)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
@@ -101,12 +102,12 @@ fun DiscoverScreen(
     var location by remember { mutableStateOf(filterLocation) }
     
     // ComboBox Tipo de propiedad
-    val propertyTypes = listOf("Cualquiera", "Apartamento", "Casa", "Hotel", "Hostel")
+    val propertyTypes = listOf(anyPlaceholder, "Apartamento", "Casa", "Hotel", "Hostel")
     var selectedType by remember { mutableStateOf(if (filterType.isBlank()) propertyTypes.first() else filterType) }
     var typeExpanded by remember { mutableStateOf(false) }
     
     // ComboBox Aprobación
-    val approvalOptions = listOf("Cualquiera", "Sí", "No")
+    val approvalOptions = listOf(anyPlaceholder, "Sí", "No")
     var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
     var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
@@ -135,12 +136,12 @@ fun DiscoverScreen(
         } ?: true
 
         // Filtro por tipo de propiedad
-        val matchesType = selectedType.takeIf { it.isNotBlank() && it != "Cualquiera" }?.let { searchType ->
+        val matchesType = selectedType.takeIf { it.isNotBlank() && it != anyPlaceholder }?.let { searchType ->
             property.propertyType.trim().contains(searchType.trim(), ignoreCase = true)
         } ?: true
 
         // Filtro por aprobación
-        val matchesApproved = selectedApproved.takeIf { it.isNotBlank() && it != "Cualquiera" }?.let { approvalStatus ->
+        val matchesApproved = selectedApproved.takeIf { it.isNotBlank() && it != anyPlaceholder }?.let { approvalStatus ->
             when (approvalStatus.lowercase()) {
                 "sí", "si", "yes" -> property.approved.contains("sí", ignoreCase = true) ||
                         property.approved.contains("yes", ignoreCase = true) ||
@@ -190,7 +191,7 @@ fun DiscoverScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Buscar...",
+                        text = searchLabel,
                         color = Color.Gray
                     )
                 }
@@ -400,6 +401,18 @@ fun FilterCard(
     onClearFilters: () -> Unit,
     onClose: () -> Unit
 ) {
+    val filterMapLabel = stringResource(R.string.mapFilters)
+    val namePlaceholder = stringResource(R.string.name_placeholder)
+    val capacityPlaceholder = stringResource(R.string.capacity_placeholder)
+    val maxPlaceholder = stringResource(R.string.max_placeholder)
+    val minPlaceholder = stringResource(R.string.min_placeholder)
+    val locationPlaceholder = stringResource(R.string.location_placeholder)
+    val pTypePlaceholder = stringResource(R.string.ptype_placeholder)
+    val approvalPlaceholder = stringResource(R.string.approval_placeholder)
+    val applyPlaceholder = stringResource(R.string.apply_placeholder)
+    val cleanButton = stringResource(R.string.clean_placeholder)
+    val closeButton = stringResource(R.string.close)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -420,7 +433,7 @@ fun FilterCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Filtros",
+                    text = filterMapLabel,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -428,7 +441,7 @@ fun FilterCard(
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = closeButton,
                         tint = Color.Gray
                     )
                 }
@@ -438,7 +451,7 @@ fun FilterCard(
             OutlinedTextField(
                 value = name,
                 onValueChange = onNameChange,
-                label = { Text("Nombre") },
+                label = { Text(namePlaceholder) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -450,14 +463,14 @@ fun FilterCard(
                 OutlinedTextField(
                     value = minPrice,
                     onValueChange = onMinPriceChange,
-                    label = { Text("Precio Min") },
+                    label = { Text(minPlaceholder) },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
                 OutlinedTextField(
                     value = maxPrice,
                     onValueChange = onMaxPriceChange,
-                    label = { Text("Precio Max") },
+                    label = { Text(maxPlaceholder) },
                     modifier = Modifier.weight(1f),
                     singleLine = true
                 )
@@ -467,7 +480,7 @@ fun FilterCard(
             OutlinedTextField(
                 value = capacity,
                 onValueChange = onCapacityChange,
-                label = { Text("Capacidad") },
+                label = { Text(capacityPlaceholder) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -476,7 +489,7 @@ fun FilterCard(
             OutlinedTextField(
                 value = location,
                 onValueChange = onLocationChange,
-                label = { Text("Ubicación") },
+                label = { Text(locationPlaceholder) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -488,7 +501,7 @@ fun FilterCard(
                 OutlinedTextField(
                     value = selectedType,
                     onValueChange = {},
-                    label = { Text("Tipo de propiedad") },
+                    label = { Text(pTypePlaceholder) },
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(typeExpanded) },
                     modifier = Modifier
@@ -519,7 +532,7 @@ fun FilterCard(
                 OutlinedTextField(
                     value = selectedApproved,
                     onValueChange = {},
-                    label = { Text("Aprobación") },
+                    label = { Text(approvalPlaceholder) },
                     readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(approvedExpanded) },
                     modifier = Modifier
@@ -554,13 +567,13 @@ fun FilterCard(
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                 ) {
-                    Text("Limpiar", color = Color.White)
+                    Text(cleanButton, color = Color.White)
                 }
                 Button(
                     onClick = onClose,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Aplicar")
+                    Text(applyPlaceholder)
                 }
             }
         }
