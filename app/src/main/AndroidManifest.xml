@@ -94,11 +94,18 @@
 
         <activity
             android:name=".admin.UserDetailActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
 
         <activity
             android:name=".admin.PropertyDetailActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
+        <activity
+            android:name=".itinerary.ItineraryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
 
     </application>
 
