@@ -7,11 +7,23 @@
     <string name="ph_tab_resenas">Reseñas</string>
     <string name="ph_tab_calendario">Calendario</string>
 
+    <!-- Accesibilidad / acciones -->
+    <string name="cd_logout">Cerrar sesión</string>
+    <string name="action_search_filter">Buscar / Filtrar</string>
+    <string name="action_apply">Aplicar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <!-- Sheet de búsqueda / filtros -->
+    <string name="search_filter_title">Buscar y filtrar</string>
+    <string name="search_hint">Buscar (nombre, fechas, etc.)</string>
+    <string name="filter_status">Estado</string>
+
     <!-- KPIs -->
     <string name="ph_kpi_occupancy">Ocupación</string>
     <string name="ph_kpi_income_month">Ingresos / mes</string>
     <string name="ph_kpi_rating">Calificación</string>
     <string name="ph_kpi_response">Respuesta</string>
+
     <!-- Valores demo -->
     <string name="ph_kpi_occupancy_value" translatable="false">85%</string>
     <string name="ph_kpi_income_value" translatable="false">$4500</string>
