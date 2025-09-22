@@ -9,28 +9,29 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AttachMoney
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
-import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.R
+import uvg.edu.tripwise.ui.components.AppLogoHeader
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 
-/* Colores */
+/* Colores locales */
 private val PrimaryBlue = Color(0xFF1F47B2)
 private val SuccessGreen = Color(0xFF0AA12E)
 private val DangerRed   = Color(0xFFE2265B)
@@ -43,98 +44,230 @@ enum class HostTab(@StringRes val titleRes: Int) {
     Calendario(R.string.ph_tab_calendario)
 }
 
+/* ---------- AppBar con logotipo ---------- */
+@Composable
+private fun LogoAppTopBar(onLogout: () -> Unit) {
+    Surface(shadowElevation = 4.dp, color = Color.White) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 12.dp)
+                .clipToBounds(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(end = 8.dp)
+                    .clipToBounds()
+            ) {
+                AppLogoHeader(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .graphicsLayer { scaleX = 0.70f; scaleY = 0.70f }
+                )
+            }
+
+            IconButton(onClick = onLogout) {
+                Icon(
+                    imageVector = Icons.Filled.ExitToApp,
+                    contentDescription = stringResource(R.string.cd_logout),
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PropertiesHost(modifier: Modifier = Modifier) {
+fun PropertiesHost(
+    modifier: Modifier = Modifier,
+    onLogout: () -> Unit = {}
+) {
     var selectedTab by remember { mutableStateOf(HostTab.Resumen) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.ph_app_title),
-                        fontSize = 24.sp,
-                        color = PrimaryBlue,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            )
-        }
-    ) { inner ->
-        Column(
+    var showSearchSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab != HostTab.Reservas && showSearchSheet) showSearchSheet = false
+    }
+
+    Scaffold(topBar = { LogoAppTopBar(onLogout) }) { inner ->
+        Box(
             modifier = modifier
                 .padding(inner)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .background(PageBg)
-                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            /* KPIs */
-            StatCard(
-                stringResource(R.string.ph_kpi_occupancy),
-                stringResource(R.string.ph_kpi_occupancy_value),
-                Color(0xFF2E63F1),
-                Icons.Outlined.TrendingUp
-            )
-            Spacer(Modifier.height(10.dp))
-            StatCard(
-                stringResource(R.string.ph_kpi_income_month),
-                stringResource(R.string.ph_kpi_income_value),
-                SuccessGreen,
-                Icons.Outlined.AttachMoney
-            )
-            Spacer(Modifier.height(10.dp))
-            StatCard(
-                stringResource(R.string.ph_kpi_rating),
-                stringResource(R.string.ph_kpi_rating_value),
-                Color(0xFF8E198A),
-                Icons.Outlined.StarOutline
-            )
-            Spacer(Modifier.height(10.dp))
-            StatCard(
-                stringResource(R.string.ph_kpi_response),
-                stringResource(R.string.ph_kpi_response_value),
-                DangerRed,
-                Icons.Outlined.ChatBubbleOutline
-            )
+            // CONTENIDO
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                /* KPIs 2×2 (sin íconos) */
+                StatsGrid()
+                Spacer(Modifier.height(16.dp))
 
-            Spacer(Modifier.height(16.dp))
+                HostTopTabBar(selected = selectedTab, onSelected = { selectedTab = it })
+                Spacer(Modifier.height(24.dp)) // más aire bajo el menú
 
-            HostTopTabBar(selected = selectedTab, onSelected = { selectedTab = it })
+                when (selectedTab) {
+                    HostTab.Resumen    -> SummarySection()
+                    HostTab.Reservas   -> ReservationsSection()
+                    HostTab.Reseñas    -> PlaceholderSection(stringResource(R.string.ph_placeholder_reviews))
+                    HostTab.Calendario -> PlaceholderSection(stringResource(R.string.ph_placeholder_calendar))
+                }
 
-            Spacer(Modifier.height(12.dp))
-
-            when (selectedTab) {
-                HostTab.Resumen -> SummarySection()
-                HostTab.Reservas -> ReservationsSection()
-                HostTab.Reseñas -> PlaceholderSection(stringResource(R.string.ph_placeholder_reviews))
-                HostTab.Calendario -> PlaceholderSection(stringResource(R.string.ph_placeholder_calendar))
+                Spacer(Modifier.height(24.dp))
             }
 
-            Spacer(Modifier.height(24.dp))
+            /* FAB + SHEET SOLO EN RESERVAS */
+            if (selectedTab == HostTab.Reservas) {
+                ExtendedFloatingActionButton(
+                    onClick = { showSearchSheet = true },
+                    icon = { Icon(Icons.Outlined.Search, contentDescription = null) },
+                    text = { Text(stringResource(R.string.action_search_filter)) },
+                    containerColor = PrimaryBlue,
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                )
+
+                if (showSearchSheet) {
+                    ModalBottomSheet(
+                        onDismissRequest = { showSearchSheet = false },
+                        sheetState = sheetState
+                    ) {
+                        SearchFilterSheet(
+                            onApply = { showSearchSheet = false },
+                            onCancel = { showSearchSheet = false }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* ---------- Sheet de búsqueda y filtros ---------- */
+@Composable
+private fun SearchFilterSheet(
+    onApply: () -> Unit,
+    onCancel: () -> Unit
+) {
+    var query by remember { mutableStateOf("") }
+    var confirmed by remember { mutableStateOf(true) }
+    var pending by remember { mutableStateOf(true) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            stringResource(R.string.search_filter_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = PrimaryBlue
+        )
+        Spacer(Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            label = { Text(stringResource(R.string.search_hint)) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Text(stringResource(R.string.filter_status), fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
+        Spacer(Modifier.height(8.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            FilterChip(
+                selected = confirmed,
+                onClick = { confirmed = !confirmed },
+                label = { Text(stringResource(R.string.ph_reservation_status_confirmed)) }
+            )
+            FilterChip(
+                selected = pending,
+                onClick = { pending = !pending },
+                label = { Text(stringResource(R.string.ph_reservation_status_pending)) }
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
+            Spacer(Modifier.width(8.dp))
+            Button(onClick = onApply) { Text(stringResource(R.string.action_apply)) }
+        }
+        Spacer(Modifier.height(12.dp))
+    }
+}
+
+/* ---------- Soporte UI ---------- */
+
+@Composable
+private fun StatsGrid() {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StatCard(
+                title = stringResource(R.string.ph_kpi_occupancy),
+                value = stringResource(R.string.ph_kpi_occupancy_value),
+                bg = Color(0xFF2E63F1),
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                title = stringResource(R.string.ph_kpi_income_month),
+                value = stringResource(R.string.ph_kpi_income_value),
+                bg = SuccessGreen,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StatCard(
+                title = stringResource(R.string.ph_kpi_rating),
+                value = stringResource(R.string.ph_kpi_rating_value),
+                bg = Color(0xFF8E198A),
+                modifier = Modifier.weight(1f)
+            )
+            StatCard(
+                title = stringResource(R.string.ph_kpi_response),
+                value = stringResource(R.string.ph_kpi_response_value),
+                bg = DangerRed,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
 @Composable
-fun StatCard(title: String, value: String, bg: Color, icon: ImageVector) {
+fun StatCard(
+    title: String,
+    value: String,
+    bg: Color,
+    modifier: Modifier = Modifier,
+    minHeight: Dp = 104.dp
+) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = bg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        modifier = Modifier.fillMaxWidth()
+        elevation = CardDefaults.cardElevation(0.dp),
+        modifier = modifier.heightIn(min = minHeight)
     ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(title, color = Color.White.copy(alpha = 0.92f), fontSize = 16.sp)
-                Spacer(Modifier.height(4.dp))
-                Text(value, color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
-            }
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp))
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Text(title, color = Color.White.copy(alpha = 0.92f), fontSize = 14.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(value, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -151,7 +284,7 @@ fun HostTopTabBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = PrimaryBlue,
-        shape = RoundedCornerShape(14.dp)
+        shape = RoundedCornerShape(8.dp)
     ) {
         TabRow(
             selectedTabIndex = selectedIndex,
@@ -159,9 +292,7 @@ fun HostTopTabBar(
             contentColor = Color.White,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
-                    modifier = Modifier
-                        .tabIndicatorOffset(tabPositions[selectedIndex])
-                        .padding(horizontal = 28.dp),
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
                     height = 2.dp,
                     color = Color.White
                 )
@@ -172,17 +303,23 @@ fun HostTopTabBar(
                 Tab(
                     selected = tab == selected,
                     onClick = { onSelected(tab) },
-                    text = { Text(stringResource(tab.titleRes), color = Color.White, fontSize = 15.sp) }
+                    text = {
+                        Text(
+                            text = stringResource(tab.titleRes),
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            maxLines = 1
+                        )
+                    }
                 )
             }
         }
     }
 }
 
-/* ===================== RESERVAS ===================== */
+/* ============================================ RESERVAS ======================================================== */
 
 private enum class ReservationStatus { Confirmada, Pendiente }
-
 private data class Reservation(
     val guestName: String,
     val dateRange: String,
@@ -227,13 +364,13 @@ private fun ReservationsSection() {
             )
             PillTag(
                 text = pluralStringResource(
-                    R.plurals.ph_reservations_active_count,
-                    activeCount,
-                    activeCount
+                    R.plurals.ph_reservations_active_count, activeCount, activeCount
                 ),
                 color = SuccessGreen
             )
         }
+
+        Spacer(Modifier.height(14.dp))
 
         reservations.forEachIndexed { index, r ->
             ReservationItem(
@@ -248,14 +385,11 @@ private fun ReservationsSection() {
 @Composable
 private fun PillTag(text: String, color: Color) {
     Surface(
-        color = color,
-        contentColor = Color.White,
-        shape = RoundedCornerShape(50),
-        shadowElevation = 0.dp
+        color = color, contentColor = Color.White,
+        shape = RoundedCornerShape(50), shadowElevation = 0.dp
     ) {
         Text(
-            text,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            text, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
             fontWeight = FontWeight.SemiBold
         )
     }
@@ -275,7 +409,7 @@ private fun ReservationItem(
         stringResource(R.string.ph_reservation_status_pending)
 
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = border,
         elevation = CardDefaults.cardElevation(0.dp),
@@ -284,9 +418,7 @@ private fun ReservationItem(
             .clickable { onClick() }
     ) {
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+            Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
@@ -296,7 +428,7 @@ private fun ReservationItem(
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF102A43)
                 )
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(reservation.dateRange, color = Color(0xFF6B7A90))
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -316,20 +448,18 @@ private fun ReservationItem(
 @Composable
 private fun StatusChip(text: String, color: Color) {
     Surface(
-        color = color,
-        contentColor = Color.White,
-        shape = RoundedCornerShape(50),
-        shadowElevation = 0.dp
+        color = color, contentColor = Color.White,
+        shape = RoundedCornerShape(50), shadowElevation = 0.dp
     ) {
         Text(
-            text = text,
+            text,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             fontWeight = FontWeight.SemiBold
         )
     }
 }
 
-/* ===================== RESUMEN ===================== */
+/* ============================================ RESUMEN ======================================================== */
 
 @Composable
 fun SummarySection() {
@@ -340,11 +470,7 @@ fun SummarySection() {
             KeyValueRow(stringResource(R.string.ph_label_rooms), stringResource(R.string.ph_summary_rooms_value))
             KeyValueRow(stringResource(R.string.ph_label_bathrooms), stringResource(R.string.ph_summary_bathrooms_value))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    stringResource(R.string.ph_label_price_per_night),
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF102A43)
-                )
+                Text(stringResource(R.string.ph_label_price_per_night), fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
                 Text(stringResource(R.string.ph_summary_price_value), fontWeight = FontWeight.Bold, color = SuccessGreen)
             }
         }
@@ -361,7 +487,7 @@ fun SummarySection() {
         }
 
         Card(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             border = BorderStroke(2.dp, PrimaryBlue),
             elevation = CardDefaults.cardElevation(0.dp)
@@ -369,11 +495,7 @@ fun SummarySection() {
             Column(Modifier.padding(16.dp)) {
                 Text(stringResource(R.string.ph_section_description), fontWeight = FontWeight.Bold, color = PrimaryBlue, fontSize = 18.sp)
                 Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.ph_description_text),
-                    color = Color(0xFF102A43),
-                    lineHeight = 20.sp
-                )
+                Text(stringResource(R.string.ph_description_text), color = Color(0xFF102A43), lineHeight = 20.sp)
             }
         }
     }
@@ -382,7 +504,7 @@ fun SummarySection() {
 @Composable
 fun WhiteCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFEFEFF)),
         elevation = CardDefaults.cardElevation(0.dp),
         border = BorderStroke(1.dp, Color(0xFFE8E8F0))
@@ -422,7 +544,7 @@ fun AmenitiesGrid(items: List<String>) {
 @Composable
 fun PlaceholderSection(text: String) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(0.dp),
         modifier = Modifier.fillMaxWidth()
@@ -432,6 +554,8 @@ fun PlaceholderSection(text: String) {
         }
     }
 }
+
+/* ---------- Previews ---------- */
 
 @Preview(name = "Host · Propiedades", showBackground = true, showSystemUi = true)
 @Composable
