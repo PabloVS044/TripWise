@@ -5,6 +5,9 @@ build/
 .externalNativeBuild
 .cxx
 local.properties
+# Ignorar builds de todos los módulos
+*/build/
+
 
 # IDE files
 *.iml
