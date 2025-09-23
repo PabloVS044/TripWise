@@ -9,6 +9,9 @@ local.properties
 */build/
 
 
+# Ignorar builds de todos los módulos
+*/build/
+
 # IDE files
 *.iml
 .idea/workspace.xml
