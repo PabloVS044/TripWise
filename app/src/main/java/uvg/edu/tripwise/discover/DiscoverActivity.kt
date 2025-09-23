@@ -40,6 +40,7 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -65,7 +66,12 @@ class DiscoverActivity : ComponentActivity() {
                         filterMaxPrice = maxPrice,
                         filterCapacity = capacity,
                         filterType = propertyType,
-                        filterApproved = approved
+                        filterApproved = approved,
+                        onLogout = {
+                            val intent = Intent(this, MainActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
                     )
                 }
         }
