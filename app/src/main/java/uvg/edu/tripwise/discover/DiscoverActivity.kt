@@ -44,29 +44,30 @@ import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TripWiseTheme {
-                val name = intent.getStringExtra("name") ?: ""
-                val location = intent.getStringExtra("location") ?: ""
-                val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
-                val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
-                val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
-                val propertyType = intent.getStringExtra("propertyType") ?: ""
-                val approved = intent.getStringExtra("approved") ?: ""
-                DiscoverScreen(
-                    filterName = name,
-                    filterLocation = location,
-                    filterMinPrice = minPrice,
-                    filterMaxPrice = maxPrice,
-                    filterCapacity = capacity,
-                    filterType = propertyType,
-                    filterApproved = approved
-                )
-            }
+                TripWiseTheme {
+                    val name = intent.getStringExtra("name") ?: ""
+                    val location = intent.getStringExtra("location") ?: ""
+                    val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
+                    val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
+                    val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
+                    val propertyType = intent.getStringExtra("propertyType") ?: ""
+                    val approved = intent.getStringExtra("approved") ?: ""
+                    DiscoverScreen(
+                        filterName = name,
+                        filterLocation = location,
+                        filterMinPrice = minPrice,
+                        filterMaxPrice = maxPrice,
+                        filterCapacity = capacity,
+                        filterType = propertyType,
+                        filterApproved = approved
+                    )
+                }
         }
     }
 }
@@ -81,7 +82,8 @@ fun DiscoverScreen(
     filterMaxPrice: Double? = null,
     filterCapacity: Int? = null,
     filterType: String = "",
-    filterApproved: String = ""
+    filterApproved: String = "",
+    onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val searchLabel = stringResource(R.string.search_button)
@@ -90,49 +92,49 @@ fun DiscoverScreen(
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
     var searchText by remember { mutableStateOf("Guatemala") }
-    
+
     // Filter dropdown state
     var showFilters by remember { mutableStateOf(false) }
-    
+
     // Filter states
     var name by remember { mutableStateOf(filterName) }
     var minPrice by remember { mutableStateOf(filterMinPrice?.toString() ?: "") }
     var maxPrice by remember { mutableStateOf(filterMaxPrice?.toString() ?: "") }
     var capacity by remember { mutableStateOf(filterCapacity?.toString() ?: "") }
     var location by remember { mutableStateOf(filterLocation) }
-    
+
     // ComboBox Tipo de propiedad
     val propertyTypes = listOf(anyPlaceholder, "Apartamento", "Casa", "Hotel", "Hostel")
     var selectedType by remember { mutableStateOf(if (filterType.isBlank()) propertyTypes.first() else filterType) }
     var typeExpanded by remember { mutableStateOf(false) }
-    
+
     // ComboBox Aprobación
     val approvalOptions = listOf(anyPlaceholder, "Sí", "No")
     var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
     var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
-        // Filtro por nombre 
+        // Filtro por nombre
         val matchesName = name.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
-        // Filtro por ubicación 
+        // Filtro por ubicación
         val matchesLocation = location.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.location.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
         // Filtros de precio
-        val matchesMinPrice = minPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { minPriceValue -> 
-            property.pricePerNight >= minPriceValue 
+        val matchesMinPrice = minPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { minPriceValue ->
+            property.pricePerNight >= minPriceValue
         } ?: true
-        
-        val matchesMaxPrice = maxPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { maxPriceValue -> 
-            property.pricePerNight <= maxPriceValue 
+
+        val matchesMaxPrice = maxPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { maxPriceValue ->
+            property.pricePerNight <= maxPriceValue
         } ?: true
-        
-        // Filtro de capacidad 
-        val matchesCapacity = capacity.takeIf { it.isNotBlank() }?.toIntOrNull()?.let { requiredCapacity -> 
-            property.capacity >= requiredCapacity 
+
+        // Filtro de capacidad
+        val matchesCapacity = capacity.takeIf { it.isNotBlank() }?.toIntOrNull()?.let { requiredCapacity ->
+            property.capacity >= requiredCapacity
         } ?: true
 
         // Filtro por tipo de propiedad
@@ -163,145 +165,154 @@ fun DiscoverScreen(
         position = CameraPosition.fromLatLngZoom(guatemala, 8f)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // Status Bar Space
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(
+    Scaffold(
+        topBar = {
+            LogoAppTopBar(onLogout = onLogout)
+        }
+    ){
+        innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color.White)
         ) {
-            // Card de búsqueda (solo diseño)
-            Card(
+            // Status Bar Space
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
                 modifier = Modifier
-                    .weight(1f) // Ocupa todo el espacio disponible
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
+                // Card de búsqueda (solo diseño)
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f) // Ocupa todo el espacio disponible
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Text(
-                        text = searchLabel,
-                        color = Color.Gray
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = searchLabel,
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Ícono pequeño de filtros
+                IconButton(
+                    onClick = { showFilters = !showFilters },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.FilterAlt,
+                        contentDescription = "Filtros",
+                        tint = Color.Black,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Ícono pequeño de filtros
-            IconButton(
-                onClick = { showFilters = !showFilters },
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FilterAlt,
-                    contentDescription = "Filtros",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+            // Filter Card
+            if (showFilters) {
+                FilterCard(
+                    name = name,
+                    onNameChange = { name = it },
+                    minPrice = minPrice,
+                    onMinPriceChange = { minPrice = it },
+                    maxPrice = maxPrice,
+                    onMaxPriceChange = { maxPrice = it },
+                    capacity = capacity,
+                    onCapacityChange = { capacity = it },
+                    location = location,
+                    onLocationChange = { location = it },
+                    selectedType = selectedType,
+                    onTypeChange = { selectedType = it },
+                    typeExpanded = typeExpanded,
+                    onTypeExpandedChange = { typeExpanded = it },
+                    propertyTypes = propertyTypes,
+                    selectedApproved = selectedApproved,
+                    onApprovedChange = { selectedApproved = it },
+                    approvedExpanded = approvedExpanded,
+                    onApprovedExpandedChange = { approvedExpanded = it },
+                    approvalOptions = approvalOptions,
+                    onClearFilters = {
+                        name = ""
+                        minPrice = ""
+                        maxPrice = ""
+                        capacity = ""
+                        location = ""
+                        selectedType = propertyTypes.first()
+                        selectedApproved = approvalOptions.first()
+                    },
+                    onClose = { showFilters = false }
                 )
             }
-        }
-        
-        // Filter Card
-        if (showFilters) {
-            FilterCard(
-                name = name,
-                onNameChange = { name = it },
-                minPrice = minPrice,
-                onMinPriceChange = { minPrice = it },
-                maxPrice = maxPrice,
-                onMaxPriceChange = { maxPrice = it },
-                capacity = capacity,
-                onCapacityChange = { capacity = it },
-                location = location,
-                onLocationChange = { location = it },
-                selectedType = selectedType,
-                onTypeChange = { selectedType = it },
-                typeExpanded = typeExpanded,
-                onTypeExpandedChange = { typeExpanded = it },
-                propertyTypes = propertyTypes,
-                selectedApproved = selectedApproved,
-                onApprovedChange = { selectedApproved = it },
-                approvedExpanded = approvedExpanded,
-                onApprovedExpandedChange = { approvedExpanded = it },
-                approvalOptions = approvalOptions,
-                onClearFilters = {
-                    name = ""
-                    minPrice = ""
-                    maxPrice = ""
-                    capacity = ""
-                    location = ""
-                    selectedType = propertyTypes.first()
-                    selectedApproved = approvalOptions.first()
-                },
-                onClose = { showFilters = false }
-            )
-        }
-        
-        // Google Maps
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(8.dp))
-        ) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = false,
-                    mapStyleOptions = null
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = false,
-                    myLocationButtonEnabled = false
-                )
-            ) {
-                filteredProperties.forEach { property ->
-                    // Verificar que las coordenadas no sean nulas
-                    val latitude = property.latitude ?: 0.0
-                    val longitude = property.longitude ?: 0.0
 
-                    if (latitude != 0.0 && longitude != 0.0) {
-                        Marker(
-                            state = MarkerState(position = LatLng(latitude, longitude)),
-                            title = property.name,
-                            snippet = property.description,
-                            onClick = {
-                                viewModel.getPropertyById(property.id)
-                                false
-                            }
-                        )
+            // Google Maps
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(
+                        isMyLocationEnabled = false,
+                        mapStyleOptions = null
+                    ),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false,
+                        myLocationButtonEnabled = false
+                    )
+                ) {
+                    filteredProperties.forEach { property ->
+                        // Verificar que las coordenadas no sean nulas
+                        val latitude = property.latitude ?: 0.0
+                        val longitude = property.longitude ?: 0.0
+
+                        if (latitude != 0.0 && longitude != 0.0) {
+                            Marker(
+                                state = MarkerState(position = LatLng(latitude, longitude)),
+                                title = property.name,
+                                snippet = property.description,
+                                onClick = {
+                                    viewModel.getPropertyById(property.id)
+                                    false
+                                }
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Properties Found Section
-        selectedProperty?.let { property ->
-            PropertyCard(
-                property = property,
-                onClose = { viewModel.clearSelectedProperty() }
-            )
-        }
+            // Properties Found Section
+            selectedProperty?.let { property ->
+                PropertyCard(
+                    property = property,
+                    onClose = { viewModel.clearSelectedProperty() }
+                )
+            }
 
-        // Bottom Navigation
-        BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
+            // Bottom Navigation
+            BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
+    }
+
     }
 }
 
