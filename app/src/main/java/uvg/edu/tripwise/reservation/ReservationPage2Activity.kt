@@ -16,9 +16,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,19 +43,17 @@ class ReservationPage2Activity : ComponentActivity() {
 fun ReservaScreen2() {
     val context = LocalContext.current
 
-    // Estado para la selección de habitación
-    var selectedRoom by remember { mutableStateOf("deluxe") } // Por defecto "deluxe" como en la imagen
+    var selectedRoom by remember { mutableStateOf("deluxe") }
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
             SmallTopApp(
-                title = { Text("Tripwise", color = Color(0xFF0066CC), fontWeight = FontWeight.Bold) }
+                title = { Text(stringResource(R.string.app_name), color = Color(0xFF0066CC), fontWeight = FontWeight.Bold) }
             )
         },
         bottomBar = {
             Column {
-                // Botones "Atrás" y "Siguiente" en un BottomAppBar
                 BottomAppBar(
                     containerColor = Color.White,
                     contentColor = Color(0xFF1E40AF)
@@ -74,29 +72,25 @@ fun ReservaScreen2() {
                             },
                             colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF1E40AF))
                         ) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = Color(0xFF1E40AF))
+                            Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color(0xFF1E40AF))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Atrás")
+                            Text(stringResource(R.string.back))
                         }
 
                         Button(
-                            onClick = {
-                                // TODO: Navegar a la siguiente vista (ReservationPage3Activity)
-                                // val intent = Intent(context, ReservationPage3Activity::class.java)
-                                // context.startActivity(intent)
-                            },
+                            onClick = { /* TODO: Next page */ },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Text("Siguiente", color = Color.White)
+                            Text(stringResource(R.string.next), color = Color.White)
                         }
                     }
                 }
-                // Barra de navegación
+
                 NavigationBar(containerColor = Color(0xFFF7F0F7)) {
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                        label = { Text("Search") },
+                        icon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search_desc)) },
+                        label = { Text(stringResource(R.string.search)) },
                         selected = false,
                         onClick = {
                             val intent = Intent(context, DiscoverActivity::class.java)
@@ -110,8 +104,8 @@ fun ReservaScreen2() {
                         )
                     )
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservacion") },
-                        label = { Text("Reservacion") },
+                        icon = { Icon(Icons.Default.Luggage, contentDescription = stringResource(R.string.reservation_desc)) },
+                        label = { Text(stringResource(R.string.reservation)) },
                         selected = true,
                         onClick = {},
                         colors = NavigationBarItemDefaults.colors(
@@ -122,8 +116,8 @@ fun ReservaScreen2() {
                         )
                     )
                     NavigationBarItem(
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                        label = { Text("Profile") },
+                        icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.profile_desc)) },
+                        label = { Text(stringResource(R.string.profile)) },
                         selected = false,
                         onClick = {},
                         colors = NavigationBarItemDefaults.colors(
@@ -137,9 +131,10 @@ fun ReservaScreen2() {
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
         ) {
             Column(
                 modifier = Modifier
@@ -148,14 +143,14 @@ fun ReservaScreen2() {
                 verticalArrangement = Arrangement.Top
             ) {
                 Text(
-                    text = "Elige tu alojamiento",
+                    text = stringResource(R.string.choose_accommodation),
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     color = Color.Black,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Opción 1: Estándar
+                // Habitación estándar
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -182,9 +177,9 @@ fun ReservaScreen2() {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Habitación estándar", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-                                Text("Q1,500 por persona", fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
-                                Text("Habitación cómoda con jardín", fontSize = 14.sp, color = Color.Gray)
+                                Text(stringResource(R.string.room_standard), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                                Text(stringResource(R.string.price_standard), fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.description_standard), fontSize = 14.sp, color = Color.Gray)
                             }
                         }
 
@@ -192,30 +187,27 @@ fun ReservaScreen2() {
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
-                                onClick = { /* Acción para Vida jardín */ },
+                                onClick = { /* Acción para Vista jardín */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Vista jardín")
-                            }
+                            ) { Text(stringResource(R.string.view_garden)) }
+
                             OutlinedButton(
                                 onClick = { /* Acción para Free WiFi */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Free WiFi")
-                            }
+                            ) { Text(stringResource(R.string.free_wifi)) }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Incluye Aire acondicionado", fontSize = 12.sp, color = Color(0xFF1E40AF))
+                        Text(stringResource(R.string.air_conditioning), fontSize = 12.sp, color = Color(0xFF1E40AF))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Opción 2: Deluxe
+                // Habitación Deluxe
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -242,10 +234,10 @@ fun ReservaScreen2() {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Habitación Deluxe", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-                                Text("Q2,500", fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
-                                Text("Habitación espaciosa con vista al mar", fontSize = 14.sp, color = Color.Gray)
-                                Text("Por persona", fontSize = 12.sp, color = Color.Gray)
+                                Text(stringResource(R.string.room_deluxe), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                                Text(stringResource(R.string.price_deluxe), fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.description_deluxe), fontSize = 14.sp, color = Color.Gray)
+                                Text(stringResource(R.string.per_person), fontSize = 12.sp, color = Color.Gray)
                             }
                         }
 
@@ -253,37 +245,33 @@ fun ReservaScreen2() {
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
-                                onClick = { /* Acción para Vida al mar */ },
+                                onClick = { /* Acción Vida al mar */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Vida al mar")
-                            }
+                            ) { Text(stringResource(R.string.sea_view)) }
+
                             OutlinedButton(
-                                onClick = { /* Acción para Balcón */ },
+                                onClick = { /* Acción Balcón */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Balcón")
-                            }
+                            ) { Text(stringResource(R.string.balcony)) }
+
                             OutlinedButton(
-                                onClick = { /* Acción para Free WiFi */ },
+                                onClick = { /* Acción Free WiFi */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Free WiFi")
-                            }
+                            ) { Text(stringResource(R.string.free_wifi)) }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Text("Mini Bar", fontSize = 12.sp, color = Color(0xFF1E40AF))
+                        Text(stringResource(R.string.mini_bar), fontSize = 12.sp, color = Color(0xFF1E40AF))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Opción 3: Premium
+                // Habitación Premium
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -310,9 +298,9 @@ fun ReservaScreen2() {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Habitación premium", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
-                                Text("Q4,000", fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
-                                Text("Gran habitación con terraza privada", fontSize = 14.sp, color = Color.Gray)
+                                Text(stringResource(R.string.room_premium), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                                Text(stringResource(R.string.price_premium), fontSize = 16.sp, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.description_premium), fontSize = 14.sp, color = Color.Gray)
                             }
                         }
 
@@ -320,19 +308,16 @@ fun ReservaScreen2() {
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
-                                onClick = { /* Acción para Terraza privada */ },
+                                onClick = { /* Acción Terraza privada */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Terraza privada")
-                            }
+                            ) { Text(stringResource(R.string.private_terrace)) }
+
                             OutlinedButton(
-                                onClick = { /* Acción para Jacuzzi */ },
+                                onClick = { /* Acción Jacuzzi */ },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1E40AF))
-                            ) {
-                                Text("Jacuzzi")
-                            }
+                            ) { Text(stringResource(R.string.jacuzzi)) }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

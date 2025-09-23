@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import androidx.compose.ui.res.stringResource
 
 class ReservationPage1Activity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +42,6 @@ class ReservationPage1Activity : ComponentActivity() {
     }
 }
 
-
 @Composable
 fun ReservaScreen() {
     val context = LocalContext.current
@@ -50,14 +50,14 @@ fun ReservaScreen() {
         containerColor = Color.White,
         topBar = {
             SmallTopAppBar(
-                title = { Text("Tripwise", color = Color(0xFF0066CC), fontWeight = FontWeight.Bold) }
+                title = { Text(stringResource(R.string.app_name), color = Color(0xFF0066CC), fontWeight = FontWeight.Bold) }
             )
         },
         bottomBar = {
             NavigationBar(containerColor = Color(0xFFF7F0F7)) {
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                    label = { Text("Search") },
+                    icon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.search_desc)) },
+                    label = { Text(stringResource(R.string.nav_search)) },
                     selected = false,
                     onClick = {
                         val intent = Intent(context, DiscoverActivity::class.java)
@@ -71,8 +71,8 @@ fun ReservaScreen() {
                     )
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservacion") },
-                    label = { Text("Reservacion") },
+                    icon = { Icon(Icons.Default.Luggage, contentDescription = stringResource(R.string.reservation_desc)) },
+                    label = { Text(stringResource(R.string.nav_reservation)) },
                     selected = true,
                     onClick = {},
                     colors = NavigationBarItemDefaults.colors(
@@ -83,8 +83,8 @@ fun ReservaScreen() {
                     )
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                    label = { Text("Profile") },
+                    icon = { Icon(Icons.Default.Person, contentDescription = stringResource(R.string.profile_desc)) },
+                    label = { Text(stringResource(R.string.nav_profile)) },
                     selected = false,
                     onClick = {},
                     colors = NavigationBarItemDefaults.colors(
@@ -107,7 +107,7 @@ fun ReservaScreen() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.Top
             ) {
-                // Card de "Sobre tu viaje"
+
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -116,14 +116,14 @@ fun ReservaScreen() {
                         .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Sobre tu viaje", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                        Text(stringResource(R.string.sobre_viaje), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
 
                         Spacer(Modifier.height(8.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Image(
                                 painter = painterResource(id = R.drawable.hotel),
-                                contentDescription = "Santorini",
+                                contentDescription = stringResource(R.string.santorini_greece),
                                 modifier = Modifier
                                     .size(100.dp)
                                     .clip(RoundedCornerShape(8.dp)),
@@ -131,13 +131,13 @@ fun ReservaScreen() {
                             )
                             Spacer(Modifier.width(12.dp))
                             Column {
-                                Text("Santorini, Grecia", fontWeight = FontWeight.Bold, color = Color.Black)
-                                Text("5-day Paradise Island", fontSize = 13.sp, color = Color.Gray)
+                                Text(stringResource(R.string.santorini_greece), fontWeight = FontWeight.Bold, color = Color.Black)
+                                Text(stringResource(R.string.paradise_days), fontSize = 13.sp, color = Color.Gray)
                                 Spacer(Modifier.height(8.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("⭐ 4.9 (2700 reseñas)", fontSize = 12.sp, color = Color.Gray)
+                                    Text(stringResource(R.string.rating_reviews), fontSize = 12.sp, color = Color.Gray)
                                     Spacer(Modifier.width(12.dp))
-                                    Text("📅 5 días, 4 noches", fontSize = 12.sp, color = Color.Gray)
+                                    Text(stringResource(R.string.days_nights), fontSize = 12.sp, color = Color.Gray)
                                 }
                             }
                         }
@@ -146,7 +146,6 @@ fun ReservaScreen() {
 
                 Spacer(Modifier.height(16.dp))
 
-                // Card de "Detalles del viaje"
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -155,14 +154,14 @@ fun ReservaScreen() {
                         .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Detalles del viaje", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
+                        Text(stringResource(R.string.detalles_viaje), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.Black)
 
                         Spacer(Modifier.height(12.dp))
 
                         OutlinedTextField(
                             value = "15/12/2025",
                             onValueChange = {},
-                            label = { Text("Fecha de check-in", color = Color.Gray) },
+                            label = { Text(stringResource(R.string.checkin_date), color = Color.Gray) },
                             leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                             textStyle = LocalTextStyle.current.copy(color = Color.Gray),
                             modifier = Modifier.fillMaxWidth()
@@ -173,7 +172,7 @@ fun ReservaScreen() {
                         OutlinedTextField(
                             value = "20/12/2025",
                             onValueChange = {},
-                            label = { Text("Fecha de check-out", color = Color.Gray) },
+                            label = { Text(stringResource(R.string.checkout_date), color = Color.Gray) },
                             leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                             textStyle = LocalTextStyle.current.copy(color = Color.Gray),
                             modifier = Modifier.fillMaxWidth()
@@ -184,7 +183,7 @@ fun ReservaScreen() {
                         var viajeros by remember { mutableStateOf(2) }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Número de viajeros", fontSize = 14.sp, color = Color.Gray)
+                            Text(stringResource(R.string.num_viajeros), fontSize = 14.sp, color = Color.Gray)
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -211,7 +210,6 @@ fun ReservaScreen() {
                 }
             }
 
-            // Botón "Siguiente" en la esquina inferior derecha, arriba de la barra de navegación
             Button(
                 onClick = {
                     val intent = Intent(context, ReservationPage2Activity::class.java)
@@ -221,9 +219,9 @@ fun ReservaScreen() {
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 80.dp) // Ajustado para que quede sobre la barra inferior
+                    .padding(end = 16.dp, bottom = 80.dp)
             ) {
-                Text("Siguiente", color = Color.White)
+                Text(stringResource(R.string.siguiente), color = Color.White)
             }
         }
     }
