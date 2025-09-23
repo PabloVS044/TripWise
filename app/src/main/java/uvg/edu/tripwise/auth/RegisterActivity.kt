@@ -5,13 +5,20 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.auth.steps.*
 import uvg.edu.tripwise.network.*
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -66,6 +73,21 @@ fun RegisterScreen(
 
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
 
+    val wifiText = stringResource(R.string.wifi)
+    val poolText = stringResource(R.string.pool)
+    val kitchenText = stringResource(R.string.kitchen)
+    val parkingText = stringResource(R.string.parking)
+    val airConditioningText = stringResource(R.string.air_conditioning)
+    val tvText = stringResource(R.string.tv)
+    val washingMachineText = stringResource(R.string.washing_machine)
+    val balconyText = stringResource(R.string.balcony)
+    val invalidPricePerNightMsg = stringResource(R.string.invalid_price_per_night)
+    val invalidCapacityMsg = stringResource(R.string.invalid_capacity)
+    val userCreatedPropertyErrorMsg = stringResource(R.string.user_created_property_error)
+    val registrationSuccessfulMsg = stringResource(R.string.registration_successful)
+    val registrationErrorMsg = stringResource(R.string.registration_error)
+    val errorGenericMsg = stringResource(R.string.error_generic)
+
     fun canProceedFromCurrentStep(): Boolean {
         return when (currentStep) {
             0 -> {
@@ -108,14 +130,14 @@ fun RegisterScreen(
     fun mapAmenities(frontendAmenities: Set<String>): List<String> {
         return frontendAmenities.map {
             when (it) {
-                "wifi" -> "WiFi gratuito"
-                "piscina" -> "Piscina"
-                "cocina" -> "Cocina"
-                "estacionamiento" -> "Estacionamiento"
-                "aire_acondicionado" -> "Aire acondicionado"
-                "tv" -> "TV"
-                "lavadora" -> "Lavadora"
-                "balcon" -> "Balcón"
+                "wifi" -> wifiText
+                "piscina" -> poolText
+                "cocina" -> kitchenText
+                "estacionamiento" -> parkingText
+                "aire_acondicionado" -> airConditioningText
+                "tv" -> tvText
+                "lavadora" -> washingMachineText
+                "balcon" -> balconyText
                 else -> it
             }
         }
@@ -148,12 +170,12 @@ fun RegisterScreen(
                         val cap = capacity.toIntOrNull()
 
                         if (price == null || price <= 0) {
-                            snackbarHostState.showSnackbar("El precio por noche debe ser un número válido mayor a 0")
+                            snackbarHostState.showSnackbar(invalidPricePerNightMsg)
                             return@launch
                         }
 
                         if (cap == null || cap <= 0) {
-                            snackbarHostState.showSnackbar("La capacidad debe ser un número válido mayor a 0")
+                            snackbarHostState.showSnackbar(invalidCapacityMsg)
                             return@launch
                         }
 
@@ -184,21 +206,21 @@ fun RegisterScreen(
                         } else {
                             val errorBody = propertyResponse.errorBody()?.string()
                             Log.e("RegisterActivity", "Error al crear propiedad: ${propertyResponse.code()} - $errorBody")
-                            snackbarHostState.showSnackbar("Usuario creado, pero error al crear propiedad: ${propertyResponse.code()}")
+                            snackbarHostState.showSnackbar("$userCreatedPropertyErrorMsg ${propertyResponse.code()}")
                             return@launch
                         }
                     }
 
-                    snackbarHostState.showSnackbar("Registro exitoso")
+                    snackbarHostState.showSnackbar(registrationSuccessfulMsg)
                     onRegisterSuccess()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("RegisterActivity", "Error al registrar usuario: ${response.code()} - $errorBody")
-                    errorMessage = "Error al registrar usuario: ${response.code()}"
+                    errorMessage = "$registrationErrorMsg ${response.code()}"
                     snackbarHostState.showSnackbar(errorMessage!!)
                 }
             } catch (e: Exception) {
-                errorMessage = "Error: ${e.message}"
+                errorMessage = "$errorGenericMsg ${e.message ?: ""}"
                 Log.e("RegisterActivity", "Register error", e)
                 snackbarHostState.showSnackbar(errorMessage!!)
             } finally {
@@ -219,6 +241,7 @@ fun RegisterScreen(
                     onEmailChange = { email = it },
                     onPasswordChange = { password = it },
                     onConfirmPasswordChange = { confirmPassword = it },
+                    totalSteps = getMaxSteps(),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -227,6 +250,7 @@ fun RegisterScreen(
                 RoleSelectionScreen(
                     selectedRole = selectedRole,
                     onRoleSelected = { selectedRole = it },
+                    totalSteps = getMaxSteps(),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -248,12 +272,14 @@ fun RegisterScreen(
                         onCapacityChange = { capacity = it },
                         onPropertyTypeChange = { propertyType = it },
                         onSelectedAmenitiesChange = { selectedAmenities = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     InterestsScreen(
                         selectedInterests = selectedInterests,
                         onInterestsChanged = { selectedInterests = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -264,6 +290,7 @@ fun RegisterScreen(
                     InterestsScreen(
                         selectedInterests = selectedInterests,
                         onInterestsChanged = { selectedInterests = it },
+                        totalSteps = getMaxSteps(),
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -274,7 +301,9 @@ fun RegisterScreen(
             progress = (currentStep + 1).toFloat() / getMaxSteps(),
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.TopCenter)
+                .align(Alignment.TopCenter),
+            color = Color(0xFF2563EB),
+            trackColor = Color(0xFFE5E7EB)
         )
 
         Row(
@@ -287,18 +316,34 @@ fun RegisterScreen(
             if (currentStep > 0) {
                 OutlinedButton(
                     onClick = { currentStep-- },
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFF2563EB))
                 ) {
-                    Text("Atrás")
+                    Text(
+                        text = stringResource(R.string.back),
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp
+                    )
                 }
             } else {
                 OutlinedButton(
                     onClick = onBackToLogin,
-                    enabled = !isLoading
+                    enabled = !isLoading,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFF2563EB))
                 ) {
-                    Text("Iniciar Sesión")
+                    Text(
+                        text = stringResource(R.string.sign_in),
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.width(12.dp))
 
             Button(
                 onClick = {
@@ -308,27 +353,44 @@ fun RegisterScreen(
                         currentStep++
                     }
                 },
-                enabled = canProceedFromCurrentStep() && !isLoading
+                enabled = canProceedFromCurrentStep() && !isLoading,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2563EB),
+                    contentColor = Color.White
+                )
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = Color.White,
+                        strokeWidth = 2.dp
                     )
                 } else {
                     Text(
-                        if (currentStep == getMaxSteps() - 1) "Registrar" else "Siguiente"
+                        text = if (currentStep == getMaxSteps() - 1) stringResource(R.string.register) else stringResource(R.string.next),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
         }
 
-        // Snackbar para mensajes
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 80.dp)
-        )
+                .padding(16.dp)
+        ) { snackbarData ->
+            Snackbar(
+                snackbarData = snackbarData,
+                containerColor = Color(0xFF374151),
+                contentColor = Color.White,
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
     }
 }

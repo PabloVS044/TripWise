@@ -15,11 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uvg.edu.tripwise.auth.steps.StepIndicator
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.ui.components.AppLogoHeader
 
 data class InterestItem(
     val name: String,
@@ -31,19 +33,20 @@ data class InterestItem(
 fun InterestsScreen(
     selectedInterests: Set<String>,
     onInterestsChanged: (Set<String>) -> Unit,
+    totalSteps: Int = 3, // Added parameter
     modifier: Modifier = Modifier
 ) {
     val availableInterests = listOf(
-        InterestItem("Aventura", Icons.Default.Hiking, "aventura"),
-        InterestItem("Playa", Icons.Default.BeachAccess, "playa"),
-        InterestItem("Montaña", Icons.Default.Terrain, "montaña"),
-        InterestItem("Ciudad", Icons.Default.LocationCity, "ciudad"),
-        InterestItem("Cultura", Icons.Default.Museum, "cultura"),
-        InterestItem("Gastronomía", Icons.Default.Restaurant, "gastronomia"),
-        InterestItem("Historia", Icons.Default.Castle, "historia"),
-        InterestItem("Naturaleza", Icons.Default.Park, "naturaleza"),
-        InterestItem("Relax", Icons.Default.Spa, "relax"),
-        InterestItem("Fotografía", Icons.Default.CameraAlt, "fotografia")
+        InterestItem(stringResource(R.string.adventure), Icons.Default.Hiking, "aventura"),
+        InterestItem(stringResource(R.string.beach), Icons.Default.BeachAccess, "playa"),
+        InterestItem(stringResource(R.string.mountain), Icons.Default.Terrain, "montaña"),
+        InterestItem(stringResource(R.string.city), Icons.Default.LocationCity, "ciudad"),
+        InterestItem(stringResource(R.string.culture), Icons.Default.Museum, "cultura"),
+        InterestItem(stringResource(R.string.gastronomy), Icons.Default.Restaurant, "gastronomia"),
+        InterestItem(stringResource(R.string.history), Icons.Default.Castle, "historia"),
+        InterestItem(stringResource(R.string.nature), Icons.Default.Park, "naturaleza"),
+        InterestItem(stringResource(R.string.relax), Icons.Default.Spa, "relax"),
+        InterestItem(stringResource(R.string.photography), Icons.Default.CameraAlt, "fotografia")
     )
 
     LazyColumn(
@@ -57,19 +60,17 @@ fun InterestsScreen(
         item { Spacer(modifier = Modifier.height(60.dp)) }
 
         item {
-            Text(
-                text = "TripWise",
+            AppLogoHeader(
+                modifier = Modifier.fillMaxWidth(),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF2563EB),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                color = Color(0xFF2563EB)
             )
         }
 
         item {
             Text(
-                text = "Elige tu cuenta para comenzar tu próxima aventura",
+                text = stringResource(R.string.choose_account_message),
                 fontSize = 16.sp,
                 color = Color(0xFF6B7280),
                 textAlign = TextAlign.Center,
@@ -87,15 +88,15 @@ fun InterestsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 StepIndicator(
-                    currentStep = 3,
-                    totalSteps = 3
+                    currentStep = if (totalSteps == 4) 4 else 3,
+                    totalSteps = totalSteps
                 )
             }
         }
 
         item {
             Text(
-                text = "Tus intereses",
+                text = stringResource(R.string.your_interests),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -106,7 +107,7 @@ fun InterestsScreen(
 
         item {
             Text(
-                text = "Elige tus intereses para personalizar tu experiencia",
+                text = stringResource(R.string.choose_interests_message),
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center,

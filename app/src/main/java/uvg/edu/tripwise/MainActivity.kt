@@ -1,7 +1,7 @@
 package uvg.edu.tripwise
 
 import android.content.Intent
-import uvg.edu.tripwise.auth.LoginActivity
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,14 +26,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.auth.LoginActivity
 import uvg.edu.tripwise.auth.RegisterActivity
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import uvg.edu.tripwise.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,29 +87,22 @@ fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = 26.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF2563EB), Color(0xFF7C3AED))
-                            ),
-                            RoundedCornerShape(12.dp)
-                        ),
+                        .size(50.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                    Image(
+                        painter = painterResource(id = R.drawable.logotripwise),
+                        contentDescription = stringResource(R.string.app_name),
+                        modifier = Modifier.size(50.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    "TripWise",
+                    stringResource(R.string.app_name),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF2563EB)
@@ -115,7 +111,7 @@ fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
         },
         actions = {
             TextButton(onClick = onLoginClick) {
-                Text("Iniciar Sesión", color = Color(0xFF2563EB))
+                Text(stringResource(R.string.login_button), color = Color(0xFF2563EB))
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -127,7 +123,7 @@ fun TopAppBarSection(onLoginClick: () -> Unit = {}) {
 @Composable
 fun HeroSection() {
     val context = LocalContext.current
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -152,7 +148,7 @@ fun HeroSection() {
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    "Powered by AI",
+                    stringResource(R.string.powered_by_ai),
                     color = Color(0xFF1E40AF),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
@@ -162,7 +158,7 @@ fun HeroSection() {
 
         // Main Title
         Text(
-            text = "Viaja Inteligente,\nVive Experiencias",
+            text = stringResource(R.string.hero_title),
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -172,7 +168,7 @@ fun HeroSection() {
 
         // Subtitle
         Text(
-            text = "Descubre alojamientos únicos y recibe itinerarios personalizados creados por IA. TripWise combina las mejores reservas con recomendaciones inteligentes.",
+            text = stringResource(R.string.hero_subtitle),
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             color = Color.Gray,
@@ -186,7 +182,7 @@ fun HeroSection() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = { 
+                onClick = {
                     val intent = Intent(context, RegisterActivity::class.java)
                     context.startActivity(intent)
                 },
@@ -199,7 +195,7 @@ fun HeroSection() {
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    "Comenzar Aventura",
+                    stringResource(R.string.start_adventure_button),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -210,14 +206,18 @@ fun HeroSection() {
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedButton(
-                onClick = { /* TODO: Demo */ },
+                onClick = {
+                    val url = "https://www.youtube.com/watch?v=IXWP4Kw93l8&ab_channel=JonathanTubac" // Replace with your actual demo URL
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    context.startActivity(intent)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    "Ver Demo",
+                    stringResource(R.string.view_demo_button),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF374151)
@@ -233,9 +233,9 @@ fun HeroSection() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StatItem("50K+", "Viajeros Felices")
-            StatItem("1M+", "Itinerarios Creados")
-            StatItem("4.9★", "Calificación")
+            StatItem(stringResource(R.string.stat_travelers), stringResource(R.string.stat_travelers_label))
+            StatItem(stringResource(R.string.stat_itineraries), stringResource(R.string.stat_itineraries_label))
+            StatItem(stringResource(R.string.stat_rating), stringResource(R.string.stat_rating_label))
         }
     }
 }
@@ -275,7 +275,7 @@ fun FeaturesSection() {
             color = Color(0xFFF3E8FF)
         ) {
             Text(
-                "Características Principales",
+                stringResource(R.string.features_header),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 color = Color(0xFF7C2D92),
                 fontSize = 12.sp,
@@ -284,7 +284,7 @@ fun FeaturesSection() {
         }
 
         Text(
-            text = "Todo lo que necesitas para viajar mejor",
+            text = stringResource(R.string.features_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -294,7 +294,7 @@ fun FeaturesSection() {
         )
 
         Text(
-            text = "Combinamos la mejor tecnología de reservas con inteligencia artificial",
+            text = stringResource(R.string.features_subtitle),
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             color = Color.Gray,
@@ -305,12 +305,12 @@ fun FeaturesSection() {
 
         // Features Grid
         val features = listOf(
-            Feature(Icons.Default.Home, "Alojamientos Únicos", "Descubre desde casas locales hasta hoteles boutique", Color(0xFFDBEAFE), Color(0xFF2563EB)),
-            Feature(Icons.Default.SmartToy, "IA Personalizada", "Itinerarios únicos basados en tu destino e intereses", Color(0xFFF3E8FF), Color(0xFF7C3AED)),
-            Feature(Icons.Default.LocationOn, "Recomendaciones Locales", "Sugerencias auténticas que solo los locales conocen", Color(0xFFD1FAE5), Color(0xFF059669)),
-            Feature(Icons.Default.Schedule, "Planificación Inteligente", "Optimizamos tu tiempo con rutas eficientes", Color(0xFFFED7AA), Color(0xFFEA580C)),
-            Feature(Icons.Default.Favorite, "Experiencias Auténticas", "Conecta con la cultura local", Color(0xFFFCE7F3), Color(0xFFDB2777)),
-            Feature(Icons.Default.Support, "Soporte 24/7", "Asistencia completa durante tu viaje", Color(0xFFE0E7FF), Color(0xFF4F46E5))
+            Feature(Icons.Default.Home, stringResource(R.string.feature_unique_accommodations_title), stringResource(R.string.feature_unique_accommodations_description), Color(0xFFDBEAFE), Color(0xFF2563EB)),
+            Feature(Icons.Default.SmartToy, stringResource(R.string.feature_personalized_ai_title), stringResource(R.string.feature_personalized_ai_description), Color(0xFFF3E8FF), Color(0xFF7C3AED)),
+            Feature(Icons.Default.LocationOn, stringResource(R.string.feature_local_recommendations_title), stringResource(R.string.feature_local_recommendations_description), Color(0xFFD1FAE5), Color(0xFF059669)),
+            Feature(Icons.Default.Schedule, stringResource(R.string.feature_smart_planning_title), stringResource(R.string.feature_smart_planning_description), Color(0xFFFED7AA), Color(0xFFEA580C)),
+            Feature(Icons.Default.Favorite, stringResource(R.string.feature_authentic_experiences_title), stringResource(R.string.feature_authentic_experiences_description), Color(0xFFFCE7F3), Color(0xFFDB2777)),
+            Feature(Icons.Default.Support, stringResource(R.string.feature_support_title), stringResource(R.string.feature_support_description), Color(0xFFE0E7FF), Color(0xFF4F46E5))
         )
 
         features.chunked(2).forEach { rowFeatures ->
@@ -407,7 +407,7 @@ fun HowItWorksSection() {
             color = Color(0xFFDBEAFE)
         ) {
             Text(
-                "Proceso Simple",
+                stringResource(R.string.how_it_works_header),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 color = Color(0xFF1E40AF),
                 fontSize = 12.sp,
@@ -416,7 +416,7 @@ fun HowItWorksSection() {
         }
 
         Text(
-            text = "Cómo funciona TripWise",
+            text = stringResource(R.string.how_it_works_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -426,7 +426,7 @@ fun HowItWorksSection() {
         )
 
         Text(
-            text = "En solo 3 pasos simples, tendrás tu alojamiento perfecto y un itinerario personalizado",
+            text = stringResource(R.string.how_it_works_subtitle),
             fontSize = 16.sp,
             textAlign = TextAlign.Center,
             color = Color.Gray,
@@ -437,9 +437,9 @@ fun HowItWorksSection() {
 
         // Steps
         val steps = listOf(
-            Step("1", "Busca y Reserva", "Encuentra el alojamiento perfecto para tu destino", listOf(Color(0xFF2563EB), Color(0xFF7C3AED))),
-            Step("2", "IA Crea tu Itinerario", "Nuestro agente inteligente crea un itinerario personalizado", listOf(Color(0xFF7C3AED), Color(0xFFDB2777))),
-            Step("3", "Disfruta tu Viaje", "Sigue tu itinerario y descubre experiencias únicas", listOf(Color(0xFFDB2777), Color(0xFFDC2626)))
+            Step("1", stringResource(R.string.step_1_title), stringResource(R.string.step_1_description), listOf(Color(0xFF2563EB), Color(0xFF7C3AED))),
+            Step("2", stringResource(R.string.step_2_title), stringResource(R.string.step_2_description), listOf(Color(0xFF7C3AED), Color(0xFFDB2777))),
+            Step("3", stringResource(R.string.step_3_title), stringResource(R.string.step_3_description), listOf(Color(0xFFDB2777), Color(0xFFDC2626)))
         )
 
         steps.forEach { step ->
@@ -518,7 +518,7 @@ fun TestimonialsSection() {
             color = Color(0xFFD1FAE5)
         ) {
             Text(
-                "Testimonios",
+                stringResource(R.string.testimonials_header),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                 color = Color(0xFF065F46),
                 fontSize = 12.sp,
@@ -527,7 +527,7 @@ fun TestimonialsSection() {
         }
 
         Text(
-            text = "Lo que dicen nuestros viajeros",
+            text = stringResource(R.string.testimonials_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
@@ -537,9 +537,31 @@ fun TestimonialsSection() {
         )
 
         val testimonials = listOf(
-            Testimonial("María González", "Viajera Frecuente", "TripWise transformó completamente mi viaje a Guatemala. El itinerario generado por IA me llevó a lugares increíbles.", "M", Color(0xFFDBEAFE), Color(0xFF2563EB)),
-            Testimonial("Carlos Mendoza", "Aventurero Digital", "La combinación de alojamientos únicos con itinerarios personalizados es genial. Cada recomendación fue perfecta.", "C", Color(0xFFF3E8FF), Color(0xFF7C3AED)),
-            Testimonial("Ana Rodríguez", "Madre de Familia", "Como familia, necesitábamos actividades para todos. TripWise creó el itinerario perfecto para toda la semana.", "A", Color(0xFFD1FAE5), Color(0xFF059669))
+            Testimonial(
+                stringResource(R.string.testimonial_1_name),
+                stringResource(R.string.testimonial_1_role),
+                stringResource(R.string.testimonial_1_content),
+                stringResource(R.string.testimonial_1_initial),
+                Color(0xFFDBEAFE),
+                Color(0xFF2563EB)
+            ),
+
+                    Testimonial(
+                    stringResource(R.string.testimonial_2_name),
+            stringResource(R.string.testimonial_2_role),
+            stringResource(R.string.testimonial_2_content),
+            stringResource(R.string.testimonial_2_initial),
+            Color(0xFFF3E8FF),
+            Color(0xFF7C3AED)
+        ),
+        Testimonial(
+            stringResource(R.string.testimonial_3_name),
+            stringResource(R.string.testimonial_3_role),
+            stringResource(R.string.testimonial_3_content),
+            stringResource(R.string.testimonial_3_initial),
+            Color(0xFFD1FAE5),
+            Color(0xFF059669)
+        )
         )
 
         LazyRow(
@@ -640,7 +662,7 @@ fun CTASection() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "¿Listo para tu próxima aventura inteligente?",
+            text = stringResource(R.string.cta_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -649,7 +671,7 @@ fun CTASection() {
         )
 
         Text(
-            text = "Únete a miles de viajeros que ya descubrieron la magia de viajar con TripWise. Tu próximo destino te está esperando.",
+            text = stringResource(R.string.cta_subtitle),
             fontSize = 16.sp,
             color = Color(0xFFBFDBFE),
             textAlign = TextAlign.Center,
@@ -662,7 +684,7 @@ fun CTASection() {
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            placeholder = { Text("Ingresa tu email", color = Color.White.copy(alpha = 0.7f)) },
+            placeholder = { Text(stringResource(R.string.cta_email_placeholder), color = Color.White.copy(alpha = 0.7f)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
@@ -686,7 +708,7 @@ fun CTASection() {
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                "Comenzar Gratis",
+                stringResource(R.string.cta_button),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF2563EB)
@@ -700,7 +722,7 @@ fun CTASection() {
         }
 
         Text(
-            text = "Sin tarjeta de crédito requerida • Cancela cuando quieras",
+            text = stringResource(R.string.cta_footer),
             fontSize = 12.sp,
             color = Color(0xFFBFDBFE),
             textAlign = TextAlign.Center,
@@ -741,7 +763,7 @@ fun FooterSection() {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                "TripWise",
+                stringResource(R.string.app_name),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -749,7 +771,7 @@ fun FooterSection() {
         }
 
         Text(
-            text = "Viaja inteligente, vive experiencias únicas con el poder de la inteligencia artificial.",
+            text = stringResource(R.string.footer_description),
             fontSize = 14.sp,
             color = Color(0xFF9CA3AF),
             lineHeight = 20.sp,
@@ -762,7 +784,7 @@ fun FooterSection() {
         )
 
         Text(
-            text = "© 2024 TripWise. Todos los derechos reservados.",
+            text = stringResource(R.string.footer_copyright),
             fontSize = 12.sp,
             color = Color(0xFF9CA3AF),
             textAlign = TextAlign.Center,
