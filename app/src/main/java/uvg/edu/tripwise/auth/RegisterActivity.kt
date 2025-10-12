@@ -114,7 +114,7 @@ fun RegisterScreen(
     }
 
     fun getMaxSteps(): Int {
-        return if (selectedRole == "owner") 4 else 3
+        return if (selectedRole == "owner") 3 else 3
     }
 
     fun mapPropertyType(frontendType: String): String {
@@ -285,16 +285,6 @@ fun RegisterScreen(
                 }
             }
 
-            3 -> {
-                if (selectedRole == "owner") {
-                    InterestsScreen(
-                        selectedInterests = selectedInterests,
-                        onInterestsChanged = { selectedInterests = it },
-                        totalSteps = getMaxSteps(),
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
         }
 
         LinearProgressIndicator(
