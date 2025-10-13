@@ -31,8 +31,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import uvg.edu.tripwise.R
+import uvg.edu.tripwise.components.TripWiseLoadingOverlay
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -114,6 +116,7 @@ fun LoginScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Contenido principal del login
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -235,7 +238,8 @@ fun LoginScreen(
                             focusedContainerColor = Color(0xFFEBF4FF),
                             unfocusedContainerColor = Color(0xFFEBF4FF)
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !isLoading
                     )
 
                     Text(
@@ -272,7 +276,8 @@ fun LoginScreen(
                             focusedContainerColor = Color(0xFFEBF4FF),
                             unfocusedContainerColor = Color(0xFFEBF4FF)
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !isLoading
                     )
 
                     Row(
@@ -288,7 +293,8 @@ fun LoginScreen(
                                 onCheckedChange = { rememberMe = it },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = Color(0xFF2563EB)
-                                )
+                                ),
+                                enabled = !isLoading
                             )
                             Text(
                                 text = stringResource(R.string.remember_me),
@@ -302,7 +308,9 @@ fun LoginScreen(
                             fontSize = 14.sp,
                             color = Color(0xFF2563EB),
                             textDecoration = TextDecoration.Underline,
-                            modifier = Modifier.clickable { onForgotPasswordClick() }
+                            modifier = Modifier.clickable(enabled = !isLoading) {
+                                onForgotPasswordClick()
+                            }
                         )
                     }
 
@@ -373,20 +381,12 @@ fun LoginScreen(
                         ),
                         enabled = !isLoading
                     ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(R.string.sign_in),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.sign_in),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -410,14 +410,16 @@ fun LoginScreen(
                             text = stringResource(R.string.google),
                             icon = Icons.Default.Email,
                             onClick = { /* TODO: Google login */ },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isLoading
                         )
 
                         SocialLoginButton(
                             text = stringResource(R.string.facebook),
                             icon = Icons.Default.Facebook,
                             onClick = { /* TODO: Facebook login */ },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isLoading
                         )
                     }
 
@@ -437,7 +439,9 @@ fun LoginScreen(
                             fontSize = 14.sp,
                             color = Color(0xFF2563EB),
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.clickable { onSignUpClick() }
+                            modifier = Modifier.clickable(enabled = !isLoading) {
+                                onSignUpClick()
+                            }
                         )
                     }
                 }
@@ -449,12 +453,22 @@ fun LoginScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
+                .zIndex(1f)
         ) { snackbarData ->
             Snackbar(
                 snackbarData = snackbarData,
                 containerColor = Color(0xFF4CAF50),
                 contentColor = Color.White,
                 shape = RoundedCornerShape(8.dp)
+            )
+        }
+
+        if (isLoading) {
+            TripWiseLoadingOverlay(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(2f),
+                message = "Logging in..."
             )
         }
     }
@@ -465,7 +479,8 @@ fun SocialLoginButton(
     text: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -474,7 +489,8 @@ fun SocialLoginButton(
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = Color.Black
         ),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD1D5DB))
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD1D5DB)),
+        enabled = enabled
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
