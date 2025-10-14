@@ -90,33 +90,17 @@ fun LoginScreen(
     var rememberMe by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showSuccessSnackbar by remember { mutableStateOf(false) }
     var userRole by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
 
-    val loginSuccessfulMsg = stringResource(R.string.login_successful)
     val pleaseFillAllFieldsMsg = stringResource(R.string.please_fill_all_fields)
     val userNotFoundMsg = stringResource(R.string.user_not_found)
     val incorrectCredentialsMsg = stringResource(R.string.incorrect_credentials)
     val serverErrorMsg = stringResource(R.string.server_error)
     val connectionErrorMsg = stringResource(R.string.connection_error)
-
-    LaunchedEffect(showSuccessSnackbar) {
-        if (showSuccessSnackbar) {
-            snackbarHostState.showSnackbar(
-                message = loginSuccessfulMsg,
-                duration = SnackbarDuration.Short
-            )
-            kotlinx.coroutines.delay(1000)
-            onLoginSuccess(userRole)
-            showSuccessSnackbar = false
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Contenido principal del login
@@ -365,10 +349,14 @@ fun LoginScreen(
                                             Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role, UserID: $userId")
                                             sessionManager.saveUserDetails(token, userId, userEmail, role)
                                             userRole = role
-                                            showSuccessSnackbar = true
+
+                                            // Pequeño delay para mostrar el loader antes de navegar
+                                            kotlinx.coroutines.delay(800)
+                                            onLoginSuccess(role)
                                         } else {
                                             errorMessage = "Respuesta incompleta del servidor."
                                             Log.e("LoginActivity", "Login failed: Incomplete data from server. Response body: $responseBody")
+                                            isLoading = false
                                         }
 
                                     } else {
@@ -378,11 +366,11 @@ fun LoginScreen(
                                             else -> errorMessage = "$serverErrorMsg ${response.code()}"
                                         }
                                         Log.e("LoginActivity", "Login failed: ${response.code()} - ${response.message()}")
+                                        isLoading = false
                                     }
                                 } catch (e: Exception) {
                                     Log.e("LoginActivity", "Login error", e)
                                     errorMessage = connectionErrorMsg
-                                } finally {
                                     isLoading = false
                                 }
                             }
@@ -461,21 +449,6 @@ fun LoginScreen(
                     }
                 }
             }
-        }
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .zIndex(1f)
-        ) { snackbarData ->
-            Snackbar(
-                snackbarData = snackbarData,
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White,
-                shape = RoundedCornerShape(8.dp)
-            )
         }
 
         if (isLoading) {
