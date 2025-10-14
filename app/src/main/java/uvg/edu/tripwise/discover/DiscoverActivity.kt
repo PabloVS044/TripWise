@@ -12,9 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,6 +40,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
 import uvg.edu.tripwise.ui.components.LogoAppTopBar
@@ -51,29 +49,29 @@ class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-                TripWiseTheme {
-                    val name = intent.getStringExtra("name") ?: ""
-                    val location = intent.getStringExtra("location") ?: ""
-                    val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
-                    val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
-                    val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
-                    val propertyType = intent.getStringExtra("propertyType") ?: ""
-                    val approved = intent.getStringExtra("approved") ?: ""
-                    DiscoverScreen(
-                        filterName = name,
-                        filterLocation = location,
-                        filterMinPrice = minPrice,
-                        filterMaxPrice = maxPrice,
-                        filterCapacity = capacity,
-                        filterType = propertyType,
-                        filterApproved = approved,
-                        onLogout = {
-                            val intent = Intent(this, MainActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-                    )
-                }
+            TripWiseTheme {
+                val name = intent.getStringExtra("name") ?: ""
+                val location = intent.getStringExtra("location") ?: ""
+                val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
+                val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
+                val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
+                val propertyType = intent.getStringExtra("propertyType") ?: ""
+                val approved = intent.getStringExtra("approved") ?: ""
+                DiscoverScreen(
+                    filterName = name,
+                    filterLocation = location,
+                    filterMinPrice = minPrice,
+                    filterMaxPrice = maxPrice,
+                    filterCapacity = capacity,
+                    filterType = propertyType,
+                    filterApproved = approved,
+                    onLogout = {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                )
+            }
         }
     }
 }
@@ -91,8 +89,6 @@ fun DiscoverScreen(
     filterApproved: String = "",
     onLogout: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
     val anyPlaceholder = stringResource(R.string.any_placeholder)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
@@ -174,9 +170,12 @@ fun DiscoverScreen(
     Scaffold(
         topBar = {
             LogoAppTopBar(onLogout = onLogout)
+        },
+        bottomBar = {
+            AppBottomNavBar(currentScreen = "Discover")
         }
     ){
-        innerPadding ->
+            innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -206,7 +205,7 @@ fun DiscoverScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = searchLabel,
+                            text = stringResource(R.string.search_button),
                             color = Color.Gray
                         )
                     }
@@ -314,11 +313,7 @@ fun DiscoverScreen(
                     onClose = { viewModel.clearSelectedProperty() }
                 )
             }
-
-            // Bottom Navigation
-            BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
-    }
-
+        }
     }
 }
 
@@ -387,7 +382,6 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
                     )
                 }
             }
-
         }
     }
 }
@@ -463,7 +457,7 @@ fun FilterCard(
                     )
                 }
             }
-            
+
             // Nombre
             OutlinedTextField(
                 value = name,
@@ -474,7 +468,7 @@ fun FilterCard(
 
             // Precio Min / Max
             Row(
-                modifier = Modifier.fillMaxWidth(), 
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
@@ -594,78 +588,6 @@ fun FilterCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
-    val profileLabel = stringResource(R.string.profile_button)
-    val reservationLabel = stringResource(R.string.reservation_button)
-    NavigationBar(
-        containerColor = Color.White,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = searchLabel
-                )
-            },
-            label = { Text(searchLabel) },
-            selected = true,
-            onClick = {
-                val intent = Intent(context, DiscoverActivity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Luggage,
-                    contentDescription = reservationLabel
-                )
-            },
-            label = { Text(reservationLabel) },
-            selected = false,
-            onClick = {
-                val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = profileLabel
-                )
-            },
-            label = { Text(profileLabel) },
-            selected = false,
-            onClick = {
-                /* navegación al perfil */
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
     }
 }
 

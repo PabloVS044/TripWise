@@ -99,6 +99,10 @@
             android:name=".admin.PropertyDetailActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".profile.ProfileActivity"
+            android:exported="false" />
+
     </application>
 
 
