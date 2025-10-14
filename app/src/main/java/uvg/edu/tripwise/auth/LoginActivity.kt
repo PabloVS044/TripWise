@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -93,6 +94,8 @@ fun LoginScreen(
     var userRole by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
 
     val loginSuccessfulMsg = stringResource(R.string.login_successful)
     val pleaseFillAllFieldsMsg = stringResource(R.string.please_fill_all_fields)
@@ -344,10 +347,22 @@ fun LoginScreen(
                                         val userEmail = responseBody?.get("email")
                                         val role = responseBody?.get("role") ?: "user"
 
-                                        Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role")
+                                        // *** LÓGICA MEJORADA ***
+                                        // Intenta obtener el ID del usuario con varias claves comunes.
+                                        val userId = responseBody?.get("_id")
+                                            ?: responseBody?.get("id")
+                                            ?: responseBody?.get("userId")
 
-                                        userRole = role
-                                        showSuccessSnackbar = true
+                                        if (token != null && userId != null && userEmail != null) {
+                                            Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role, UserID: $userId")
+                                            sessionManager.saveUserDetails(token, userId, userEmail, role)
+                                            userRole = role
+                                            showSuccessSnackbar = true
+                                        } else {
+                                            errorMessage = "Respuesta incompleta del servidor."
+                                            Log.e("LoginActivity", "Login failed: Incomplete data from server. Response body: $responseBody")
+                                        }
+
                                     } else {
                                         when (response.code()) {
                                             404 -> errorMessage = userNotFoundMsg
