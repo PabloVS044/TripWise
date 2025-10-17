@@ -223,8 +223,9 @@
     <string name="ptype_placeholder">Property type</string>
     <string name="approval_placeholder">approval</string>
     <string name="apply_placeholder">Apply filters</string>
-    <string name="cancel_placeholder">Cancel</string>
+    <string name="clean_placeholder">Clean</string>
     <string name="any_placeholder">Any</string>
+    <string name="close">Close</string>
 
     <!-- CTASection -->
     <string name="cta_title">Ready for your next smart adventure?</string>
@@ -274,5 +275,47 @@
     <string name="edit_user">Edit User</string>
     <string name="save_changes">Save Changes</string>
     <string name="guests">guests</string>
+
+    <string name="nav_search">Search</string>
+    <string name="nav_reservation">Reservation</string>
+    <string name="nav_profile">Profile</string>
+    <string name="search_desc">Buscar</string>
+    <string name="reservation_desc">Reservacion</string>
+    <string name="profile_desc">Perfil</string>
+    <string name="sobre_viaje">Sobre tu viaje</string>
+    <string name="santorini_greece">Santorini, Grecia</string>
+    <string name="paradise_days">5-day Paradise Island</string>
+    <string name="rating_reviews">⭐ 4.9 (2700 reseñas)</string>
+    <string name="days_nights">📅 5 días, 4 noches</string>
+    <string name="detalles_viaje">Detalles del viaje</string>
+    <string name="checkin_date">Fecha de check-in</string>
+    <string name="checkout_date">Fecha de check-out</string>
+    <string name="num_viajeros">Número de viajeros</string>
+    <string name="siguiente">Next</string>
+
+    <string name="search">Search</string>
+    <string name="reservation">Reservacion</string>
+    <string name="profile">Profile</string>
+    <string name="choose_accommodation">Elige tu alojamiento</string>
+
+    <!-- Data quemada para la reservación -->
+    <string name="room_standard">Habitación estándar</string>
+    <string name="price_standard">Q1,500 por persona</string>
+    <string name="description_standard">Habitación cómoda con jardín</string>
+    <string name="view_garden">Vista jardín</string>
+    <string name="free_wifi">Free WiFi</string>
+
+    <string name="room_deluxe">Habitación Deluxe</string>
+    <string name="price_deluxe">Q2,500</string>
+    <string name="description_deluxe">Habitación espaciosa con vista al mar</string>
+    <string name="per_person">Por persona</string>
+    <string name="sea_view">Vida al mar</string>
+    <string name="mini_bar">Mini Bar</string>
+
+    <string name="room_premium">Habitación premium</string>
+    <string name="price_premium">Q4,000</string>
+    <string name="description_premium">Gran habitación con terraza privada</string>
+    <string name="private_terrace">Terraza privada</string>
+    <string name="jacuzzi">Jacuzzi</string>
 
 </resources>
