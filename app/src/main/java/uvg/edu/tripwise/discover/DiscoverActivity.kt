@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -115,6 +116,11 @@ fun DiscoverScreen(
     var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
     var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
+
+        val matchesSearch = searchText.isBlank() ||
+                property.name.contains(searchText, ignoreCase = true) ||
+                property.location.contains(searchText, ignoreCase = true)
+
         // Filtro por nombre
         val matchesName = name.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
@@ -157,7 +163,7 @@ fun DiscoverScreen(
         } ?: true
 
         // Todos los filtros deben coincidir
-        matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
+        matchesSearch && matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
 
@@ -190,26 +196,24 @@ fun DiscoverScreen(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Card de búsqueda (solo diseño)
-                Card(
-                    modifier = Modifier
-                        .weight(1f) // Ocupa todo el espacio disponible
-                        .height(56.dp),
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text(stringResource(R.string.search_button)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        if (searchText.isNotEmpty()) {
+                            IconButton(onClick = { searchText = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda")
+                            }
+                        }
+                    },
+                    singleLine = true,
                     shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.search_button),
-                            color = Color.Gray
-                        )
-                    }
-                }
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -229,6 +233,7 @@ fun DiscoverScreen(
                     )
                 }
             }
+
 
             // Filter Card
             if (showFilters) {
