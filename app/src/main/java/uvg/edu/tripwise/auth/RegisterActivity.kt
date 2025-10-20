@@ -72,6 +72,8 @@ fun RegisterScreen(
     var selectedAmenities by remember { mutableStateOf(setOf<String>()) }
 
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
 
     val wifiText = stringResource(R.string.wifi)
     val poolText = stringResource(R.string.pool)

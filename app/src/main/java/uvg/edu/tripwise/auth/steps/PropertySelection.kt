@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -40,8 +42,6 @@ fun PropertySetupScreen(
     propertyLocation: String,
     pricePerNight: String,
     capacity: String,
-    lat: Double,
-    long: Double,
     propertyType: String,
     selectedAmenities: Set<String>,
     onPropertyNameChange: (String) -> Unit,
@@ -72,11 +72,8 @@ fun PropertySetupScreen(
         AmenityItem(stringResource(R.string.balcony), Icons.Default.Balcony, "balcon")
     )
     val guatemala = LatLng(14.6349, -90.5069)
-
-    // Estado de la cámara
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(guatemala, 10f)
-    }
+    var selectedLat by remember { mutableStateOf<Double?>(null) }
+    var selectedLng by remember { mutableStateOf<Double?>(null) } 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -223,18 +220,28 @@ fun PropertySetupScreen(
             }
         }
         item{
-            GoogleMap(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp),
-                cameraPositionState = cameraPositionState
-            ) {
-                // Marcador de ejemplo
-                Marker(
-                    state = MarkerState(position = guatemala),
-                    title = "Guatemala City",
-                    snippet = "Capital de Guatemala"
-                )
+            Text(
+                text = stringResource(R.string.location),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
+        item{
+            Column(modifier = Modifier.padding(16.dp)) {
+                LocationPickerMap { latLng ->
+                    selectedLat = latLng.latitude
+                    selectedLng = latLng.longitude
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    println("Latitud: $selectedLat, Longitud: $selectedLng")
+                }) {
+                    Text("Registrar propiedad")
+                }
             }
         }
         item {
@@ -384,6 +391,69 @@ private fun AmenityChip(
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 color = if (isSelected) Color(0xFF2563EB) else Color.Black
+            )
+        }
+    }
+}
+
+@Composable
+fun LocationPickerMap(
+    modifier: Modifier = Modifier,
+    defaultPosition: LatLng = LatLng(14.6349, -90.5069), // Guatemala
+    onLocationSelected: (LatLng) -> Unit
+) {
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(defaultPosition, 8f)
+    }
+
+    var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.select_location),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+        ) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                onMapClick = { latLng ->
+                    selectedLocation = latLng
+                    onLocationSelected(latLng)
+                },
+                properties = MapProperties(
+                    isMyLocationEnabled = false
+                ),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = true,
+                    myLocationButtonEnabled = false
+                )
+            ) {
+                selectedLocation?.let { location ->
+                    Marker(
+                        state = MarkerState(position = location),
+                        title = stringResource(R.string.selected_location),
+                        snippet = "Lat: ${location.latitude}, Lng: ${location.longitude}"
+                    )
+                }
+            }
+        }
+
+        selectedLocation?.let {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Lat: ${it.latitude}\n Lng: ${it.longitude}",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
