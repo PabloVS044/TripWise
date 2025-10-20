@@ -23,6 +23,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.ui.components.AppLogoHeader
 
@@ -34,6 +40,8 @@ fun PropertySetupScreen(
     propertyLocation: String,
     pricePerNight: String,
     capacity: String,
+    lat: Double,
+    long: Double,
     propertyType: String,
     selectedAmenities: Set<String>,
     onPropertyNameChange: (String) -> Unit,
@@ -63,7 +71,12 @@ fun PropertySetupScreen(
         AmenityItem(stringResource(R.string.washing_machine), Icons.Default.LocalLaundryService, "lavadora"),
         AmenityItem(stringResource(R.string.balcony), Icons.Default.Balcony, "balcon")
     )
+    val guatemala = LatLng(14.6349, -90.5069)
 
+    // Estado de la cámara
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(guatemala, 10f)
+    }
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -207,6 +220,21 @@ fun PropertySetupScreen(
                         onClick = { onPropertyTypeChange(type.key) }
                     )
                 }
+            }
+        }
+        item{
+            GoogleMap(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(400.dp),
+                cameraPositionState = cameraPositionState
+            ) {
+                // Marcador de ejemplo
+                Marker(
+                    state = MarkerState(position = guatemala),
+                    title = "Guatemala City",
+                    snippet = "Capital de Guatemala"
+                )
             }
         }
         item {
