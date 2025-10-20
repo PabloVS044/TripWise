@@ -51,6 +51,8 @@ fun PropertySetupScreen(
     onCapacityChange: (String) -> Unit,
     onPropertyTypeChange: (String) -> Unit,
     onSelectedAmenitiesChange: (Set<String>) -> Unit,
+    onLatitudeChange: (Double?) -> Unit,
+    onLongitudeChange: (Double?) -> Unit,
     totalSteps: Int = 4, // Added parameter, always 4 for owner
     modifier: Modifier = Modifier
 ) {
@@ -229,19 +231,9 @@ fun PropertySetupScreen(
             )
         }
         item{
-            Column(modifier = Modifier.padding(16.dp)) {
-                LocationPickerMap { latLng ->
-                    selectedLat = latLng.latitude
-                    selectedLng = latLng.longitude
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    println("Latitud: $selectedLat, Longitud: $selectedLng")
-                }) {
-                    Text("Registrar propiedad")
-                }
+            LocationPickerMap { latLng ->
+                onLatitudeChange(latLng.latitude)
+                onLongitudeChange(latLng.longitude)
             }
         }
         item {
@@ -447,14 +439,6 @@ fun LocationPickerMap(
                     )
                 }
             }
-        }
-
-        selectedLocation?.let {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = "Lat: ${it.latitude}\n Lng: ${it.longitude}",
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }

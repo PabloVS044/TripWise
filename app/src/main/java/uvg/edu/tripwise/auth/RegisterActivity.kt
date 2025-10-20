@@ -74,7 +74,6 @@ fun RegisterScreen(
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
     var latitude by remember { mutableStateOf<Double?>(null) }
     var longitude by remember { mutableStateOf<Double?>(null) }
-
     val wifiText = stringResource(R.string.wifi)
     val poolText = stringResource(R.string.pool)
     val kitchenText = stringResource(R.string.kitchen)
@@ -195,9 +194,9 @@ fun RegisterScreen(
                             amenities = mapAmenities(selectedAmenities),
                             propertyType = mapPropertyType(propertyType),
                             owner = user.id,
-                            approved = "pending",
-                            latitude = 14.5984,
-                            longitude = -90.5155
+                            approved = "approved",
+                            latitude = latitude,
+                            longitude = longitude
                         )
 
                         Log.d("RegisterActivity", "Enviando request de propiedad: $propertyRequest")
@@ -275,7 +274,9 @@ fun RegisterScreen(
                         onPropertyTypeChange = { propertyType = it },
                         onSelectedAmenitiesChange = { selectedAmenities = it },
                         totalSteps = getMaxSteps(),
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onLatitudeChange = { latitude = it },
+                        onLongitudeChange = { longitude = it },
                     )
                 } else {
                     InterestsScreen(
