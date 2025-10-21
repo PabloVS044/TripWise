@@ -51,8 +51,8 @@ data class CreatePropertyRequest(
     val propertyType: String,
     val owner: String,
     val approved: String,
-    val latitude: Double,
-    val longitude: Double
+    val latitude: Double?,
+    val longitude: Double?
 )
 
 data class UpdateUserRequest(
