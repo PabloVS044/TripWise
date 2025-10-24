@@ -308,6 +308,9 @@ fun DiscoverScreen(
 @Composable
 fun PropertyCard(property: Property, onClose: () -> Unit) {
     val closeLabel = stringResource(R.string.close_button)
+    val reservationLabel = stringResource(R.string.reservation_button)
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -346,7 +349,7 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Cargar imagen con Coil
+            // Imágenes del alojamiento
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -371,9 +374,28 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 🔹 Botón de reserva
+            Button(
+                onClick = {
+                    val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
+                    intent.putExtra("propertyId", property.id) // puedes enviar el id si lo necesitas
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+            ) {
+                Text(
+                    text = reservationLabel,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
