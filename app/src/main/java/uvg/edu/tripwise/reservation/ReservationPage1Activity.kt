@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -242,18 +243,22 @@ fun ReservationScreen(propertyId: String) {
                 // Botón siguiente
                 Button(
                     onClick = {
-                        val intent = Intent(context, ReservationPage2Activity::class.java)
-                        intent.putExtra("propertyId", p.id)
-                        context.startActivity(intent)
+                        property?.let { p ->
+                            val intent = Intent(context, ReservationPage2Activity::class.java)
+                            intent.putExtra("propertyId", p.id)          // ✅ usamos p.id
+                            intent.putExtra("numTravelers", viajeros)    // ✅ número de viajeros
+                            context.startActivity(intent)
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
-                    shape = RoundedCornerShape(50),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 16.dp, bottom = 80.dp)
                 ) {
                     Text("Siguiente", color = Color.White)
                 }
+
+
             }
         }
     }
