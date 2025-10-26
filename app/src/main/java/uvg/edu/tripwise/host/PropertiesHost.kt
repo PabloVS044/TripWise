@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import uvg.edu.tripwise.R
-import uvg.edu.tripwise.ui.components.AppLogoHeader
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 /* Colores locales */
@@ -42,43 +42,6 @@ enum class HostTab(@StringRes val titleRes: Int) {
     Reservas(R.string.ph_tab_reservas),
     Reseñas(R.string.ph_tab_resenas),
     Calendario(R.string.ph_tab_calendario)
-}
-
-/* ---------- AppBar con logotipo ---------- */
-@Composable
-private fun LogoAppTopBar(onLogout: () -> Unit) {
-    Surface(shadowElevation = 4.dp, color = Color.White) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .padding(horizontal = 12.dp)
-                .clipToBounds(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(end = 8.dp)
-                    .clipToBounds()
-            ) {
-                AppLogoHeader(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .graphicsLayer { scaleX = 0.70f; scaleY = 0.70f }
-                )
-            }
-
-            IconButton(onClick = onLogout) {
-                Icon(
-                    imageVector = Icons.Filled.ExitToApp,
-                    contentDescription = stringResource(R.string.cd_logout),
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

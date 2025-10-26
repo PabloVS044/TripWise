@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class DashboardActivity : ComponentActivity() {
@@ -11,7 +12,13 @@ class DashboardActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TripWiseTheme {
-                DashboardScreen()
+                DashboardScreen(
+                    onLogout = {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                )
             }
         }
     }

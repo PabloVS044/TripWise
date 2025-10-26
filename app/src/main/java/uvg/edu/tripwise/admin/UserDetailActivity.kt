@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.admin
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,8 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.UserRepository
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class UserDetailActivity : ComponentActivity() {
@@ -28,7 +31,11 @@ class UserDetailActivity : ComponentActivity() {
         val userId = intent.getStringExtra("userId") ?: ""
         setContent {
             TripWiseTheme {
-                UserDetailScreen(userId = userId, onBack = { finish() })
+                UserDetailScreen(userId = userId, onBack = { finish() }, onLogout = {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                })
             }
         }
     }
@@ -36,7 +43,7 @@ class UserDetailActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserDetailScreen(userId: String, onBack: () -> Unit) {
+fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = {}) {
     var user by remember { mutableStateOf<User?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
@@ -57,18 +64,7 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("User Details") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color.White,
-                    titleContentColor = Color.Black
-                )
-            )
+            LogoAppTopBar(onLogout)
         }
     ) { innerPadding ->
         if (isLoading) {

@@ -27,10 +27,13 @@ import uvg.edu.tripwise.components.BottomNavigation
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.PropertyRepository
 import uvg.edu.tripwise.data.repository.UserRepository
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(
+    onLogout: () -> Unit = {}
+) {
     var users by remember { mutableStateOf<List<User>>(emptyList()) }
     var properties by remember { mutableStateOf<List<uvg.edu.tripwise.data.model.Property>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -51,123 +54,131 @@ fun DashboardScreen() {
     val pendingProperties = properties.count { it.approved.equals("pending", ignoreCase = true) }
     val rejectedProperties = properties.count { it.approved.equals("rejected", ignoreCase = true) }
 
-    fun loadData() {
-        scope.launch {
-            try {
-                isLoading = true
-                users = userRepository.getUsers()
-                properties = propertyRepository.getProperties()
-                Log.d("Dashboard", "Data loaded: $totalUsers users, $totalProperties properties")
-            } catch (e: Exception) {
-                Log.e("Dashboard", "Error loading data", e)
-            } finally {
-                isLoading = false
-                isRefreshing = false
+    Scaffold(
+        topBar = {
+            LogoAppTopBar(onLogout = onLogout)
+        }
+    ) { innerPadding ->
+        fun loadData() {
+            scope.launch {
+                try {
+                    isLoading = true
+                    users = userRepository.getUsers()
+                    properties = propertyRepository.getProperties()
+                    Log.d("Dashboard", "Data loaded: $totalUsers users, $totalProperties properties")
+                } catch (e: Exception) {
+                    Log.e("Dashboard", "Error loading data", e)
+                } finally {
+                    isLoading = false
+                    isRefreshing = false
+                }
             }
         }
-    }
 
-    fun refreshData() {
-        isRefreshing = true
-        loadData()
-    }
+        fun refreshData() {
+            isRefreshing = true
+            loadData()
+        }
 
-    LaunchedEffect(Unit) {
-        loadData()
-    }
+        LaunchedEffect(Unit) {
+            loadData()
+        }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
-    ) {
-        // Status Bar
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Title
-        Text(
-            text = stringResource(R.string.dashboard),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Content
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(isRefreshing),
-            onRefresh = { refreshData() },
-            modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(Color(0xFFF8F9FA))
         ) {
-            if (isLoading && !isRefreshing) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color(0xFF2563EB))
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Statistics Cards
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // Status Bar
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Title
+            Text(
+                text = stringResource(R.string.dashboard),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Content
+            SwipeRefresh(
+                state = rememberSwipeRefreshState(isRefreshing),
+                onRefresh = { refreshData() },
+                modifier = Modifier.weight(1f)
+            ) {
+                if (isLoading && !isRefreshing) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        StatCard(
-                            title = stringResource(R.string.total_users),
-                            value = totalUsers.toString(),
-                            icon = Icons.Default.People,
-                            color = Color(0xFF2563EB),
-                            modifier = Modifier.weight(1f)
-                        )
-                        StatCard(
-                            title = stringResource(R.string.total_properties),
-                            value = totalProperties.toString(),
-                            icon = Icons.Default.Home,
-                            color = Color(0xFF10B981),
-                            modifier = Modifier.weight(1f)
-                        )
+                        CircularProgressIndicator(color = Color(0xFF2563EB))
                     }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Statistics Cards
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            StatCard(
+                                title = stringResource(R.string.total_users),
+                                value = totalUsers.toString(),
+                                icon = Icons.Default.People,
+                                color = Color(0xFF2563EB),
+                                modifier = Modifier.weight(1f)
+                            )
+                            StatCard(
+                                title = stringResource(R.string.total_properties),
+                                value = totalProperties.toString(),
+                                icon = Icons.Default.Home,
+                                color = Color(0xFF10B981),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
 
-                    // Users Overview
-                    OverviewCard(
-                        title = stringResource(R.string.users_overview),
-                        icon = Icons.Default.Person,
-                        items = listOf(
-                            StatItem(stringResource(R.string.active_users), activeUsers.toString(), Color(0xFF10B981)),
-                            StatItem(stringResource(R.string.inactive_users), inactiveUsers.toString(), Color(0xFFEF4444))
+                        // Users Overview
+                        OverviewCard(
+                            title = stringResource(R.string.users_overview),
+                            icon = Icons.Default.Person,
+                            items = listOf(
+                                StatItem(stringResource(R.string.active_users), activeUsers.toString(), Color(0xFF10B981)),
+                                StatItem(stringResource(R.string.inactive_users), inactiveUsers.toString(), Color(0xFFEF4444))
+                            )
                         )
-                    )
 
-                    // Properties Overview
-                    OverviewCard(
-                        title = stringResource(R.string.properties_status),
-                        icon = Icons.Default.Home,
-                        items = listOf(
-                            StatItem(stringResource(R.string.approved), approvedProperties.toString(), Color(0xFF10B981)),
-                            StatItem(stringResource(R.string.pending), pendingProperties.toString(), Color(0xFFF59E0B)),
-                            StatItem(stringResource(R.string.rejected), rejectedProperties.toString(), Color(0xFFEF4444))
+                        // Properties Overview
+                        OverviewCard(
+                            title = stringResource(R.string.properties_status),
+                            icon = Icons.Default.Home,
+                            items = listOf(
+                                StatItem(stringResource(R.string.approved), approvedProperties.toString(), Color(0xFF10B981)),
+                                StatItem(stringResource(R.string.pending), pendingProperties.toString(), Color(0xFFF59E0B)),
+                                StatItem(stringResource(R.string.rejected), rejectedProperties.toString(), Color(0xFFEF4444))
+                            )
                         )
-                    )
 
-                    // Quick Actions
-                    QuickActionsCard()
+                        // Quick Actions
+                        QuickActionsCard()
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
                 }
             }
-        }
 
-        // Bottom Navigation
-        BottomNavigation(context = context, currentScreen = "Dashboard")
+            // Bottom Navigation
+            BottomNavigation(context = context, currentScreen = "Dashboard")
+    }
+
     }
 }
 
