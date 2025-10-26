@@ -34,16 +34,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.components.TripWiseLoadingOverlay
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.ui.components.AppLogoHeader
+import java.io.IOException
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Verificar si el usuario ya está logueado
+        val sessionManager = SessionManager(this)
+        if (sessionManager.isLoggedIn()) {
+            Log.d("LoginActivity", "Usuario ya logueado: ID=${sessionManager.getUserId()}, Rol=${sessionManager.getUserRole()}")
+            val role = sessionManager.getUserRole()?.lowercase() ?: ""
+            val intent = when (role) {
+                "admin" -> Intent(this, DashboardActivity::class.java)
+                "user" -> Intent(this, DiscoverActivity::class.java)
+                "owner" -> Intent(this, PropertiesHostActivity::class.java)
+                else -> Intent(this, MainActivity::class.java)
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
         setContent {
             TripWiseTheme {
                 LoginScreen(
@@ -90,7 +108,6 @@ fun LoginScreen(
     var rememberMe by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var userRole by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -103,7 +120,6 @@ fun LoginScreen(
     val connectionErrorMsg = stringResource(R.string.connection_error)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Contenido principal del login
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -325,52 +341,58 @@ fun LoginScreen(
                                 return@Button
                             }
 
+                            errorMessage = null
+                            isLoading = true
+
                             coroutineScope.launch {
                                 try {
-                                    isLoading = true
-                                    errorMessage = null
-
-                                    val loginRequest = Login(email = email, password = password)
-                                    val response = RetrofitInstance.api.login(loginRequest)
+                                    Log.d("LoginActivity", "Intentando login con email: $email")
+                                    val response = RetrofitInstance.api.login(Login(email, password))
+                                    Log.d("LoginActivity", "Respuesta del servidor: ${response.code()}")
 
                                     if (response.isSuccessful) {
-                                        val responseBody = response.body()
-                                        val token = responseBody?.get("token")
-                                        val userEmail = responseBody?.get("email")
-                                        val role = responseBody?.get("role") ?: "user"
-
-                                        // *** LÓGICA MEJORADA ***
-                                        // Intenta obtener el ID del usuario con varias claves comunes.
-                                        val userId = responseBody?.get("_id")
-                                            ?: responseBody?.get("id")
-                                            ?: responseBody?.get("userId")
-
-                                        if (token != null && userId != null && userEmail != null) {
-                                            Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role, UserID: $userId")
-                                            sessionManager.saveUserDetails(token, userId, userEmail, role)
-                                            userRole = role
-
-                                            // Pequeño delay para mostrar el loader antes de navegar
-                                            kotlinx.coroutines.delay(800)
-                                            onLoginSuccess(role)
-                                        } else {
-                                            errorMessage = "Respuesta incompleta del servidor."
-                                            Log.e("LoginActivity", "Login failed: Incomplete data from server. Response body: $responseBody")
-                                            isLoading = false
+                                        response.body()?.let { loginResponse ->
+                                            if (loginResponse._id.isEmpty()) {
+                                                Log.e("LoginActivity", "Error: _id está vacío en la respuesta")
+                                                errorMessage = serverErrorMsg
+                                            } else {
+                                                Log.d("LoginActivity", "Login exitoso: ID=${loginResponse._id}, Rol=${loginResponse.role}")
+                                                sessionManager.saveUserDetails(
+                                                    token = loginResponse.token,
+                                                    userId = loginResponse._id,
+                                                    email = loginResponse.email,
+                                                    role = loginResponse.role
+                                                )
+                                                kotlinx.coroutines.delay(800) // Pequeño delay para UX
+                                                onLoginSuccess(loginResponse.role)
+                                                return@launch // Salir sin resetear isLoading porque navegaremos
+                                            }
+                                        } ?: run {
+                                            Log.e("LoginActivity", "Respuesta del servidor vacía")
+                                            errorMessage = serverErrorMsg
                                         }
-
                                     } else {
                                         when (response.code()) {
                                             404 -> errorMessage = userNotFoundMsg
                                             401 -> errorMessage = incorrectCredentialsMsg
-                                            else -> errorMessage = "$serverErrorMsg ${response.code()}"
+                                            else -> {
+                                                Log.e("LoginActivity", "Error HTTP: ${response.code()}")
+                                                errorMessage = "$serverErrorMsg ${response.code()}"
+                                            }
                                         }
-                                        Log.e("LoginActivity", "Login failed: ${response.code()} - ${response.message()}")
-                                        isLoading = false
                                     }
-                                } catch (e: Exception) {
-                                    Log.e("LoginActivity", "Login error", e)
+                                } catch (e: HttpException) {
+                                    Log.e("LoginActivity", "Error HTTP: ${e.message()}", e)
+                                    errorMessage = serverErrorMsg
+                                } catch (e: IOException) {
+                                    Log.e("LoginActivity", "Error de conexión: ${e.message}", e)
                                     errorMessage = connectionErrorMsg
+                                } catch (e: Exception) {
+                                    Log.e("LoginActivity", "Error inesperado: ${e.message}", e)
+                                    errorMessage = serverErrorMsg
+                                } finally {
+                                    // Solo resetear isLoading si no fue exitoso
+                                    // (si fue exitoso, ya salimos con return@launch)
                                     isLoading = false
                                 }
                             }
@@ -456,7 +478,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(2f),
-                message = "Logging in..."
+                message = "Iniciando sesión..."
             )
         }
     }
