@@ -2,6 +2,7 @@ package uvg.edu.tripwise.reservation
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -18,18 +19,39 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uvg.edu.tripwise.auth.SessionManager
+import uvg.edu.tripwise.itinerary.ItineraryActivity
+import uvg.edu.tripwise.network.CreateReservationRequest
+import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ReservationPage3Activity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Recibe el número de viajeros desde ReservationPage2Activity
         val numTravelers = intent.getIntExtra("numTravelers", 1)
+        val propertyId = intent.getStringExtra("propertyId") ?: ""
+        val checkInDate = intent.getStringExtra("checkInDate") ?: ""
+        val checkOutDate = intent.getStringExtra("checkOutDate") ?: ""
+        val days = intent.getIntExtra("days", 1)
+        val payment = intent.getDoubleExtra("payment", 0.0)
 
         setContent {
             TripWiseTheme {
-                ReservationPage3Screen(numTravelers)
+                ReservationPage3Screen(
+                    numTravelers = numTravelers,
+                    propertyId = propertyId,
+                    checkInDate = checkInDate,
+                    checkOutDate = checkOutDate,
+                    days = days,
+                    payment = payment
+                )
             }
         }
     }
@@ -37,15 +59,25 @@ class ReservationPage3Activity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservationPage3Screen(numTravelers: Int) {
+fun ReservationPage3Screen(
+    numTravelers: Int,
+    propertyId: String,
+    checkInDate: String,
+    checkOutDate: String,
+    days: Int,
+    payment: Double
+) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val sessionManager = remember { SessionManager(context) }
 
-    // Datos dinámicos para cada viajero
     val names = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
     val lastNames = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
     val emails = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
     val phones = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
+    
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -77,11 +109,88 @@ fun ReservationPage3Screen(numTravelers: Int) {
 
                     Button(
                         onClick = {
-                            // Aquí puedes manejar el envío de los datos
-                            // o mostrar un mensaje de confirmación
+                            val allFieldsFilled = names.all { it.isNotBlank() } &&
+                                    lastNames.all { it.isNotBlank() } &&
+                                    emails.all { it.isNotBlank() } &&
+                                    phones.all { it.isNotBlank() }
+
+                            if (!allFieldsFilled) {
+                                Toast.makeText(context, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+
+                            val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+".toRegex()
+                            if (!emails.all { emailPattern.matches(it) }) {
+                                Toast.makeText(context, "Por favor ingrese emails válidos", Toast.LENGTH_SHORT).show()
+                                return@Button
+                            }
+
+                            val userId = sessionManager.getUserId()
+                            if (userId.isNullOrEmpty()) {
+                                Toast.makeText(context, "Sesión expirada. Por favor inicie sesión nuevamente", Toast.LENGTH_LONG).show()
+                                return@Button
+                            }
+
+                            isLoading = true
+                            errorMessage = null
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                                    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                                    
+                                    val checkInFormatted = dateFormat.format(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(checkInDate)!!)
+                                    val checkOutFormatted = dateFormat.format(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(checkOutDate)!!)
+
+                                    val reservationRequest = CreateReservationRequest(
+                                        reservationUser = userId,
+                                        propertyBooked = propertyId,
+                                        checkInDate = checkInFormatted,
+                                        checkOutDate = checkOutFormatted,
+                                        payment = payment,
+                                        persons = numTravelers,
+                                        days = days
+                                    )
+
+                                    val response = RetrofitInstance.api.createReservation(reservationRequest)
+
+                                    withContext(Dispatchers.Main) {
+                                        if (response.isSuccessful && response.body() != null) {
+                                            val reservation = response.body()!!
+                                            Toast.makeText(context, "Reserva creada exitosamente", Toast.LENGTH_SHORT).show()
+                                            
+                                            val intent = Intent(context, ItineraryActivity::class.java)
+                                            intent.putExtra("reservationId", reservation.id)
+                                            intent.putExtra("itineraryId", reservation.itinerary?.id)
+                                            context.startActivity(intent)
+                                            (context as? ComponentActivity)?.finish()
+                                        } else {
+                                            val errorBody = response.errorBody()?.string()
+                                            errorMessage = "Error al crear la reserva: ${errorBody ?: "Error desconocido"}"
+                                            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                        }
+                                        isLoading = false
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        errorMessage = "Error: ${e.message}"
+                                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                        isLoading = false
+                                    }
+                                }
+                            }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
+                        enabled = !isLoading
                     ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                         Text("Confirm Reservation", color = Color.White)
                     }
                 }

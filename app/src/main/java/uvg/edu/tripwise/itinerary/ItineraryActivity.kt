@@ -2,6 +2,7 @@ package uvg.edu.tripwise.itinerary
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -17,21 +18,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.network.ItineraryResponse
+import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class ItineraryActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val reservationId = intent.getStringExtra("reservationId")
+        val itineraryId = intent.getStringExtra("itineraryId")
+        
         setContent {
             TripWiseTheme {
                 ItineraryScreen(
+                    reservationId = reservationId,
+                    itineraryId = itineraryId,
                     onBackPressed = {
-                        finish() // Regresa a la actividad anterior
+                        finish()
                     },
                     onLogout = {
                         val intent = Intent(this, MainActivity::class.java)
@@ -44,7 +58,6 @@ class ItineraryActivity : ComponentActivity() {
     }
 }
 
-// Data classes para el itinerario
 data class ItineraryItem(
     val type: ItemType,
     val name: String,
@@ -59,43 +72,107 @@ enum class ItemType {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItineraryScreen(
+    reservationId: String?,
+    itineraryId: String?,
     onBackPressed: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
-    // Data quemada basada en el modelo del backend
-    val sampleItinerary = listOf(
-        ItineraryItem(ItemType.SCHEDULE, "Desayuno en Café Central", 1, "9:00 AM"),
-        ItineraryItem(ItemType.RESTAURANT, "Café Central", 1, "9:00 AM - 10:30 AM"),
-        ItineraryItem(ItemType.SCHEDULE, "Visita al Palacio Nacional", 1, "10:30 AM"),
-        ItineraryItem(ItemType.TOURISTIC_PLACE, "Palacio Nacional de la Cultura", 1, "10:30 AM - 12:30 PM"),
-        ItineraryItem(ItemType.SCHEDULE, "Almuerzo en Restaurante Katok", 1, "1:00 PM"),
-        ItineraryItem(ItemType.RESTAURANT, "Restaurante Katok", 1, "1:00 PM - 2:30 PM"),
-        ItineraryItem(ItemType.SCHEDULE, "Tour por el Centro Histórico", 1, "3:00 PM"),
-        ItineraryItem(ItemType.ACTIVITY, "Caminata por el Centro Histórico", 1, "3:00 PM - 5:00 PM"),
-        ItineraryItem(ItemType.SCHEDULE, "Cena en Flor de Lis", 1, "7:00 PM"),
-        ItineraryItem(ItemType.RESTAURANT, "Flor de Lis", 1, "7:00 PM - 9:00 PM"),
+    val context = LocalContext.current
+    var itinerary by remember { mutableStateOf<ItineraryResponse?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-        // Día 2
-        ItineraryItem(ItemType.SCHEDULE, "Desayuno en Porta Hotel", 2, "8:30 AM"),
-        ItineraryItem(ItemType.RESTAURANT, "Porta Hotel Restaurant", 2, "8:30 AM - 9:30 AM"),
-        ItineraryItem(ItemType.SCHEDULE, "Excursión a Tikal", 2, "10:00 AM"),
-        ItineraryItem(ItemType.TOURISTIC_PLACE, "Parque Nacional Tikal", 2, "10:00 AM - 4:00 PM"),
-        ItineraryItem(ItemType.ACTIVITY, "Exploración de pirámides mayas", 2, "11:00 AM - 3:00 PM"),
-        ItineraryItem(ItemType.SCHEDULE, "Almuerzo en el parque", 2, "1:00 PM"),
-        ItineraryItem(ItemType.RESTAURANT, "Restaurante Tikal Inn", 2, "1:00 PM - 2:00 PM"),
-        ItineraryItem(ItemType.SCHEDULE, "Regreso y cena", 2, "7:30 PM"),
-        ItineraryItem(ItemType.RESTAURANT, "La Fonda de la Calle Real", 2, "7:30 PM - 9:00 PM")
-    )
+    LaunchedEffect(reservationId, itineraryId) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val fetchedItinerary = when {
+                    !itineraryId.isNullOrEmpty() -> {
+                        RetrofitInstance.api.getItineraryById(itineraryId)
+                    }
+                    !reservationId.isNullOrEmpty() -> {
+                        RetrofitInstance.api.getItineraryByReservation(reservationId)
+                    }
+                    else -> null
+                }
 
-    // Agrupar por días
-    val itineraryByDays = sampleItinerary.groupBy { it.day }.toSortedMap()
+                withContext(Dispatchers.Main) {
+                    if (fetchedItinerary != null) {
+                        itinerary = fetchedItinerary
+                    } else {
+                        errorMessage = "No se encontró el itinerario"
+                    }
+                    isLoading = false
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    errorMessage = "Error al cargar el itinerario: ${e.message}"
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    fun mapItineraryToItems(itinerary: ItineraryResponse): List<ItineraryItem> {
+        val items = mutableListOf<ItineraryItem>()
+        
+        for (i in itinerary.schedules.indices) {
+            val day = itinerary.days.getOrNull(i) ?: 1
+            
+            items.add(ItineraryItem(ItemType.SCHEDULE, itinerary.schedules[i], day, ""))
+            
+            if (i < itinerary.restaurants.size) {
+                items.add(ItineraryItem(ItemType.RESTAURANT, itinerary.restaurants[i], day, itinerary.schedules[i]))
+            }
+            if (i < itinerary.touristicPlaces.size) {
+                items.add(ItineraryItem(ItemType.TOURISTIC_PLACE, itinerary.touristicPlaces[i], day, itinerary.schedules[i]))
+            }
+            if (i < itinerary.activities.size) {
+                items.add(ItineraryItem(ItemType.ACTIVITY, itinerary.activities[i], day, itinerary.schedules[i]))
+            }
+        }
+        
+        return items
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF1F5F9))
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = Color(0xFF7C3AED)
+            )
+        } else if (errorMessage != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = errorMessage ?: "Error desconocido",
+                    color = Color.Red,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onBackPressed,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED))
+                ) {
+                    Text("Regresar", color = Color.White)
+                }
+            }
+        } else {
+            val itineraryData = itinerary
+            if (itineraryData != null) {
+                val itineraryItems = mapItineraryToItems(itineraryData)
+                val itineraryByDays = itineraryItems.groupBy { it.day }.toSortedMap()
+                
+                Column(modifier = Modifier.fillMaxSize()) {
             // Top Bar personalizado
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -142,13 +219,11 @@ fun ItineraryScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Header con información general
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
-                    TripInfoCard()
+                    TripInfoCard(itineraryData)
                 }
 
-                // Iterar sobre cada día
                 itineraryByDays.forEach { (day, items) ->
                     item {
                         DayHeader(day = day)
@@ -168,10 +243,11 @@ fun ItineraryScreen(
                     }
                 }
 
-                // Botones de acción
                 item {
                     ActionButtons()
                     Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
                 }
             }
         }
@@ -179,7 +255,9 @@ fun ItineraryScreen(
 }
 
 @Composable
-fun TripInfoCard() {
+fun TripInfoCard(itinerary: ItineraryResponse) {
+    val maxDay = itinerary.days.maxOrNull() ?: 1
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,9 +279,9 @@ fun TripInfoCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                InfoItem("📅 Duración", "2 días")
-                InfoItem("👥 Personas", "2")
-                InfoItem("💰 Presupuesto", "$200 USD")
+                InfoItem("📅 Duración", "$maxDay días")
+                InfoItem("🍽️ Restaurantes", "${itinerary.restaurants.size}")
+                InfoItem("� Lugares", "${itinerary.touristicPlaces.size}")
             }
         }
     }

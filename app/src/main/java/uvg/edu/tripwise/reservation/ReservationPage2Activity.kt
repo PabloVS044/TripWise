@@ -33,13 +33,23 @@ class ReservationPage2Activity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Recibimos datos de la pantalla anterior
         val propertyId = intent.getStringExtra("propertyId") ?: ""
         val numTravelers = intent.getIntExtra("numTravelers", 1)
+        val checkInDate = intent.getStringExtra("checkInDate") ?: ""
+        val checkOutDate = intent.getStringExtra("checkOutDate") ?: ""
+        val days = intent.getIntExtra("days", 1)
+        val payment = intent.getDoubleExtra("payment", 0.0)
 
         setContent {
             TripWiseTheme {
-                ReservationPage2Screen(propertyId, numTravelers)
+                ReservationPage2Screen(
+                    propertyId = propertyId,
+                    numTravelers = numTravelers,
+                    checkInDate = checkInDate,
+                    checkOutDate = checkOutDate,
+                    days = days,
+                    payment = payment
+                )
             }
         }
     }
@@ -47,7 +57,14 @@ class ReservationPage2Activity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservationPage2Screen(propertyId: String, numTravelers: Int) {
+fun ReservationPage2Screen(
+    propertyId: String,
+    numTravelers: Int,
+    checkInDate: String,
+    checkOutDate: String,
+    days: Int,
+    payment: Double
+) {
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
 
@@ -115,16 +132,18 @@ fun ReservationPage2Screen(propertyId: String, numTravelers: Int) {
                             Text("Atrás")
                         }
 
-                        // ✅ Botón Siguiente (lleva a ReservationPage3Activity)
                         Button(
                             onClick = {
                                 Log.d("DEBUG", "Going to ReservationPage3Activity with $numTravelers travelers for propertyId $propertyId")
                                 val intent = Intent(context, ReservationPage3Activity::class.java)
                                 intent.putExtra("propertyId", propertyId)
                                 intent.putExtra("numTravelers", numTravelers)
+                                intent.putExtra("checkInDate", checkInDate)
+                                intent.putExtra("checkOutDate", checkOutDate)
+                                intent.putExtra("days", days)
+                                intent.putExtra("payment", payment)
                                 context.startActivity(intent)
-                            }
-                            ,
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
                         ) {
                             Text("Siguiente", color = Color.White)
