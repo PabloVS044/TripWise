@@ -78,6 +78,45 @@ fun ReservationPage3Screen(
     
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var loadingMessage by remember { mutableStateOf("Procesando...") }
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                modifier = Modifier.padding(32.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(64.dp),
+                        color = Color(0xFF1E40AF),
+                        strokeWidth = 6.dp
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = loadingMessage,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF1E40AF)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Por favor espera...",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -133,9 +172,14 @@ fun ReservationPage3Screen(
 
                             isLoading = true
                             errorMessage = null
+                            loadingMessage = "Creando reserva..."
 
                             CoroutineScope(Dispatchers.IO).launch {
                                 try {
+                                    withContext(Dispatchers.Main) {
+                                        loadingMessage = "Validando disponibilidad..."
+                                    }
+                                    
                                     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                                     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
                                     
@@ -152,12 +196,22 @@ fun ReservationPage3Screen(
                                         days = days
                                     )
 
+                                    withContext(Dispatchers.Main) {
+                                        loadingMessage = "Confirmando reserva..."
+                                    }
+
                                     val response = RetrofitInstance.api.createReservation(reservationRequest)
+
+                                    withContext(Dispatchers.Main) {
+                                        loadingMessage = "Generando tu itinerario personalizado..."
+                                    }
+
+                                    kotlinx.coroutines.delay(2000)
 
                                     withContext(Dispatchers.Main) {
                                         if (response.isSuccessful && response.body() != null) {
                                             val reservation = response.body()!!
-                                            Toast.makeText(context, "Reserva creada exitosamente", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "¡Reserva creada exitosamente!", Toast.LENGTH_SHORT).show()
                                             
                                             val intent = Intent(context, ItineraryActivity::class.java)
                                             intent.putExtra("reservationId", reservation.id)

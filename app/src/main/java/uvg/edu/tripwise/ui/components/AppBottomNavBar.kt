@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.profile.ProfileActivity
-import uvg.edu.tripwise.reservation.ReservationPage1Activity
+import uvg.edu.tripwise.reservation.MyReservationsActivity
 
 @Composable
 fun AppBottomNavBar(currentScreen: String) {
@@ -43,13 +43,12 @@ fun AppBottomNavBar(currentScreen: String) {
             )
         )
 
-        // --- Item de Reservas ---
         NavigationBarItem(
             icon = { Icon(Icons.Default.Luggage, contentDescription = stringResource(R.string.reservation_desc)) },
             label = { Text(stringResource(R.string.nav_reservation)) },
             selected = currentScreen == "Reservation",
             onClick = {
-                val intent = Intent(context, ReservationPage1Activity::class.java)
+                val intent = Intent(context, MyReservationsActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 context.startActivity(intent)
             },
