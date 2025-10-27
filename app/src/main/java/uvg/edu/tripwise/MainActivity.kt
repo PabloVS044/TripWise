@@ -46,17 +46,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Verificar si el usuario ya tiene sesión activa
         val sessionManager = SessionManager(this)
 
-        // Debug logs
         Log.d("MainActivity", "=== SESSION DEBUG ===")
         Log.d("MainActivity", "isLoggedIn: ${sessionManager.isLoggedIn()}")
         Log.d("MainActivity", "getUserId: ${sessionManager.getUserId()}")
         Log.d("MainActivity", "getUserRole: ${sessionManager.getUserRole()}")
         Log.d("MainActivity", "==================")
 
-        // Verificar que la sesión tenga datos válidos
         val userId = sessionManager.getUserId()
         val userRole = sessionManager.getUserRole()
 
@@ -81,14 +78,12 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             Log.d("MainActivity", "No hay sesión válida - Mostrando landing page")
-            // Si hay datos pero son inválidos, limpiar la sesión
             if (sessionManager.isLoggedIn()) {
                 Log.w("MainActivity", "Sesión inválida detectada - Limpiando")
                 sessionManager.clearSession()
             }
         }
 
-        // Si no hay sesión activa o fue limpiada, mostrar la landing page
         setContent {
             TripWiseTheme {
                 TripWiseLandingPage(
@@ -178,7 +173,6 @@ fun HeroSection() {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Badge
         Surface(
             modifier = Modifier.padding(bottom = 16.dp),
             shape = RoundedCornerShape(20.dp),
@@ -204,7 +198,6 @@ fun HeroSection() {
             }
         }
 
-        // Main Title
         Text(
             text = stringResource(R.string.hero_title),
             fontSize = 36.sp,
@@ -214,7 +207,6 @@ fun HeroSection() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Subtitle
         Text(
             text = stringResource(R.string.hero_subtitle),
             fontSize = 16.sp,
@@ -224,7 +216,6 @@ fun HeroSection() {
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Buttons
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -275,7 +266,6 @@ fun HeroSection() {
             }
         }
 
-        // Stats
         Spacer(modifier = Modifier.height(32.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -314,7 +304,6 @@ fun FeaturesSection() {
             .background(Color.White)
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -351,7 +340,6 @@ fun FeaturesSection() {
                 .padding(bottom = 32.dp)
         )
 
-        // Features Grid
         val features = listOf(
             Feature(Icons.Default.Home, stringResource(R.string.feature_unique_accommodations_title), stringResource(R.string.feature_unique_accommodations_description), Color(0xFFDBEAFE), Color(0xFF2563EB)),
             Feature(Icons.Default.SmartToy, stringResource(R.string.feature_personalized_ai_title), stringResource(R.string.feature_personalized_ai_description), Color(0xFFF3E8FF), Color(0xFF7C3AED)),
@@ -446,7 +434,6 @@ fun HowItWorksSection() {
             )
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -483,7 +470,6 @@ fun HowItWorksSection() {
                 .padding(bottom = 32.dp)
         )
 
-        // Steps
         val steps = listOf(
             Step("1", stringResource(R.string.step_1_title), stringResource(R.string.step_1_description), listOf(Color(0xFF2563EB), Color(0xFF7C3AED))),
             Step("2", stringResource(R.string.step_2_title), stringResource(R.string.step_2_description), listOf(Color(0xFF7C3AED), Color(0xFFDB2777))),
@@ -557,7 +543,6 @@ fun TestimonialsSection() {
             .background(Color.White)
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -642,7 +627,6 @@ fun TestimonialCard(testimonial: Testimonial) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            // Stars
             Row(modifier = Modifier.padding(bottom = 16.dp)) {
                 repeat(5) {
                     Icon(

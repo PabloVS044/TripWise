@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.ui.components
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,12 +19,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
+import uvg.edu.tripwise.auth.SessionManager
 
 @Composable
 fun LogoAppTopBar(onLogout: () -> Unit) {
+    val context = LocalContext.current
+    val sessionManager = SessionManager(context)
+
     Surface(shadowElevation = 4.dp, color = Color.White) {
         Row(
             modifier = Modifier
@@ -47,7 +54,18 @@ fun LogoAppTopBar(onLogout: () -> Unit) {
                 )
             }
 
-            IconButton(onClick = onLogout) {
+            IconButton(
+                onClick = {
+                    onLogout()
+
+                    sessionManager.clearSession()
+
+                    val intent = Intent(context, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    context.startActivity(intent)
+                }
+            ) {
                 Icon(
                     imageVector = Icons.Filled.ExitToApp,
                     contentDescription = stringResource(R.string.cd_logout),
