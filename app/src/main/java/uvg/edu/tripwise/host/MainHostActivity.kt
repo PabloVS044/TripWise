@@ -2,7 +2,6 @@ package uvg.edu.tripwise.host
 
 import android.content.Intent
 import android.os.Bundle
-import uvg.edu.tripwise.MainActivity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -12,7 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,16 +19,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.auth.LoginActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class MainHostActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val act = this
+
         setContent {
             TripWiseTheme {
                 MainHostScreen(
+                    onManageProperties = {
+                        // Abre la pantalla de propiedades del host
+                        PropertiesHostActivity.launch(
+                            context = act,
+                            propertyId = null,
+                            clearTask = false
+                        )
+                    },
                     onLogout = {
-                        val intent = Intent(this, MainActivity::class.java)
+                        // Limpia sesión y regresa a Login
+                        getSharedPreferences("auth", MODE_PRIVATE)
+                            .edit()
+                            .clear()
+                            .apply()
+
+                        val intent = Intent(act, LoginActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        }
                         startActivity(intent)
                         finish()
                     }
@@ -42,6 +60,7 @@ class MainHostActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainHostScreen(
+    onManageProperties: () -> Unit = {},
     onLogout: () -> Unit = {}
 ) {
     Box(
@@ -50,7 +69,9 @@ fun MainHostScreen(
             .background(Color(0xFFF1F5F9))
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -96,7 +117,21 @@ fun MainHostScreen(
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Botón principal para ir a gestionar propiedades
+            Button(
+                onClick = onManageProperties,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1F47B2)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+            ) {
+                Text("Gestionar mis propiedades", color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
 
             Card(
                 modifier = Modifier

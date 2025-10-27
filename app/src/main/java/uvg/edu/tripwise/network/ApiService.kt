@@ -39,6 +39,9 @@ data class CreateUserRequest(
     val interests: List<String>? = null
 )
 
+// Create Property request
+
+
 data class CreatePropertyRequest(
     val name: String,
     val description: String,
@@ -53,7 +56,6 @@ data class CreatePropertyRequest(
     val latitude: Double?,
     val longitude: Double?
 )
-
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
@@ -73,8 +75,8 @@ data class ApiProperty(
     val propertyType: String,
     val owner: String,
     val approved: String,
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Double?,
+    val longitude: Double?,
     val createdAt: String,
     val deleted: PropertyDeleted,
     val reviews: List<Map<String, String>>? = null
@@ -177,6 +179,11 @@ interface UserApiService {
 
     @POST("property/createProperty")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+
+    @GET("users/{id}/properties")
+    suspend fun getOwnerProperties(@Path("id") id: String): List<ApiProperty>
+}
+
 
     @POST("reservation/createReservation")
     suspend fun createReservation(@Body request: CreateReservationRequest): Response<CreateReservationResponse>
