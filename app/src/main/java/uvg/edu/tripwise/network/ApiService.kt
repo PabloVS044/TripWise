@@ -122,7 +122,6 @@ data class CreateReservationResponse(
 
 data class ItineraryResponse(
     @SerializedName("_id") val id: String,
-    val reservationID: String? = null,
     val restaurants: List<String>,
     val touristicPlaces: List<String>,
     val activities: List<String>,

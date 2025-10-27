@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -15,16 +16,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.auth.SessionManager
+import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.itinerary.ItineraryActivity
 import uvg.edu.tripwise.network.CreateReservationRequest
 import uvg.edu.tripwise.network.RetrofitInstance
@@ -71,17 +76,23 @@ fun ReservationPage3Screen(
     payment: Double
 ) {
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
     val sessionManager = remember { SessionManager(context) }
-
-    val names = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
-    val lastNames = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
-    val emails = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
-    val phones = remember { mutableStateListOf<String>().apply { repeat(numTravelers) { add("") } } }
+    var property by remember { mutableStateOf<Property?>(null) }
     
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var loadingMessage by remember { mutableStateOf("Procesando...") }
+
+    LaunchedEffect(propertyId) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val fetchedProperty = RetrofitInstance.PropertyApi.getPropertyById(propertyId)
+                property = fetchedProperty
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     if (isLoading) {
         Box(
@@ -139,7 +150,8 @@ fun ReservationPage3Screen(
                 ) {
                     TextButton(
                         onClick = {
-                            val intent = Intent(context, ReservationPage2Activity::class.java)
+                            val intent = Intent(context, ReservationPage1Activity::class.java)
+                            intent.putExtra("propertyId", propertyId)
                             context.startActivity(intent)
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF1E40AF))
@@ -151,22 +163,6 @@ fun ReservationPage3Screen(
 
                     Button(
                         onClick = {
-                            val allFieldsFilled = names.all { it.isNotBlank() } &&
-                                    lastNames.all { it.isNotBlank() } &&
-                                    emails.all { it.isNotBlank() } &&
-                                    phones.all { it.isNotBlank() }
-
-                            if (!allFieldsFilled) {
-                                Toast.makeText(context, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-
-                            val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+".toRegex()
-                            if (!emails.all { emailPattern.matches(it) }) {
-                                Toast.makeText(context, "Por favor ingrese emails válidos", Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-
                             val userId = sessionManager.getUserId()
                             if (userId.isNullOrEmpty()) {
                                 Toast.makeText(context, "Sesión expirada. Por favor inicie sesión nuevamente", Toast.LENGTH_LONG).show()
@@ -249,7 +245,8 @@ fun ReservationPage3Screen(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
@@ -259,7 +256,7 @@ fun ReservationPage3Screen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        Text("Confirm Reservation", color = Color.White)
+                        Text("Confirmar Reserva", color = Color.White, fontSize = 16.sp)
                     }
                 }
             }
@@ -269,68 +266,95 @@ fun ReservationPage3Screen(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
-                .fillMaxSize()
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.Top
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Traveler Details",
+                text = "Resumen de Reserva",
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 16.dp)
+                color = Color.Black
             )
 
-            // Formulario dinámico para cada viajero
-            repeat(numTravelers) { index ->
+            // Tarjeta con la información de la propiedad
+            property?.let { p ->
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
+                        AsyncImage(
+                            model = p.pictures.firstOrNull(),
+                            contentDescription = p.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
                         Text(
-                            text = "Traveler ${index + 1}",
+                            text = p.name,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color(0xFF1E40AF)
+                            fontSize = 20.sp,
+                            color = Color.Black
                         )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = names[index],
-                            onValueChange = { names[index] = it },
-                            label = { Text("First Name") },
-                            modifier = Modifier.fillMaxWidth()
+                        Text(
+                            text = p.location,
+                            fontSize = 14.sp,
+                            color = Color.Gray
                         )
+                    }
+                }
+            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = lastNames[index],
-                            onValueChange = { lastNames[index] = it },
-                            label = { Text("Last Name") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = emails[index],
-                            onValueChange = { emails[index] = it },
-                            label = { Text("Email") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(
-                            value = phones[index],
-                            onValueChange = { phones[index] = it },
-                            label = { Text("Phone Number") },
-                            modifier = Modifier.fillMaxWidth()
+            // Detalles de la reserva
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Check-in:", fontWeight = FontWeight.Medium)
+                        Text(checkInDate, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Check-out:", fontWeight = FontWeight.Medium)
+                        Text(checkOutDate, color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Días:", fontWeight = FontWeight.Medium)
+                        Text("$days", color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Viajeros:", fontWeight = FontWeight.Medium)
+                        Text("$numTravelers", color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
+                    }
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Total:", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Q${String.format("%.2f", payment)}", 
+                            color = Color(0xFF1E40AF), 
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
                         )
                     }
                 }

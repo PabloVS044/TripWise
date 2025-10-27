@@ -118,18 +118,41 @@ fun ItineraryScreen(
         
         for (i in itinerary.schedules.indices) {
             val day = itinerary.days.getOrNull(i) ?: 1
+            val schedule = itinerary.schedules[i]
             
-            items.add(ItineraryItem(ItemType.SCHEDULE, itinerary.schedules[i], day, ""))
+            // Determinar el tipo de actividad basándose en palabras clave
+            val type = when {
+                schedule.contains("Desayuno", ignoreCase = true) || 
+                schedule.contains("Almuerzo", ignoreCase = true) ||
+                schedule.contains("Cena", ignoreCase = true) ||
+                schedule.contains("Comida", ignoreCase = true) ||
+                schedule.contains("Restaurante", ignoreCase = true) ||
+                schedule.contains("Cafetería", ignoreCase = true) -> ItemType.RESTAURANT
+                
+                schedule.contains("Visita", ignoreCase = true) ||
+                schedule.contains("Mirador", ignoreCase = true) ||
+                schedule.contains("Lago", ignoreCase = true) ||
+                schedule.contains("Cascada", ignoreCase = true) ||
+                schedule.contains("Playa", ignoreCase = true) ||
+                schedule.contains("Parque", ignoreCase = true) ||
+                schedule.contains("Centro Histórico", ignoreCase = true) ||
+                schedule.contains("Mercado", ignoreCase = true) -> ItemType.TOURISTIC_PLACE
+                
+                schedule.contains("Senderismo", ignoreCase = true) ||
+                schedule.contains("Nadar", ignoreCase = true) ||
+                schedule.contains("Fotografía", ignoreCase = true) ||
+                schedule.contains("Relajación", ignoreCase = true) ||
+                schedule.contains("Relajarse", ignoreCase = true) ||
+                schedule.contains("Explorar", ignoreCase = true) ||
+                schedule.contains("Paseo", ignoreCase = true) ||
+                schedule.contains("Salida hacia", ignoreCase = true) ||
+                schedule.contains("Regreso", ignoreCase = true) ||
+                schedule.contains("Actividad", ignoreCase = true) -> ItemType.ACTIVITY
+                
+                else -> ItemType.SCHEDULE
+            }
             
-            if (i < itinerary.restaurants.size) {
-                items.add(ItineraryItem(ItemType.RESTAURANT, itinerary.restaurants[i], day, itinerary.schedules[i]))
-            }
-            if (i < itinerary.touristicPlaces.size) {
-                items.add(ItineraryItem(ItemType.TOURISTIC_PLACE, itinerary.touristicPlaces[i], day, itinerary.schedules[i]))
-            }
-            if (i < itinerary.activities.size) {
-                items.add(ItineraryItem(ItemType.ACTIVITY, itinerary.activities[i], day, itinerary.schedules[i]))
-            }
+            items.add(ItineraryItem(type, schedule, day, ""))
         }
         
         return items
@@ -244,7 +267,6 @@ fun ItineraryScreen(
                 }
 
                 item {
-                    ActionButtons()
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -280,8 +302,8 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 InfoItem("📅 Duración", "$maxDay días")
-                InfoItem("🍽️ Restaurantes", "${itinerary.restaurants.size}")
-                InfoItem("� Lugares", "${itinerary.touristicPlaces.size}")
+                InfoItem("📋 Actividades", "${itinerary.schedules.size}")
+                InfoItem("🗺️ Lugares", "${itinerary.touristicPlaces.size}")
             }
         }
     }
@@ -413,63 +435,13 @@ fun ItineraryItemCard(
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = Color.Black.copy(alpha = 0.87f)
-                )
-                Text(
-                    text = item.schedule,
-                    fontSize = 14.sp,
-                    color = Color.Black.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ActionButtons() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Button(
-            onClick = { /* Regenerar itinerario */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED))
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Regenerar Itinerario", color = Color.White)
-        }
-
-        OutlinedButton(
-            onClick = { /* Ver recomendaciones */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFF7C3AED)
+            Text(
+                text = item.name,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = Color.Black.copy(alpha = 0.87f),
+                modifier = Modifier.weight(1f)
             )
-        ) {
-            Icon(Icons.Default.Lightbulb, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Ver Recomendaciones")
-        }
-
-        OutlinedButton(
-            onClick = { /* Personalizar itinerario */ },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFF7C3AED)
-            )
-        ) {
-            Icon(Icons.Default.Edit, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Personalizar")
         }
     }
 }

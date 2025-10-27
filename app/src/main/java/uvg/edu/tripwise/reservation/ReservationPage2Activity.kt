@@ -68,7 +68,6 @@ fun ReservationPage2Screen(
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
 
-    // ✅ Obtener datos de la propiedad desde la API
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
