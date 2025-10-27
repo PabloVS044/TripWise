@@ -8,7 +8,6 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
-import uvg.edu.tripwise.data.model.Property
 
 data class ApiUser(
     @SerializedName("_id") val id: String,
@@ -68,7 +67,7 @@ data class ApiProperty(
     val description: String,
     val location: String,
     val pricePerNight: Double,
-    val capacity: Number, // Changed from Int to Number to handle potential float values
+    val capacity: Number,
     val pictures: List<String>,
     val amenities: List<String>,
     val propertyType: String,
@@ -78,16 +77,32 @@ data class ApiProperty(
     val longitude: Double,
     val createdAt: String,
     val deleted: PropertyDeleted,
-    val reviews: List<Map<String, String>>? = null // Added to match backend schema
+    val reviews: List<Map<String, String>>? = null
 )
 
 data class PropertyDeleted(
     @SerializedName("is") val `is`: Boolean,
     val at: String? = null
 )
-data class Login (
+
+data class Login(
     val email: String,
     val password: String
+)
+
+// NUEVO: Modelo para la respuesta de login
+data class LoginResponse(
+    @SerializedName("_id")
+    val _id: String,
+
+    @SerializedName("email")
+    val email: String,
+
+    @SerializedName("role")
+    val role: String,
+
+    @SerializedName("token")
+    val token: String
 )
 
 data class Property(
@@ -125,7 +140,7 @@ interface UserApiService {
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
     @GET("property")
-    suspend fun getProperties(): List<ApiProperty>// Changed to Response for error handling
+    suspend fun getProperties(): List<ApiProperty>
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
@@ -133,8 +148,9 @@ interface UserApiService {
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 
+    // CAMBIADO: Ahora retorna Response<LoginResponse> en lugar de Response<Map<String, String>>
     @POST("login")
-    suspend fun login(@Body login: Login): Response<Map<String, String>>
+    suspend fun login(@Body login: Login): Response<LoginResponse>
 
     @POST("property/createProperty")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
@@ -143,12 +159,16 @@ interface UserApiService {
 interface PropertyApiService {
     @GET("property")
     suspend fun getProperties(): List<Property>
+
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): Property
+
     @POST("property/create")
     suspend fun createProperty(): List<ApiProperty>
+
     @PUT("property/{id}")
     suspend fun updateProperty(): List<ApiProperty>
+
     @DELETE("property/{id}")
     suspend fun deleteProperty(id: String): List<ApiProperty>
 }
