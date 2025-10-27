@@ -79,7 +79,7 @@ fun ReservationPage3Screen(
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     var property by remember { mutableStateOf<Property?>(null) }
-    
+
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var loadingMessage by remember { mutableStateOf("Procesando...") }
@@ -184,9 +184,9 @@ fun ReservationPage3Screen(
                                 .clip(RoundedCornerShape(12.dp)),
                             contentScale = ContentScale.Crop
                         )
-                        
+
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         Text(
                             text = p.name,
                             fontWeight = FontWeight.Bold,
@@ -242,8 +242,8 @@ fun ReservationPage3Screen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Total:", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("Q${String.format("%.2f", payment)}", 
-                            color = Color(0xFF1E40AF), 
+                        Text("Q${String.format("%.2f", payment)}",
+                            color = Color(0xFF1E40AF),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -269,18 +269,18 @@ fun ReservationPage3Screen(
                             withContext(Dispatchers.Main) {
                                 loadingMessage = "Validando disponibilidad..."
                             }
-                            
+
                             val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                             dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-                            
+
                             val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                             val checkInParsed = inputFormat.parse(checkInDate)
                             val checkOutParsed = inputFormat.parse(checkOutDate)
-                            
+
                             if (checkInParsed == null || checkOutParsed == null) {
                                 throw Exception("Fechas inválidas")
                             }
-                            
+
                             val checkInFormatted = dateFormat.format(checkInParsed)
                             val checkOutFormatted = dateFormat.format(checkOutParsed)
 
@@ -311,9 +311,9 @@ fun ReservationPage3Screen(
                                     val responseBody = response.body()!!
                                     val reservation = responseBody.reservation
                                     val itinerary = responseBody.itinerary
-                                    
+
                                     Toast.makeText(context, "¡Reserva creada exitosamente!", Toast.LENGTH_SHORT).show()
-                                    
+
                                     val intent = Intent(context, ItineraryActivity::class.java)
                                     intent.putExtra("reservationId", reservation.id)
                                     intent.putExtra("itineraryId", itinerary?.id)

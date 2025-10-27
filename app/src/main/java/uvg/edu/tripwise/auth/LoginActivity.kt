@@ -355,55 +355,33 @@ fun LoginScreen(
                                     Log.d("LoginActivity", "Respuesta del servidor: ${response.code()}")
 
                                     if (response.isSuccessful) {
-                                        val responseBody = response.body()
-                                        val token = responseBody?.get("token")
-                                        val userEmail = responseBody?.get("email")
-                                        val role = responseBody?.get("role") ?: "user"
+                                        val loginResponse = response.body()
 
-                                        // *** LÓGICA MEJORADA ***
-                                        // Intenta obtener el ID del usuario con varias claves comunes.
-                                        val userId = responseBody?.get("_id")
-                                            ?: responseBody?.get("id")
-                                            ?: responseBody?.get("userId")
+                                        if (loginResponse != null) {
+                                            val userId = loginResponse._id
+                                            val token = loginResponse.token
+                                            val userEmail = loginResponse.email
+                                            val role = loginResponse.role
 
-                                        if (token != null && userId != null && userEmail != null) {
-                                            Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role, UserID: $userId")
+                                            Log.d("LoginActivity", "Login exitoso: ID=$userId, Rol=$role")
                                             sessionManager.saveUserDetails(token, userId, userEmail, role)
+
+                                            // Guardar también en SharedPreferences para compatibilidad
                                             val prefs = context.getSharedPreferences("auth", MODE_PRIVATE)
                                             prefs.edit()
-                                                .putString("USER_ID", userId) // clave nueva usada por las vistas
-                                                .putString("user_id", userId) // compatibilidad con código viejo
+                                                .putString("USER_ID", userId)
+                                                .putString("user_id", userId)
                                                 .putString("TOKEN", token)
                                                 .putString("ROLE", role)
                                                 .apply()
-                                            userRole = role
 
-                                            // Pequeño delay para mostrar el loader antes de navegar
+                                            // Pequeño delay para UX
                                             kotlinx.coroutines.delay(800)
                                             onLoginSuccess(role)
                                         } else {
-                                            errorMessage = "Respuesta incompleta del servidor."
-                                            Log.e("LoginActivity", "Login failed: Incomplete data from server. Response body: $responseBody")
-                                            isLoading = false
-                                        response.body()?.let { loginResponse ->
-                                            if (loginResponse._id.isEmpty()) {
-                                                Log.e("LoginActivity", "Error: _id está vacío en la respuesta")
-                                                errorMessage = serverErrorMsg
-                                            } else {
-                                                Log.d("LoginActivity", "Login exitoso: ID=${loginResponse._id}, Rol=${loginResponse.role}")
-                                                sessionManager.saveUserDetails(
-                                                    token = loginResponse.token,
-                                                    userId = loginResponse._id,
-                                                    email = loginResponse.email,
-                                                    role = loginResponse.role
-                                                )
-                                                kotlinx.coroutines.delay(800) // Pequeño delay para UX
-                                                onLoginSuccess(loginResponse.role)
-                                                return@launch // Salir sin resetear isLoading porque navegaremos
-                                            }
-                                        } ?: run {
-                                            Log.e("LoginActivity", "Respuesta del servidor vacía")
+                                            Log.e("LoginActivity", "Login failed: Response body is null")
                                             errorMessage = serverErrorMsg
+                                            isLoading = false
                                         }
                                     } else {
                                         when (response.code()) {
@@ -414,19 +392,19 @@ fun LoginScreen(
                                                 errorMessage = "$serverErrorMsg ${response.code()}"
                                             }
                                         }
+                                        isLoading = false
                                     }
                                 } catch (e: HttpException) {
                                     Log.e("LoginActivity", "Error HTTP: ${e.message()}", e)
                                     errorMessage = serverErrorMsg
+                                    isLoading = false
                                 } catch (e: IOException) {
                                     Log.e("LoginActivity", "Error de conexión: ${e.message}", e)
                                     errorMessage = connectionErrorMsg
+                                    isLoading = false
                                 } catch (e: Exception) {
                                     Log.e("LoginActivity", "Error inesperado: ${e.message}", e)
                                     errorMessage = serverErrorMsg
-                                } finally {
-                                    // Solo resetear isLoading si no fue exitoso
-                                    // (si fue exitoso, ya salimos con return@launch)
                                     isLoading = false
                                 }
                             }

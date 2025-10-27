@@ -22,9 +22,18 @@ object RetrofitInstance {
     val api: UserApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(client) // Adding OkHttp client with logging
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(UserApiService::class.java)
+    }
+
+    val PropertyApi: PropertyApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PropertyApiService::class.java)
     }
 }

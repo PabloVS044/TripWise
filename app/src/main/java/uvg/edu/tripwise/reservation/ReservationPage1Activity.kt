@@ -206,7 +206,7 @@ fun ReservationScreen(propertyId: String) {
                         property?.let { p ->
                             val days = calculateDays(checkInDate, checkOutDate)
                             val totalPayment = p.pricePerNight * days
-                            
+
                             val intent = Intent(context, ReservationPage3Activity::class.java)
                             intent.putExtra("propertyId", p.id)
                             intent.putExtra("numTravelers", viajeros)
