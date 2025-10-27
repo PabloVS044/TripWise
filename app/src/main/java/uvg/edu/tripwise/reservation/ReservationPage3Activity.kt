@@ -33,6 +33,7 @@ import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.itinerary.ItineraryActivity
 import uvg.edu.tripwise.network.CreateReservationRequest
 import uvg.edu.tripwise.network.RetrofitInstance
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import java.text.SimpleDateFormat
 import java.util.*
@@ -135,131 +136,21 @@ fun ReservationPage3Screen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Traveler Information", color = Color.White) },
+                title = { Text("Resumen de Reserva", color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        val intent = Intent(context, ReservationPage1Activity::class.java)
+                        intent.putExtra("propertyId", propertyId)
+                        context.startActivity(intent)
+                    }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color(0xFF1E40AF))
             )
         },
         bottomBar = {
-            BottomAppBar(containerColor = Color.White) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(
-                        onClick = {
-                            val intent = Intent(context, ReservationPage1Activity::class.java)
-                            intent.putExtra("propertyId", propertyId)
-                            context.startActivity(intent)
-                        },
-                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF1E40AF))
-                    ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1E40AF))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Back")
-                    }
-
-                    Button(
-                        onClick = {
-                            val userId = sessionManager.getUserId()
-                            if (userId.isNullOrEmpty()) {
-                                Toast.makeText(context, "Sesión expirada. Por favor inicie sesión nuevamente", Toast.LENGTH_LONG).show()
-                                return@Button
-                            }
-
-                            isLoading = true
-                            errorMessage = null
-                            loadingMessage = "Creando reserva..."
-
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    withContext(Dispatchers.Main) {
-                                        loadingMessage = "Validando disponibilidad..."
-                                    }
-                                    
-                                    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-                                    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-                                    
-                                    val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                    val checkInParsed = inputFormat.parse(checkInDate)
-                                    val checkOutParsed = inputFormat.parse(checkOutDate)
-                                    
-                                    if (checkInParsed == null || checkOutParsed == null) {
-                                        throw Exception("Fechas inválidas")
-                                    }
-                                    
-                                    val checkInFormatted = dateFormat.format(checkInParsed)
-                                    val checkOutFormatted = dateFormat.format(checkOutParsed)
-
-                                    val reservationRequest = CreateReservationRequest(
-                                        reservationUser = userId,
-                                        propertyBooked = propertyId,
-                                        checkInDate = checkInFormatted,
-                                        checkOutDate = checkOutFormatted,
-                                        payment = payment,
-                                        persons = numTravelers,
-                                        days = days
-                                    )
-
-                                    withContext(Dispatchers.Main) {
-                                        loadingMessage = "Confirmando reserva..."
-                                    }
-
-                                    val response = RetrofitInstance.api.createReservation(reservationRequest)
-
-                                    withContext(Dispatchers.Main) {
-                                        loadingMessage = "Generando tu itinerario personalizado..."
-                                    }
-
-                                    kotlinx.coroutines.delay(2000)
-
-                                    withContext(Dispatchers.Main) {
-                                        if (response.isSuccessful && response.body() != null) {
-                                            val responseBody = response.body()!!
-                                            val reservation = responseBody.reservation
-                                            val itinerary = responseBody.itinerary
-                                            
-                                            Toast.makeText(context, "¡Reserva creada exitosamente!", Toast.LENGTH_SHORT).show()
-                                            
-                                            val intent = Intent(context, ItineraryActivity::class.java)
-                                            intent.putExtra("reservationId", reservation.id)
-                                            intent.putExtra("itineraryId", itinerary?.id)
-                                            context.startActivity(intent)
-                                            (context as? ComponentActivity)?.finish()
-                                        } else {
-                                            val errorBody = response.errorBody()?.string()
-                                            errorMessage = "Error al crear la reserva: ${errorBody ?: "Error desconocido"}"
-                                            Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                                        }
-                                        isLoading = false
-                                    }
-                                } catch (e: Exception) {
-                                    withContext(Dispatchers.Main) {
-                                        errorMessage = "Error: ${e.message}"
-                                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
-                                        isLoading = false
-                                    }
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
-                        enabled = !isLoading,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                        Text("Confirmar Reserva", color = Color.White, fontSize = 16.sp)
-                    }
-                }
-            }
+            AppBottomNavBar(currentScreen = "Reservation")
         }
     ) { innerPadding ->
         Column(
@@ -358,6 +249,105 @@ fun ReservationPage3Screen(
                         )
                     }
                 }
+            }
+
+            // Botón de confirmar reserva
+            Button(
+                onClick = {
+                    val userId = sessionManager.getUserId()
+                    if (userId.isNullOrEmpty()) {
+                        Toast.makeText(context, "Sesión expirada. Por favor inicie sesión nuevamente", Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+
+                    isLoading = true
+                    errorMessage = null
+                    loadingMessage = "Creando reserva..."
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            withContext(Dispatchers.Main) {
+                                loadingMessage = "Validando disponibilidad..."
+                            }
+                            
+                            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+                            
+                            val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                            val checkInParsed = inputFormat.parse(checkInDate)
+                            val checkOutParsed = inputFormat.parse(checkOutDate)
+                            
+                            if (checkInParsed == null || checkOutParsed == null) {
+                                throw Exception("Fechas inválidas")
+                            }
+                            
+                            val checkInFormatted = dateFormat.format(checkInParsed)
+                            val checkOutFormatted = dateFormat.format(checkOutParsed)
+
+                            val reservationRequest = CreateReservationRequest(
+                                reservationUser = userId,
+                                propertyBooked = propertyId,
+                                checkInDate = checkInFormatted,
+                                checkOutDate = checkOutFormatted,
+                                payment = payment,
+                                persons = numTravelers,
+                                days = days
+                            )
+
+                            withContext(Dispatchers.Main) {
+                                loadingMessage = "Confirmando reserva..."
+                            }
+
+                            val response = RetrofitInstance.api.createReservation(reservationRequest)
+
+                            withContext(Dispatchers.Main) {
+                                loadingMessage = "Generando tu itinerario personalizado..."
+                            }
+
+                            kotlinx.coroutines.delay(2000)
+
+                            withContext(Dispatchers.Main) {
+                                if (response.isSuccessful && response.body() != null) {
+                                    val responseBody = response.body()!!
+                                    val reservation = responseBody.reservation
+                                    val itinerary = responseBody.itinerary
+                                    
+                                    Toast.makeText(context, "¡Reserva creada exitosamente!", Toast.LENGTH_SHORT).show()
+                                    
+                                    val intent = Intent(context, ItineraryActivity::class.java)
+                                    intent.putExtra("reservationId", reservation.id)
+                                    intent.putExtra("itineraryId", itinerary?.id)
+                                    context.startActivity(intent)
+                                    (context as? ComponentActivity)?.finish()
+                                } else {
+                                    val errorBody = response.errorBody()?.string()
+                                    errorMessage = "Error al crear la reserva: ${errorBody ?: "Error desconocido"}"
+                                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                }
+                                isLoading = false
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                errorMessage = "Error: ${e.message}"
+                                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                                isLoading = false
+                            }
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text("Confirmar Reserva", color = Color.White, fontSize = 16.sp)
             }
         }
     }

@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class ReservationPage2Activity : ComponentActivity() {
@@ -151,47 +152,7 @@ fun ReservationPage2Screen(
                 }
 
                 //  Barra inferior de navegación
-                NavigationBar(containerColor = Color(0xFFF7F0F7)) {
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                        label = { Text("Buscar") },
-                        selected = false,
-                        onClick = {
-                            val intent = Intent(context, DiscoverActivity::class.java)
-                            context.startActivity(intent)
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservas") },
-                        label = { Text("Reservas") },
-                        selected = true,
-                        onClick = {},
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                        label = { Text("Perfil") },
-                        selected = false,
-                        onClick = {},
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                }
+                AppBottomNavBar(currentScreen = "Reservation")
             }
         }
     ) { innerPadding ->
