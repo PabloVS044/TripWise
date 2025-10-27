@@ -2,6 +2,7 @@ package uvg.edu.tripwise.reservation
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -41,6 +42,8 @@ class ReservationPage3Activity : ComponentActivity() {
         val checkOutDate = intent.getStringExtra("checkOutDate") ?: ""
         val days = intent.getIntExtra("days", 1)
         val payment = intent.getDoubleExtra("payment", 0.0)
+
+        Log.d("ReservationPage3", "Received data - propertyId: $propertyId, travelers: $numTravelers, checkIn: $checkInDate, checkOut: $checkOutDate, days: $days, payment: $payment")
 
         setContent {
             TripWiseTheme {
@@ -183,8 +186,16 @@ fun ReservationPage3Screen(
                                     val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
                                     dateFormat.timeZone = TimeZone.getTimeZone("UTC")
                                     
-                                    val checkInFormatted = dateFormat.format(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(checkInDate)!!)
-                                    val checkOutFormatted = dateFormat.format(SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(checkOutDate)!!)
+                                    val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                    val checkInParsed = inputFormat.parse(checkInDate)
+                                    val checkOutParsed = inputFormat.parse(checkOutDate)
+                                    
+                                    if (checkInParsed == null || checkOutParsed == null) {
+                                        throw Exception("Fechas inválidas")
+                                    }
+                                    
+                                    val checkInFormatted = dateFormat.format(checkInParsed)
+                                    val checkOutFormatted = dateFormat.format(checkOutParsed)
 
                                     val reservationRequest = CreateReservationRequest(
                                         reservationUser = userId,
@@ -210,12 +221,15 @@ fun ReservationPage3Screen(
 
                                     withContext(Dispatchers.Main) {
                                         if (response.isSuccessful && response.body() != null) {
-                                            val reservation = response.body()!!
+                                            val responseBody = response.body()!!
+                                            val reservation = responseBody.reservation
+                                            val itinerary = responseBody.itinerary
+                                            
                                             Toast.makeText(context, "¡Reserva creada exitosamente!", Toast.LENGTH_SHORT).show()
                                             
                                             val intent = Intent(context, ItineraryActivity::class.java)
                                             intent.putExtra("reservationId", reservation.id)
-                                            intent.putExtra("itineraryId", reservation.itinerary?.id)
+                                            intent.putExtra("itineraryId", itinerary?.id)
                                             context.startActivity(intent)
                                             (context as? ComponentActivity)?.finish()
                                         } else {

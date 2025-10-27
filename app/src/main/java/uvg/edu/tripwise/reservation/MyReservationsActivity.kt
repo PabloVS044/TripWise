@@ -33,6 +33,8 @@ import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.itinerary.ItineraryActivity
 import uvg.edu.tripwise.network.ReservationResponse
 import uvg.edu.tripwise.network.RetrofitInstance
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import java.text.SimpleDateFormat
 import java.util.*
@@ -42,9 +44,7 @@ class MyReservationsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TripWiseTheme {
-                MyReservationsScreen(
-                    onBackPressed = { finish() }
-                )
+                MyReservationsScreen()
             }
         }
     }
@@ -52,7 +52,7 @@ class MyReservationsActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyReservationsScreen(onBackPressed: () -> Unit = {}) {
+fun MyReservationsScreen() {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     
@@ -90,70 +90,10 @@ fun MyReservationsScreen(onBackPressed: () -> Unit = {}) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Mis Reservas",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF7C3AED)
-                )
-            )
+            LogoAppTopBar(onLogout = {})
         },
         bottomBar = {
-            NavigationBar(containerColor = Color(0xFFF7F0F7)) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                    label = { Text("Buscar") },
-                    selected = false,
-                    onClick = {
-                        val intent = Intent(context, DiscoverActivity::class.java)
-                        context.startActivity(intent)
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF7C3AED),
-                        selectedTextColor = Color(0xFF7C3AED),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservas") },
-                    label = { Text("Reservas") },
-                    selected = true,
-                    onClick = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF7C3AED),
-                        selectedTextColor = Color(0xFF7C3AED),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                    label = { Text("Perfil") },
-                    selected = false,
-                    onClick = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF7C3AED),
-                        selectedTextColor = Color(0xFF7C3AED),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-            }
+            AppBottomNavBar(currentScreen = "Reservation")
         }
     ) { innerPadding ->
         Box(
@@ -219,6 +159,15 @@ fun MyReservationsScreen(onBackPressed: () -> Unit = {}) {
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        item {
+                            Text(
+                                text = "Mis Reservas",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
                         items(reservations) { reservation ->
                             ReservationCard(
                                 reservation = reservation,

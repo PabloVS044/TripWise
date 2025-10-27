@@ -114,9 +114,15 @@ data class ReservationResponse(
     val itinerary: ItineraryResponse?
 )
 
+data class CreateReservationResponse(
+    val reservation: ReservationResponse,
+    val itinerary: ItineraryResponse?,
+    val message: String
+)
+
 data class ItineraryResponse(
     @SerializedName("_id") val id: String,
-    val reservationID: String,
+    val reservationID: String? = null,
     val restaurants: List<String>,
     val touristicPlaces: List<String>,
     val activities: List<String>,
@@ -174,7 +180,7 @@ interface UserApiService {
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
 
     @POST("reservation/createReservation")
-    suspend fun createReservation(@Body request: CreateReservationRequest): Response<ReservationResponse>
+    suspend fun createReservation(@Body request: CreateReservationRequest): Response<CreateReservationResponse>
 
     @GET("reservation/{id}")
     suspend fun getReservationById(@Path("id") id: String): ReservationResponse

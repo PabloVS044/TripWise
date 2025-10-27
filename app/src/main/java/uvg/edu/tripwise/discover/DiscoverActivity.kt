@@ -40,6 +40,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.reservation.MyReservationsActivity
 import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
