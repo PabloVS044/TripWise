@@ -102,8 +102,16 @@
         <activity
             android:name=".profile.ProfileActivity"
             android:exported="false" />
+        <activity
+            android:name=".host.ProfileHostActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="uvg.edu.tripwise.host.CreatePropertyActivity"
+            android:exported="false" />
 
     </application>
 
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

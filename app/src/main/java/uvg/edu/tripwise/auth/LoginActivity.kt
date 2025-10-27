@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.auth
 
+import android.content.Context.MODE_PRIVATE
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.admin.DashboardActivity
 import uvg.edu.tripwise.network.RetrofitInstance
@@ -59,6 +60,9 @@ class LoginActivity : ComponentActivity() {
                             "owner" -> Intent(this, PropertiesHostActivity::class.java)
                             else -> Intent(this, MainActivity::class.java)
                         }
+                            .apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            }
                         startActivity(intent)
                         finish()
                     },
@@ -348,6 +352,13 @@ fun LoginScreen(
                                         if (token != null && userId != null && userEmail != null) {
                                             Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role, UserID: $userId")
                                             sessionManager.saveUserDetails(token, userId, userEmail, role)
+                                            val prefs = context.getSharedPreferences("auth", MODE_PRIVATE)
+                                            prefs.edit()
+                                                .putString("USER_ID", userId) // clave nueva usada por las vistas
+                                                .putString("user_id", userId) // compatibilidad con código viejo
+                                                .putString("TOKEN", token)
+                                                .putString("ROLE", role)
+                                                .apply()
                                             userRole = role
 
                                             // Pequeño delay para mostrar el loader antes de navegar

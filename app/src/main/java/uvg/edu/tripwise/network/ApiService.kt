@@ -40,6 +40,9 @@ data class CreateUserRequest(
     val interests: List<String>? = null
 )
 
+// Create Property request
+
+
 data class CreatePropertyRequest(
     val name: String,
     val description: String,
@@ -54,7 +57,6 @@ data class CreatePropertyRequest(
     val latitude: Double?,
     val longitude: Double?
 )
-
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
@@ -74,8 +76,8 @@ data class ApiProperty(
     val propertyType: String,
     val owner: String,
     val approved: String,
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Double?,
+    val longitude: Double?,
     val createdAt: String,
     val deleted: PropertyDeleted,
     val reviews: List<Map<String, String>>? = null // Added to match backend schema
@@ -138,17 +140,9 @@ interface UserApiService {
 
     @POST("property/createProperty")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+
+    @GET("users/{id}/properties")
+    suspend fun getOwnerProperties(@Path("id") id: String): List<ApiProperty>
 }
 
-interface PropertyApiService {
-    @GET("property")
-    suspend fun getProperties(): List<Property>
-    @GET("property/{id}")
-    suspend fun getPropertyById(@Path("id") id: String): Property
-    @POST("property/create")
-    suspend fun createProperty(): List<ApiProperty>
-    @PUT("property/{id}")
-    suspend fun updateProperty(): List<ApiProperty>
-    @DELETE("property/{id}")
-    suspend fun deleteProperty(id: String): List<ApiProperty>
-}
+
