@@ -90,19 +90,42 @@ data class Login(
     val password: String
 )
 
-// NUEVO: Modelo para la respuesta de login
-data class LoginResponse(
-    @SerializedName("_id")
-    val _id: String,
+data class CreateReservationRequest(
+    val reservationUser: String,
+    val propertyBooked: String,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val payment: Double,
+    val persons: Int,
+    val days: Int
+)
 
-    @SerializedName("email")
-    val email: String,
+data class ReservationResponse(
+    @SerializedName("_id") val id: String,
+    val reservationUser: ApiUser,
+    val propertyBooked: ApiProperty,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val payment: Double,
+    val state: String,
+    val persons: Int,
+    val days: Int,
+    val itinerary: ItineraryResponse?
+)
 
-    @SerializedName("role")
-    val role: String,
+data class CreateReservationResponse(
+    val reservation: ReservationResponse,
+    val itinerary: ItineraryResponse?,
+    val message: String
+)
 
-    @SerializedName("token")
-    val token: String
+data class ItineraryResponse(
+    @SerializedName("_id") val id: String,
+    val restaurants: List<String>,
+    val touristicPlaces: List<String>,
+    val activities: List<String>,
+    val schedules: List<String>,
+    val days: List<Int>
 )
 
 data class Property(
@@ -154,6 +177,21 @@ interface UserApiService {
 
     @POST("property/createProperty")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+
+    @POST("reservation/createReservation")
+    suspend fun createReservation(@Body request: CreateReservationRequest): Response<CreateReservationResponse>
+
+    @GET("reservation/{id}")
+    suspend fun getReservationById(@Path("id") id: String): ReservationResponse
+
+    @GET("reservation/user/{userId}")
+    suspend fun getReservationsByUser(@Path("userId") userId: String): List<ReservationResponse>
+
+    @GET("itinerary/reservation/{reservationId}")
+    suspend fun getItineraryByReservation(@Path("reservationId") reservationId: String): ItineraryResponse
+
+    @GET("itinerary/{id}")
+    suspend fun getItineraryById(@Path("id") id: String): ItineraryResponse
 }
 
 interface PropertyApiService {
