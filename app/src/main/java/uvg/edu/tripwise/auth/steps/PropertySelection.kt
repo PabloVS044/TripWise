@@ -23,6 +23,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.ui.components.AppLogoHeader
 
@@ -43,6 +51,8 @@ fun PropertySetupScreen(
     onCapacityChange: (String) -> Unit,
     onPropertyTypeChange: (String) -> Unit,
     onSelectedAmenitiesChange: (Set<String>) -> Unit,
+    onLatitudeChange: (Double?) -> Unit,
+    onLongitudeChange: (Double?) -> Unit,
     totalSteps: Int = 4, // Added parameter, always 4 for owner
     modifier: Modifier = Modifier
 ) {
@@ -63,7 +73,9 @@ fun PropertySetupScreen(
         AmenityItem(stringResource(R.string.washing_machine), Icons.Default.LocalLaundryService, "lavadora"),
         AmenityItem(stringResource(R.string.balcony), Icons.Default.Balcony, "balcon")
     )
-
+    val guatemala = LatLng(14.6349, -90.5069)
+    var selectedLat by remember { mutableStateOf<Double?>(null) }
+    var selectedLng by remember { mutableStateOf<Double?>(null) } 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -207,6 +219,21 @@ fun PropertySetupScreen(
                         onClick = { onPropertyTypeChange(type.key) }
                     )
                 }
+            }
+        }
+        item{
+            Text(
+                text = stringResource(R.string.location),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+        }
+        item{
+            LocationPickerMap { latLng ->
+                onLatitudeChange(latLng.latitude)
+                onLongitudeChange(latLng.longitude)
             }
         }
         item {
@@ -357,6 +384,61 @@ private fun AmenityChip(
                 fontWeight = FontWeight.Medium,
                 color = if (isSelected) Color(0xFF2563EB) else Color.Black
             )
+        }
+    }
+}
+
+@Composable
+fun LocationPickerMap(
+    modifier: Modifier = Modifier,
+    defaultPosition: LatLng = LatLng(14.6349, -90.5069), // Guatemala
+    onLocationSelected: (LatLng) -> Unit
+) {
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(defaultPosition, 8f)
+    }
+
+    var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.select_location),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+        ) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                onMapClick = { latLng ->
+                    selectedLocation = latLng
+                    onLocationSelected(latLng)
+                },
+                properties = MapProperties(
+                    isMyLocationEnabled = false
+                ),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = true,
+                    myLocationButtonEnabled = false
+                )
+            ) {
+                selectedLocation?.let { location ->
+                    Marker(
+                        state = MarkerState(position = location),
+                        title = stringResource(R.string.selected_location),
+                        snippet = "Lat: ${location.latitude}, Lng: ${location.longitude}"
+                    )
+                }
+            }
         }
     }
 }
