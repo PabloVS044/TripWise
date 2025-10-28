@@ -122,6 +122,9 @@
             android:name=".profile.ProfileActivity"
             android:exported="false" />
         <activity
+            android:name=".profile.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
             android:name=".host.ProfileHostActivity"
             android:exported="false" />
 

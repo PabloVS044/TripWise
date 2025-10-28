@@ -49,12 +49,12 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
             onConfirm = {
                 coroutineScope.launch {
                     try {
-                        val success = userRepository.softDeleteUser(user.id)
-                        if (success) {
-                            onRefresh()
-                        } else {
-                            Log.e("UsersActivity", "Failed to toggle user status")
-                        }
+                        // val success = userRepository.softDeleteUser(user.id)
+                        // if (success) {
+                        //     onRefresh()
+                        // } else {
+                        //     Log.e("UsersActivity", "Failed to toggle user status")
+                        // }
                     } catch (e: Exception) {
                         Log.e("UsersActivity", "Error toggling user status: ${e.message}")
                     }

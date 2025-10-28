@@ -42,7 +42,13 @@ data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
     val pfp: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val interests: List<String>? = null
+)
+
+data class UpdatePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
 )
 
 data class ApiProperty(
@@ -180,6 +186,9 @@ interface UserApiService {
 
     @PUT("users/updateUser/{id}")
     suspend fun updateUser(@Path("id") id: String, @Body request: UpdateUserRequest): ApiUser
+
+    @PUT("users/updatePassword/{id}")
+    suspend fun updatePassword(@Path("id") id: String, @Body request: UpdatePasswordRequest): Response<Unit>
 
     @DELETE("users/deleteUser/{id}")
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
