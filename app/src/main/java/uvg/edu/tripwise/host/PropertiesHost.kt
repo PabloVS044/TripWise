@@ -3,15 +3,24 @@ package uvg.edu.tripwise.host
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.HolidayVillage
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
@@ -20,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +38,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.repository.PropertyRepository
@@ -39,6 +53,7 @@ private val PrimaryBlue = Color(0xFF2563EB) // RGB(37,99,235)
 private val SuccessGreen = Color(0xFF0AA12E)
 private val DangerRed   = Color(0xFFE2265B)
 private val PageBg      = Color(0xFFF7F7FB)
+private val SelectedBg  = Color(0xFFEFF4FF) // igual que en otras pantallas
 
 /* ====== Tabs ====== */
 enum class HostTab(@StringRes val titleRes: Int) {
@@ -58,6 +73,8 @@ fun PropertiesHost(
     val context = LocalContext.current
     val repo = remember { PropertyRepository() }
 
+    val scope = rememberCoroutineScope()
+
     var selectedTab by remember { mutableStateOf(HostTab.Overview) }
     var showSearchSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -70,26 +87,49 @@ fun PropertiesHost(
     // Selection (list → detail)
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
 
-    // Initial load using session user
-    LaunchedEffect(Unit) {
-        val prefs  = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-        val userId = prefs.getString("USER_ID", prefs.getString("user_id", null))
-        if (userId.isNullOrBlank()) {
-            errorProps = context.getString(R.string.error_no_user_session)
-            return@LaunchedEffect
-        }
-        try {
-            loadingProps = true
-            val list = repo.getPropertiesByOwner(userId)
-            properties = list
-            // If a propertyId came in, preselect it
-            propertyId?.let { id -> list.firstOrNull { it.id == id }?.let { selectedProperty = it } }
-        } catch (e: Exception) {
-            errorProps = e.message
-        } finally {
-            loadingProps = false
+    // Pull-to-refresh
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    // Key to force reloading detail section
+    var detailReloadTick by remember { mutableStateOf(0) }
+
+    fun loadPropertiesForSession() {
+        scope.launch {
+            val prefs  = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+            val userId = prefs.getString("USER_ID", prefs.getString("user_id", null))
+            if (userId.isNullOrBlank()) {
+                errorProps = context.getString(R.string.error_no_user_session)
+                isRefreshing = false
+                return@launch
+            }
+            try {
+                loadingProps = true
+                val list = repo.getPropertiesByOwner(userId)
+                properties = list
+                // If a propertyId came in, preselect it
+                propertyId?.let { id -> list.firstOrNull { it.id == id }?.let { selectedProperty = it } }
+            } catch (e: Exception) {
+                errorProps = e.message
+            } finally {
+                loadingProps = false
+                isRefreshing = false
+            }
         }
     }
+
+    fun refreshHost() {
+        isRefreshing = true
+        if (selectedProperty == null) {
+            loadPropertiesForSession()
+        } else {
+            // Force SummarySectionRemote to reload
+            detailReloadTick++
+            isRefreshing = false
+        }
+    }
+
+    // Initial load using session user
+    LaunchedEffect(Unit) { loadPropertiesForSession() }
 
     // When switching tabs, close the search sheet (if not in Bookings)
     LaunchedEffect(selectedTab) {
@@ -129,103 +169,108 @@ fun PropertiesHost(
                 .fillMaxSize()
                 .background(PageBg)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+            SwipeRefresh(
+                state = rememberSwipeRefreshState(isRefreshing),
+                onRefresh = { refreshHost() }
             ) {
-                /* KPIs */
-                StatsGrid()
-                Spacer(Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
+                    /* KPIs */
+                    StatsGrid()
+                    Spacer(Modifier.height(16.dp))
 
-                /* Divider */
-                Divider(thickness = 1.dp, color = PrimaryBlue.copy(alpha = 0.15f))
-                Spacer(Modifier.height(16.dp))
+                    /* Divider */
+                    Divider(thickness = 1.dp, color = PrimaryBlue.copy(alpha = 0.15f))
+                    Spacer(Modifier.height(16.dp))
 
-                if (selectedProperty == null) {
-                    // ===== PROPERTY LIST =====
-                    when {
-                        loadingProps -> PlaceholderSection(stringResource(R.string.loading_properties))
-                        errorProps != null -> PlaceholderSection(stringResource(R.string.error_with_message, errorProps ?: ""))
-                        properties.isEmpty() -> PlaceholderSection(stringResource(R.string.no_properties_yet))
-                        else -> {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.your_properties_header),
-                                    color = PrimaryBlue,
-                                    fontSize = 22.sp, // larger
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Button(
-                                    onClick = {
-                                        val i = Intent(context, CreatePropertyActivity::class.java)
-                                        context.startActivity(i)
-                                    },
-                                    shape = RoundedCornerShape(14.dp), // soft pill
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = PrimaryBlue,
-                                        contentColor = Color.White
+                    if (selectedProperty == null) {
+                        // ===== PROPERTY LIST =====
+                        when {
+                            loadingProps -> PlaceholderSection(stringResource(R.string.loading_properties))
+                            errorProps != null -> PlaceholderSection(stringResource(R.string.error_with_message, errorProps ?: ""))
+                            properties.isEmpty() -> PlaceholderSection(stringResource(R.string.no_properties_yet))
+                            else -> {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.your_properties_header),
+                                        color = PrimaryBlue,
+                                        fontSize = 22.sp, // larger
+                                        fontWeight = FontWeight.SemiBold
                                     )
-                                ) { Text(stringResource(R.string.btn_new_property)) }
+                                    Button(
+                                        onClick = {
+                                            val i = Intent(context, CreatePropertyActivity::class.java)
+                                            context.startActivity(i)
+                                        },
+                                        shape = RoundedCornerShape(14.dp), // soft pill
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = PrimaryBlue,
+                                            contentColor = Color.White
+                                        )
+                                    ) { Text(stringResource(R.string.btn_new_property)) }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                properties.forEach { prop ->
+                                    PropertyRowCard(
+                                        property = prop,
+                                        onClick = {
+                                            selectedProperty = prop
+                                            selectedTab = HostTab.Overview
+                                        }
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                                Spacer(Modifier.height(24.dp))
                             }
-                            Spacer(Modifier.height(12.dp))
-                            properties.forEach { prop ->
-                                PropertyRowCard(
-                                    name = prop.name,
-                                    onClick = {
-                                        selectedProperty = prop
-                                        selectedTab = HostTab.Overview
-                                    }
-                                )
-                                Spacer(Modifier.height(10.dp))
-                            }
-                            Spacer(Modifier.height(24.dp))
                         }
-                    }
-                } else {
-                    // ===== DETAIL: NAVBAR (Overview/Bookings/Reviews/Calendar) =====
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(onClick = { selectedProperty = null }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.cd_back),
-                                tint = PrimaryBlue
+                    } else {
+                        // ===== DETAIL: NAVBAR (Overview/Bookings/Reviews/Calendar) =====
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            IconButton(onClick = { selectedProperty = null }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.cd_back),
+                                    tint = PrimaryBlue
+                                )
+                            }
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = selectedProperty!!.name,
+                                color = PrimaryBlue,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                modifier = Modifier.padding(vertical = 6.dp)
                             )
                         }
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = selectedProperty!!.name,
-                            color = PrimaryBlue,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            modifier = Modifier.padding(vertical = 6.dp)
-                        )
+
+                        Spacer(Modifier.height(12.dp))
+                        HostTopTabBar(selected = selectedTab, onSelected = { selectedTab = it })
+                        Spacer(Modifier.height(24.dp))
+
+                        when (selectedTab) {
+                            HostTab.Overview  -> SummarySectionRemote(propertyId = selectedProperty!!.id, reloadKey = detailReloadTick)
+                            HostTab.Bookings  -> ReservationsSection()
+                            HostTab.Reviews   -> PlaceholderSection(stringResource(R.string.reviews_coming_soon))
+                            HostTab.Calendar  -> PlaceholderSection(stringResource(R.string.calendar_coming_soon))
+                        }
+
+                        Spacer(Modifier.height(24.dp))
                     }
-
-                    Spacer(Modifier.height(12.dp))
-                    HostTopTabBar(selected = selectedTab, onSelected = { selectedTab = it })
-                    Spacer(Modifier.height(24.dp))
-
-                    when (selectedTab) {
-                        HostTab.Overview  -> SummarySectionRemote(propertyId = selectedProperty!!.id)
-                        HostTab.Bookings  -> ReservationsSection()
-                        HostTab.Reviews   -> PlaceholderSection(stringResource(R.string.reviews_coming_soon))
-                        HostTab.Calendar  -> PlaceholderSection(stringResource(R.string.calendar_coming_soon))
-                    }
-
-                    Spacer(Modifier.height(24.dp))
                 }
             }
 
-            // Filters FAB only on Bookings tab in detail
+            // Filters FAB only on Bookings tab in detail (outside SwipeRefresh so it stays fixed)
             if (selectedProperty != null && selectedTab == HostTab.Bookings) {
                 ExtendedFloatingActionButton(
                     onClick = { showSearchSheet = true },
@@ -254,39 +299,76 @@ fun PropertiesHost(
     }
 }
 
-/* ---------------- LIST: simple card with only the name ---------------- */
+/* ---------------- LIST: card con icono por tipo + highlight (ícono y TÍTULO) al pulsar ---------------- */
 @Composable
-private fun PropertyRowCard(name: String, onClick: () -> Unit) {
+private fun PropertyRowCard(property: Property, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val active = pressed
+
+    val border = if (active) BorderStroke(1.5.dp, PrimaryBlue) else BorderStroke(1.dp, Color(0xFFE8E8F0))
+    val bg = if (active) SelectedBg else Color.White
+    val iconTint by animateColorAsState(if (active) PrimaryBlue else Color(0xFF94A3B8), label = "iconTint")
+    val titleColor by animateColorAsState(if (active) PrimaryBlue else Color(0xFF102A43), label = "titleColor")
+
     Card(
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = bg),
         elevation = CardDefaults.cardElevation(2.dp),
-        border = BorderStroke(1.dp, Color(0xFFE8E8F0)),
+        border = border,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable(
+                interactionSource = interaction,
+                indication = LocalIndication.current,
+                onClick = onClick
+            )
     ) {
-        Text(
-            text = name,
-            color = Color(0xFF102A43),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold, // bold names
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icono según propertyType
+            val icon: ImageVector = iconForType(property.propertyType)
+            Surface(shape = CircleShape, color = if (active) Color.White else Color(0xFFF1F5F9)) {
+                Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
+                    Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(18.dp))
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = property.name,
+                color = titleColor, // ← highlight animado del título
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
     }
+}
+
+@Composable
+private fun iconForType(type: String?): ImageVector = when (type?.lowercase()) {
+    "house"     -> Icons.Filled.Home
+    "apartment" -> Icons.Filled.Apartment
+    "cabin"     -> Icons.Filled.HolidayVillage
+    "hotel"     -> Icons.Filled.Hotel
+    else         -> Icons.Filled.Apartment // fallback genérico
 }
 
 /* ---------------- Overview (remote; uses repo/back) ---------------- */
 @Composable
 private fun SummarySectionRemote(
     propertyId: String?,
-    repo: PropertyRepository = PropertyRepository()
+    repo: PropertyRepository = PropertyRepository(),
+    reloadKey: Int = 0
 ) {
     var property by remember { mutableStateOf<Property?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(propertyId) {
+    LaunchedEffect(propertyId, reloadKey) {
         val id = propertyId?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
         try {
             loading = true
