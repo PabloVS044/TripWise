@@ -12,8 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,6 +41,8 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.reservation.MyReservationsActivity
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
 import uvg.edu.tripwise.ui.components.LogoAppTopBar
@@ -51,29 +51,29 @@ class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-                TripWiseTheme {
-                    val name = intent.getStringExtra("name") ?: ""
-                    val location = intent.getStringExtra("location") ?: ""
-                    val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
-                    val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
-                    val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
-                    val propertyType = intent.getStringExtra("propertyType") ?: ""
-                    val approved = intent.getStringExtra("approved") ?: ""
-                    DiscoverScreen(
-                        filterName = name,
-                        filterLocation = location,
-                        filterMinPrice = minPrice,
-                        filterMaxPrice = maxPrice,
-                        filterCapacity = capacity,
-                        filterType = propertyType,
-                        filterApproved = approved,
-                        onLogout = {
-                            val intent = Intent(this, MainActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
-                    )
-                }
+            TripWiseTheme {
+                val name = intent.getStringExtra("name") ?: ""
+                val location = intent.getStringExtra("location") ?: ""
+                val minPrice = intent.getStringExtra("minPrice")?.toDoubleOrNull()
+                val maxPrice = intent.getStringExtra("maxPrice")?.toDoubleOrNull()
+                val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
+                val propertyType = intent.getStringExtra("propertyType") ?: ""
+                val approved = intent.getStringExtra("approved") ?: ""
+                DiscoverScreen(
+                    filterName = name,
+                    filterLocation = location,
+                    filterMinPrice = minPrice,
+                    filterMaxPrice = maxPrice,
+                    filterCapacity = capacity,
+                    filterType = propertyType,
+                    filterApproved = approved,
+                    onLogout = {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                )
+            }
         }
     }
 }
@@ -91,8 +91,6 @@ fun DiscoverScreen(
     filterApproved: String = "",
     onLogout: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
     val anyPlaceholder = stringResource(R.string.any_placeholder)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
@@ -119,6 +117,11 @@ fun DiscoverScreen(
     var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
     var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
+
+        val matchesSearch = searchText.isBlank() ||
+                property.name.contains(searchText, ignoreCase = true) ||
+                property.location.contains(searchText, ignoreCase = true)
+
         // Filtro por nombre
         val matchesName = name.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
@@ -161,7 +164,7 @@ fun DiscoverScreen(
         } ?: true
 
         // Todos los filtros deben coincidir
-        matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
+        matchesSearch && matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
 
@@ -174,9 +177,12 @@ fun DiscoverScreen(
     Scaffold(
         topBar = {
             LogoAppTopBar(onLogout = onLogout)
+        },
+        bottomBar = {
+            AppBottomNavBar(currentScreen = "Discover")
         }
     ){
-        innerPadding ->
+            innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -191,26 +197,24 @@ fun DiscoverScreen(
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Card de búsqueda (solo diseño)
-                Card(
-                    modifier = Modifier
-                        .weight(1f) // Ocupa todo el espacio disponible
-                        .height(56.dp),
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text(stringResource(R.string.search_button)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        if (searchText.isNotEmpty()) {
+                            IconButton(onClick = { searchText = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda")
+                            }
+                        }
+                    },
+                    singleLine = true,
                     shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = searchLabel,
-                            color = Color.Gray
-                        )
-                    }
-                }
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -230,6 +234,7 @@ fun DiscoverScreen(
                     )
                 }
             }
+
 
             // Filter Card
             if (showFilters) {
@@ -314,17 +319,16 @@ fun DiscoverScreen(
                     onClose = { viewModel.clearSelectedProperty() }
                 )
             }
-
-            // Bottom Navigation
-            BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
-    }
-
+        }
     }
 }
 
 @Composable
 fun PropertyCard(property: Property, onClose: () -> Unit) {
     val closeLabel = stringResource(R.string.close_button)
+    val reservationLabel = stringResource(R.string.reservation_button)
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -363,7 +367,7 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Cargar imagen con Coil
+            // Imágenes del alojamiento
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -388,9 +392,27 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
+                    intent.putExtra("propertyId", property.id)
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+            ) {
+                Text(
+                    text = reservationLabel,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -463,7 +485,7 @@ fun FilterCard(
                     )
                 }
             }
-            
+
             // Nombre
             OutlinedTextField(
                 value = name,
@@ -474,7 +496,7 @@ fun FilterCard(
 
             // Precio Min / Max
             Row(
-                modifier = Modifier.fillMaxWidth(), 
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
@@ -594,78 +616,6 @@ fun FilterCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
-    val profileLabel = stringResource(R.string.profile_button)
-    val reservationLabel = stringResource(R.string.reservation_button)
-    NavigationBar(
-        containerColor = Color.White,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = searchLabel
-                )
-            },
-            label = { Text(searchLabel) },
-            selected = true,
-            onClick = {
-                val intent = Intent(context, DiscoverActivity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Luggage,
-                    contentDescription = reservationLabel
-                )
-            },
-            label = { Text(reservationLabel) },
-            selected = false,
-            onClick = {
-                val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = profileLabel
-                )
-            },
-            label = { Text(profileLabel) },
-            selected = false,
-            onClick = {
-                /* navegación al perfil */
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
     }
 }
 

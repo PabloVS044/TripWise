@@ -12,9 +12,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/logotripwise"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/logotripwise"
         android:supportsRtl="true"
         android:theme="@style/Theme.TripWise"
         tools:targetApi="31">
@@ -49,7 +49,6 @@
             android:name=".admin.DashboardActivity"
             android:exported="false" />
 
-        <activity android:name=".discover.FilterActivity" />
         <activity
             android:name=".discover.DiscoverActivity"
             android:exported="false"
@@ -88,19 +87,53 @@
             tools:ignore="MissingClass" />
 
         <activity
+            android:name=".reservation.ReservationPage3Activity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"
+            tools:ignore="MissingClass" />
+
+        <activity
+            android:name=".reservation.MyReservationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"
+            tools:ignore="MissingClass" />
+
+        <activity
             android:name=".host.PropertiesHostActivity"
             android:exported="false"
             android:theme="@style/Theme.TripWise"/>
 
         <activity
             android:name=".admin.UserDetailActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
 
         <activity
             android:name=".admin.PropertyDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
+        <activity
+            android:name=".itinerary.ItineraryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"/>
+
+        <activity
+            android:name=".profile.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profile.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".host.ProfileHostActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="uvg.edu.tripwise.host.CreatePropertyActivity"
             android:exported="false" />
 
     </application>
 
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

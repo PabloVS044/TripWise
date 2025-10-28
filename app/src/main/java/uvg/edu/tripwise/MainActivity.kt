@@ -3,6 +3,7 @@ package uvg.edu.tripwise
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -32,15 +33,57 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.admin.DashboardActivity
 import uvg.edu.tripwise.auth.LoginActivity
 import uvg.edu.tripwise.auth.RegisterActivity
+import uvg.edu.tripwise.auth.SessionManager
 import uvg.edu.tripwise.discover.DiscoverActivity
+import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sessionManager = SessionManager(this)
+
+        Log.d("MainActivity", "=== SESSION DEBUG ===")
+        Log.d("MainActivity", "isLoggedIn: ${sessionManager.isLoggedIn()}")
+        Log.d("MainActivity", "getUserId: ${sessionManager.getUserId()}")
+        Log.d("MainActivity", "getUserRole: ${sessionManager.getUserRole()}")
+        Log.d("MainActivity", "==================")
+
+        val userId = sessionManager.getUserId()
+        val userRole = sessionManager.getUserRole()
+
+        if (sessionManager.isLoggedIn() && userId != null && !userId.isBlank() && userRole != null && !userRole.isBlank()) {
+            Log.d("MainActivity", "Sesión válida detectada - Redirigiendo a: $userRole")
+            val role = userRole.lowercase()
+            val intent = when (role) {
+                "admin" -> Intent(this, DashboardActivity::class.java)
+                "user" -> Intent(this, DiscoverActivity::class.java)
+                "owner" -> Intent(this, PropertiesHostActivity::class.java)
+                else -> {
+                    Log.w("MainActivity", "Rol desconocido: $role - Limpiando sesión")
+                    sessionManager.clearSession()
+                    null
+                }
+            }
+
+            if (intent != null) {
+                startActivity(intent)
+                finish()
+                return
+            }
+        } else {
+            Log.d("MainActivity", "No hay sesión válida - Mostrando landing page")
+            if (sessionManager.isLoggedIn()) {
+                Log.w("MainActivity", "Sesión inválida detectada - Limpiando")
+                sessionManager.clearSession()
+            }
+        }
+
         setContent {
             TripWiseTheme {
                 TripWiseLandingPage(
@@ -130,7 +173,6 @@ fun HeroSection() {
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Badge
         Surface(
             modifier = Modifier.padding(bottom = 16.dp),
             shape = RoundedCornerShape(20.dp),
@@ -156,7 +198,6 @@ fun HeroSection() {
             }
         }
 
-        // Main Title
         Text(
             text = stringResource(R.string.hero_title),
             fontSize = 36.sp,
@@ -166,7 +207,6 @@ fun HeroSection() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Subtitle
         Text(
             text = stringResource(R.string.hero_subtitle),
             fontSize = 16.sp,
@@ -176,7 +216,6 @@ fun HeroSection() {
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Buttons
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -207,7 +246,7 @@ fun HeroSection() {
 
             OutlinedButton(
                 onClick = {
-                    val url = "https://www.youtube.com/watch?v=IXWP4Kw93l8&ab_channel=JonathanTubac" // Replace with your actual demo URL
+                    val url = "https://www.youtube.com/watch?v=IXWP4Kw93l8&ab_channel=JonathanTubac"
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     context.startActivity(intent)
                 },
@@ -227,7 +266,6 @@ fun HeroSection() {
             }
         }
 
-        // Stats
         Spacer(modifier = Modifier.height(32.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -266,7 +304,6 @@ fun FeaturesSection() {
             .background(Color.White)
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -303,7 +340,6 @@ fun FeaturesSection() {
                 .padding(bottom = 32.dp)
         )
 
-        // Features Grid
         val features = listOf(
             Feature(Icons.Default.Home, stringResource(R.string.feature_unique_accommodations_title), stringResource(R.string.feature_unique_accommodations_description), Color(0xFFDBEAFE), Color(0xFF2563EB)),
             Feature(Icons.Default.SmartToy, stringResource(R.string.feature_personalized_ai_title), stringResource(R.string.feature_personalized_ai_description), Color(0xFFF3E8FF), Color(0xFF7C3AED)),
@@ -398,7 +434,6 @@ fun HowItWorksSection() {
             )
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -435,7 +470,6 @@ fun HowItWorksSection() {
                 .padding(bottom = 32.dp)
         )
 
-        // Steps
         val steps = listOf(
             Step("1", stringResource(R.string.step_1_title), stringResource(R.string.step_1_description), listOf(Color(0xFF2563EB), Color(0xFF7C3AED))),
             Step("2", stringResource(R.string.step_2_title), stringResource(R.string.step_2_description), listOf(Color(0xFF7C3AED), Color(0xFFDB2777))),
@@ -509,7 +543,6 @@ fun TestimonialsSection() {
             .background(Color.White)
             .padding(24.dp)
     ) {
-        // Section Header
         Surface(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -545,23 +578,22 @@ fun TestimonialsSection() {
                 Color(0xFFDBEAFE),
                 Color(0xFF2563EB)
             ),
-
-                    Testimonial(
-                    stringResource(R.string.testimonial_2_name),
-            stringResource(R.string.testimonial_2_role),
-            stringResource(R.string.testimonial_2_content),
-            stringResource(R.string.testimonial_2_initial),
-            Color(0xFFF3E8FF),
-            Color(0xFF7C3AED)
-        ),
-        Testimonial(
-            stringResource(R.string.testimonial_3_name),
-            stringResource(R.string.testimonial_3_role),
-            stringResource(R.string.testimonial_3_content),
-            stringResource(R.string.testimonial_3_initial),
-            Color(0xFFD1FAE5),
-            Color(0xFF059669)
-        )
+            Testimonial(
+                stringResource(R.string.testimonial_2_name),
+                stringResource(R.string.testimonial_2_role),
+                stringResource(R.string.testimonial_2_content),
+                stringResource(R.string.testimonial_2_initial),
+                Color(0xFFF3E8FF),
+                Color(0xFF7C3AED)
+            ),
+            Testimonial(
+                stringResource(R.string.testimonial_3_name),
+                stringResource(R.string.testimonial_3_role),
+                stringResource(R.string.testimonial_3_content),
+                stringResource(R.string.testimonial_3_initial),
+                Color(0xFFD1FAE5),
+                Color(0xFF059669)
+            )
         )
 
         LazyRow(
@@ -595,7 +627,6 @@ fun TestimonialCard(testimonial: Testimonial) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            // Stars
             Row(modifier = Modifier.padding(bottom = 16.dp)) {
                 repeat(5) {
                     Icon(
