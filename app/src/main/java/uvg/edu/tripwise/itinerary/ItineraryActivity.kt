@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.network.FinalizeReservationRequest
 import uvg.edu.tripwise.network.ItineraryResponse
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -268,6 +269,40 @@ fun ItineraryScreen(
 
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            if (reservationId != null) {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val request =
+                                            FinalizeReservationRequest(reservationId = reservationId)
+                                        val response = RetrofitInstance.api.finalizeReservation(request)
+                                        withContext(Dispatchers.Main) {
+                                            if (response.isSuccessful) {
+                                                Toast.makeText(context, "Reservación finalizada, revisa tu correo", Toast.LENGTH_LONG).show()
+                                                val intent = Intent(context, uvg.edu.tripwise.discover.DiscoverActivity::class.java)
+                                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                context.startActivity(intent)
+                                            } else {
+                                                Toast.makeText(context, "Error al finalizar la reservación", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    ) {
+                        Text("Finalizar Reservación", color = Color.White)
+                    }
                 }
             }
                 }

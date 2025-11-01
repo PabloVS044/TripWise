@@ -171,6 +171,10 @@ data class UpdateItineraryRequest(
     val days: List<Int>? = null
 )
 
+data class FinalizeReservationRequest(
+    val reservationId: String
+)
+
 // ===== API INTERFACES =====
 
 interface UserApiService {
@@ -248,8 +252,8 @@ interface UserApiService {
     @DELETE("itinerary/deleteItinerary/{id}")
     suspend fun deleteItinerary(@Path("id") id: String): Response<Unit>
 
-    @GET("itinerary/user/{userId}")
-    suspend fun getItinerariesByUser(@Path("userId") userId: String): List<ItineraryResponse>
+    @POST("reservations/finalize")
+    suspend fun finalizeReservation(@Body request: FinalizeReservationRequest): Response<Unit>
 }
 
 interface PropertyApiService {
