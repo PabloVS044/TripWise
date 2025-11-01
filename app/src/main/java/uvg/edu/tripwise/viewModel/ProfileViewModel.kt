@@ -134,13 +134,18 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 // Ya tenemos la URL de la imagen (nueva o la antigua)
 
                 // --- PASO 3: Actualizar Datos del Usuario ---
+
+                // --- ¡¡AQUÍ ESTÁ LA CORRECCIÓN!! ---
+                // Añadimos el parámetro 'role', pasando el rol actual del usuario.
                 val updatedUser = userRepository.updateUser(
                     id = currentUserId,
                     name = name,
                     email = email,
                     pfp = newPfpUrl, // Usa la URL que obtuvimos
+                    role = uiState.value.user?.role, // <-- PARÁMETRO AÑADIDO
                     interests = interests
                 )
+                // --- FIN DE LA CORRECCIÓN ---
 
                 // --- PASO 4: Éxito Total ---
                 _uiState.update {

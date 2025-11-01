@@ -4,13 +4,15 @@ import uvg.edu.tripwise.data.model.Deleted
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.network.ApiProperty
 import uvg.edu.tripwise.network.CreatePropertyRequest
+// ¡Asegúrate de crear esta clase! (Ver nota al final)
+import uvg.edu.tripwise.network.UpdatePropertyRequest
 import uvg.edu.tripwise.network.RetrofitInstance
+import java.lang.IllegalStateException
 
 class PropertyRepository {
 
     private val api = RetrofitInstance.api
 
-    // --- Mapper a dominio (re-usa en todos los métodos) ---
     private fun ApiProperty.toDomain(): Property = Property(
         id = _id,
         name = name,
@@ -32,7 +34,6 @@ class PropertyRepository {
         )
     )
 
-    // ---------------------- READ ----------------------
     suspend fun getProperties(): List<Property> =
         api.getProperties().map { it.toDomain() }
 
@@ -42,7 +43,6 @@ class PropertyRepository {
     suspend fun getPropertyById(id: String): Property =
         api.getPropertyById(id).toDomain()
 
-    // ---------------------- CREATE ----------------------
     suspend fun createProperty(
         ownerId: String,
         name: String,
@@ -78,7 +78,6 @@ class PropertyRepository {
         return resp.body()!!.toDomain()
     }
 
-    // ---------------------- DELETE ----------------------
     suspend fun deleteProperty(id: String): Boolean =
         try {
             val resp = api.deleteProperty(id)
@@ -88,4 +87,12 @@ class PropertyRepository {
         }
 
 
+    suspend fun updateProperty(id: String, request: UpdatePropertyRequest): Property {
+        // Asumiendo que esta llamada existe en tu interfaz Retrofit 'api'
+        val resp = api.updateProperty(id, request)
+        if (!resp.isSuccessful || resp.body() == null) {
+            throw IllegalStateException("No se pudo actualizar la propiedad (${resp.code()})")
+        }
+        return resp.body()!!.toDomain()
+    }
 }

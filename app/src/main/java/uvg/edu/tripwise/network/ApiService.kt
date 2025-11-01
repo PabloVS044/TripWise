@@ -252,6 +252,11 @@ interface UserApiService {
     suspend fun getItinerariesByUser(@Path("userId") userId: String): List<ItineraryResponse>
 }
 
+/**
+ * ESTA INTERFAZ ES LA QUE HABÍA BORRADO.
+ * La volvemos a agregar para que RetrofitInstance.PropertyApi funcione
+ * y tus ReservationPage dejen de dar error.
+ */
 interface PropertyApiService {
     @GET("property")
     suspend fun getProperties(): List<Property>
@@ -268,3 +273,4 @@ interface PropertyApiService {
     @DELETE("property/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 }
+
