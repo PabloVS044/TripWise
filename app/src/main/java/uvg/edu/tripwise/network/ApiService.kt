@@ -116,6 +116,12 @@ data class LoginResponse(
     val role: String
 )
 
+data class BudgetDistribution(
+    val food: Float = 40f,
+    val places: Float = 40f,
+    val activities: Float = 20f
+)
+
 data class CreateReservationRequest(
     val reservationUser: String,
     val propertyBooked: String,
@@ -123,7 +129,9 @@ data class CreateReservationRequest(
     val checkOutDate: String,
     val payment: Double,
     val persons: Int,
-    val days: Int
+    val days: Int,
+    val activityBudget: Double = 0.0,
+    val budgetDistribution: BudgetDistribution = BudgetDistribution()
 )
 
 data class ReservationResponse(

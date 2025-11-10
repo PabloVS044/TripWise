@@ -32,6 +32,7 @@ import uvg.edu.tripwise.auth.SessionManager
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.itinerary.ItineraryActivity
 import uvg.edu.tripwise.network.CreateReservationRequest
+import uvg.edu.tripwise.network.BudgetDistribution
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -48,8 +49,12 @@ class ReservationPage3Activity : ComponentActivity() {
         val checkOutDate = intent.getStringExtra("checkOutDate") ?: ""
         val days = intent.getIntExtra("days", 1)
         val payment = intent.getDoubleExtra("payment", 0.0)
+        val activityBudget = intent.getDoubleExtra("activityBudget", 0.0)
+        val foodPercentage = intent.getFloatExtra("foodPercentage", 40f)
+        val placesPercentage = intent.getFloatExtra("placesPercentage", 40f)
+        val activitiesPercentage = intent.getFloatExtra("activitiesPercentage", 20f)
 
-        Log.d("ReservationPage3", "Received data - propertyId: $propertyId, travelers: $numTravelers, checkIn: $checkInDate, checkOut: $checkOutDate, days: $days, payment: $payment")
+        Log.d("ReservationPage3", "Received data - propertyId: $propertyId, travelers: $numTravelers, checkIn: $checkInDate, checkOut: $checkOutDate, days: $days, payment: $payment, activityBudget: $activityBudget")
 
         setContent {
             TripWiseTheme {
@@ -59,7 +64,11 @@ class ReservationPage3Activity : ComponentActivity() {
                     checkInDate = checkInDate,
                     checkOutDate = checkOutDate,
                     days = days,
-                    payment = payment
+                    payment = payment,
+                    activityBudget = activityBudget,
+                    foodPercentage = foodPercentage,
+                    placesPercentage = placesPercentage,
+                    activitiesPercentage = activitiesPercentage
                 )
             }
         }
@@ -74,7 +83,11 @@ fun ReservationPage3Screen(
     checkInDate: String,
     checkOutDate: String,
     days: Int,
-    payment: Double
+    payment: Double,
+    activityBudget: Double = 0.0,
+    foodPercentage: Float = 40f,
+    placesPercentage: Float = 40f,
+    activitiesPercentage: Float = 20f
 ) {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
@@ -236,17 +249,85 @@ fun ReservationPage3Screen(
                         Text("Viajeros:", fontWeight = FontWeight.Medium)
                         Text("$numTravelers", color = Color(0xFF1E40AF), fontWeight = FontWeight.Bold)
                     }
+                    
+                    if (activityBudget > 0) {
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                        Text(
+                            "Presupuesto para Actividades",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color.Black
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("🍽️ Comida (${foodPercentage.toInt()}%):", fontSize = 14.sp)
+                            Text(
+                                "Q${String.format("%.2f", activityBudget * foodPercentage / 100)}",
+                                color = Color(0xFF1E40AF),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("📍 Lugares (${placesPercentage.toInt()}%):", fontSize = 14.sp)
+                            Text(
+                                "Q${String.format("%.2f", activityBudget * placesPercentage / 100)}",
+                                color = Color(0xFF1E40AF),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("🎯 Actividades (${activitiesPercentage.toInt()}%):", fontSize = 14.sp)
+                            Text(
+                                "Q${String.format("%.2f", activityBudget * activitiesPercentage / 100)}",
+                                color = Color(0xFF1E40AF),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Total Actividades:", fontWeight = FontWeight.Bold)
+                            Text(
+                                "Q${String.format("%.2f", activityBudget)}",
+                                color = Color(0xFF1E40AF),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    
                     Divider(modifier = Modifier.padding(vertical = 8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Total:", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text("Total Reserva:", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text("Q${String.format("%.2f", payment)}",
                             color = Color(0xFF1E40AF),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
+                    }
+                    if (activityBudget > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Total General:", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E88E5))
+                            Text("Q${String.format("%.2f", payment + activityBudget)}",
+                                color = Color(0xFF1E88E5),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+                        }
                     }
                 }
             }
@@ -291,7 +372,13 @@ fun ReservationPage3Screen(
                                 checkOutDate = checkOutFormatted,
                                 payment = payment,
                                 persons = numTravelers,
-                                days = days
+                                days = days,
+                                activityBudget = activityBudget,
+                                budgetDistribution = BudgetDistribution(
+                                    food = foodPercentage,
+                                    places = placesPercentage,
+                                    activities = activitiesPercentage
+                                )
                             )
 
                             withContext(Dispatchers.Main) {

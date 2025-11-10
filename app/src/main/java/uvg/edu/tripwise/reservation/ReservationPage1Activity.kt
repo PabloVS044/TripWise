@@ -72,6 +72,10 @@ fun ReservationScreen(propertyId: String) {
     var viajeros by remember { mutableStateOf(2) }
     var checkInDate by remember { mutableStateOf("15/12/2025") }
     var checkOutDate by remember { mutableStateOf("20/12/2025") }
+    var budgetForActivities by remember { mutableStateOf("") }
+    var foodPercentage by remember { mutableStateOf(40f) }
+    var placesPercentage by remember { mutableStateOf(40f) }
+    var activitiesPercentage by remember { mutableStateOf(20f) }
 
     Scaffold(
         containerColor = Color.White,
@@ -198,6 +202,157 @@ fun ReservationScreen(propertyId: String) {
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Presupuesto para actividades
+                    Text(
+                        text = "Presupuesto para Actividades (Opcional)",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = budgetForActivities,
+                        onValueChange = { 
+                            // Solo permitir números
+                            if (it.isEmpty() || it.all { char -> char.isDigit() || char == '.' }) {
+                                budgetForActivities = it
+                            }
+                        },
+                        label = { Text("Presupuesto adicional (Q)") },
+                        leadingIcon = { Text("Q", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 12.dp)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Ej: 500") },
+                        singleLine = true
+                    )
+                    Text(
+                        text = "Este presupuesto es adicional al costo de la reservación y se usará para comida, lugares turísticos y actividades.",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+
+                    // Mostrar distribución solo si hay presupuesto
+                    if (budgetForActivities.isNotEmpty() && budgetForActivities.toDoubleOrNull() != null && budgetForActivities.toDouble() > 0) {
+                        Spacer(Modifier.height(16.dp))
+                        
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Distribución del Presupuesto",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                                Spacer(Modifier.height(12.dp))
+
+                                val totalBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
+
+                                // Comida
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("🍽️ Comida", fontSize = 14.sp, color = Color.Black)
+                                    Text(
+                                        "Q${String.format("%.2f", totalBudget * foodPercentage / 100)} (${foodPercentage.toInt()}%)",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1E40AF)
+                                    )
+                                }
+                                Slider(
+                                    value = foodPercentage,
+                                    onValueChange = { 
+                                        foodPercentage = it
+                                        // Ajustar otros porcentajes proporcionalmente
+                                        val remaining = 100f - foodPercentage
+                                        val ratio = placesPercentage / (placesPercentage + activitiesPercentage)
+                                        placesPercentage = remaining * ratio
+                                        activitiesPercentage = remaining * (1 - ratio)
+                                    },
+                                    valueRange = 0f..100f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF1E40AF),
+                                        activeTrackColor = Color(0xFF1E40AF)
+                                    )
+                                )
+
+                                Spacer(Modifier.height(8.dp))
+
+                                // Lugares Turísticos
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("📍 Lugares Turísticos", fontSize = 14.sp, color = Color.Black)
+                                    Text(
+                                        "Q${String.format("%.2f", totalBudget * placesPercentage / 100)} (${placesPercentage.toInt()}%)",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1E40AF)
+                                    )
+                                }
+                                Slider(
+                                    value = placesPercentage,
+                                    onValueChange = { 
+                                        placesPercentage = it
+                                        val remaining = 100f - placesPercentage
+                                        val ratio = foodPercentage / (foodPercentage + activitiesPercentage)
+                                        foodPercentage = remaining * ratio
+                                        activitiesPercentage = remaining * (1 - ratio)
+                                    },
+                                    valueRange = 0f..100f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF1E40AF),
+                                        activeTrackColor = Color(0xFF1E40AF)
+                                    )
+                                )
+
+                                Spacer(Modifier.height(8.dp))
+
+                                // Actividades
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("🎯 Actividades", fontSize = 14.sp, color = Color.Black)
+                                    Text(
+                                        "Q${String.format("%.2f", totalBudget * activitiesPercentage / 100)} (${activitiesPercentage.toInt()}%)",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1E40AF)
+                                    )
+                                }
+                                Slider(
+                                    value = activitiesPercentage,
+                                    onValueChange = { 
+                                        activitiesPercentage = it
+                                        val remaining = 100f - activitiesPercentage
+                                        val ratio = foodPercentage / (foodPercentage + placesPercentage)
+                                        foodPercentage = remaining * ratio
+                                        placesPercentage = remaining * (1 - ratio)
+                                    },
+                                    valueRange = 0f..100f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF1E40AF),
+                                        activeTrackColor = Color(0xFF1E40AF)
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(80.dp))
                 }
 
                 // Botón siguiente
@@ -206,6 +361,7 @@ fun ReservationScreen(propertyId: String) {
                         property?.let { p ->
                             val days = calculateDays(checkInDate, checkOutDate)
                             val totalPayment = p.pricePerNight * days
+                            val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
 
                             val intent = Intent(context, ReservationPage3Activity::class.java)
                             intent.putExtra("propertyId", p.id)
@@ -214,6 +370,10 @@ fun ReservationScreen(propertyId: String) {
                             intent.putExtra("checkOutDate", checkOutDate)
                             intent.putExtra("days", days)
                             intent.putExtra("payment", totalPayment)
+                            intent.putExtra("activityBudget", activityBudget)
+                            intent.putExtra("foodPercentage", foodPercentage)
+                            intent.putExtra("placesPercentage", placesPercentage)
+                            intent.putExtra("activitiesPercentage", activitiesPercentage)
                             context.startActivity(intent)
                         }
                     },
