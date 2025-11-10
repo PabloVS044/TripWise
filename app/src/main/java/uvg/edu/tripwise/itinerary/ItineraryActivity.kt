@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.network.BudgetInfo
 import uvg.edu.tripwise.network.ItineraryResponse
 import uvg.edu.tripwise.network.LocationData
 import uvg.edu.tripwise.network.RetrofitInstance
@@ -256,6 +257,15 @@ fun ItineraryScreen(
                     TripInfoCard(itineraryData)
                 }
 
+                // Mostrar información de presupuesto si existe
+                itineraryData.budgetInfo?.let { budgetInfo ->
+                    if (budgetInfo.totalBudget > 0) {
+                        item {
+                            BudgetInfoCard(budgetInfo)
+                        }
+                    }
+                }
+
                 itineraryByDays.forEach { (day, items) ->
                     item {
                         DayHeader(day = day)
@@ -313,6 +323,123 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
                 InfoItem("📅 Duración", "$maxDay días")
                 InfoItem("📋 Actividades", "${itinerary.schedules.size}")
                 InfoItem("🗺️ Lugares", "${itinerary.touristicPlaces.size}")
+            }
+        }
+    }
+}
+
+@Composable
+fun BudgetInfoCard(budgetInfo: BudgetInfo) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Presupuesto del Viaje",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Color(0xFF1E88E5)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Total: Q${String.format("%.2f", budgetInfo.totalBudget)} para ${budgetInfo.days} días",
+                fontSize = 14.sp,
+                color = Color(0xFF424242)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Presupuesto por día
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Presupuesto por Día",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1E88E5)
+                        )
+                        Text(
+                            "Q${String.format("%.2f", budgetInfo.budgetPerDay)}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Comida
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🍽️ ", fontSize = 16.sp)
+                            Text("Comida", fontSize = 14.sp, color = Color(0xFF424242))
+                        }
+                        Text(
+                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.food)} (${budgetInfo.distribution.food.toInt()}%)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Lugares
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("📍 ", fontSize = 16.sp)
+                            Text("Lugares", fontSize = 14.sp, color = Color(0xFF424242))
+                        )
+                        Text(
+                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.places)} (${budgetInfo.distribution.places.toInt()}%)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Actividades
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("🎯 ", fontSize = 16.sp)
+                            Text("Actividades", fontSize = 14.sp, color = Color(0xFF424242))
+                        }
+                        Text(
+                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.activities)} (${budgetInfo.distribution.activities.toInt()}%)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                }
             }
         }
     }

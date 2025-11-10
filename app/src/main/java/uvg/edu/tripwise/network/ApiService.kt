@@ -122,6 +122,20 @@ data class BudgetDistribution(
     val activities: Float = 20f
 )
 
+data class DailyBudgets(
+    val food: Double = 0.0,
+    val places: Double = 0.0,
+    val activities: Double = 0.0
+)
+
+data class BudgetInfo(
+    val totalBudget: Double = 0.0,
+    val days: Int = 1,
+    val budgetPerDay: Double = 0.0,
+    val distribution: BudgetDistribution = BudgetDistribution(),
+    val dailyBudgets: DailyBudgets = DailyBudgets()
+)
+
 data class CreateReservationRequest(
     val reservationUser: String,
     val propertyBooked: String,
@@ -175,7 +189,8 @@ data class ItineraryResponse(
     val activities: List<String>,
     val schedules: List<String>,
     val days: List<Int>,
-    val locations: List<LocationData>? = null
+    val locations: List<LocationData>? = null,
+    val budgetInfo: BudgetInfo? = null
 )
 
 data class UpdateItineraryRequest(
