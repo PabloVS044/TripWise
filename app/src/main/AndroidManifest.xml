@@ -119,6 +119,12 @@
             android:theme="@style/Theme.TripWise"/>
 
         <activity
+            android:name=".review.CreateReviewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TripWise"
+            tools:ignore="MissingClass" />
+
+        <activity
             android:name=".profile.ProfileActivity"
             android:exported="false" />
         <activity

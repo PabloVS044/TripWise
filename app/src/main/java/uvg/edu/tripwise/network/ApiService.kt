@@ -201,6 +201,28 @@ data class UpdateItineraryRequest(
     val days: List<Int>? = null
 )
 
+// ----- REVIEW DATA CLASSES -----
+data class ReviewResponse(
+    @SerializedName("_id") val id: String,
+    val userId: String,
+    val propertyId: String,
+    val score: Int,
+    val date: String,
+    val likes: Int = 0,
+    val comments: List<String> = emptyList()
+)
+
+data class CreateReviewRequest(
+    val userId: String,
+    val propertyId: String,
+    val score: Int
+)
+
+data class UpdateReviewRequest(
+    val score: Int? = null,
+    val likes: Int? = null
+)
+
 // ===== API INTERFACES =====
 
 interface UserApiService {
@@ -297,4 +319,21 @@ interface PropertyApiService {
 
     @DELETE("property/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+}
+
+interface ReviewApiService {
+    @GET("review")
+    suspend fun getReviews(): List<ReviewResponse>
+
+    @GET("review/{id}")
+    suspend fun getReviewById(@Path("id") id: String): ReviewResponse
+
+    @POST("review/createReview")
+    suspend fun createReview(@Body request: CreateReviewRequest): Response<ReviewResponse>
+
+    @PUT("review/updateReview/{id}")
+    suspend fun updateReview(@Path("id") id: String, @Body request: UpdateReviewRequest): Response<ReviewResponse>
+
+    @DELETE("review/softDeleteReview/{id}")
+    suspend fun deleteReview(@Path("id") id: String): Response<Unit>
 }

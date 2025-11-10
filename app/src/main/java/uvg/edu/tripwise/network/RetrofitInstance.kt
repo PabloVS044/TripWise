@@ -40,4 +40,13 @@ object RetrofitInstance {
             .build()
             .create(PropertyApiService::class.java)
     }
+
+    val ReviewApi: ReviewApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ReviewApiService::class.java)
+    }
 }
