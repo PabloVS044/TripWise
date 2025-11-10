@@ -154,13 +154,20 @@ data class CreateReservationResponse(
     val message: String
 )
 
+data class LocationData(
+    val name: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
 data class ItineraryResponse(
     @SerializedName("_id") val id: String,
     val restaurants: List<String>,
     val touristicPlaces: List<String>,
     val activities: List<String>,
     val schedules: List<String>,
-    val days: List<Int>
+    val days: List<Int>,
+    val locations: List<LocationData>? = null
 )
 
 data class UpdateItineraryRequest(

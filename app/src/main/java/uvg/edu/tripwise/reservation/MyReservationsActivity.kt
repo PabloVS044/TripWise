@@ -106,7 +106,7 @@ fun MyReservationsScreen() {
                 isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF7C3AED)
+                        color = Color(0xFF1E88E5)
                     )
                 }
                 errorMessage != null -> {
@@ -285,14 +285,14 @@ fun ReservationCard(
                     text = "Q${String.format("%.2f", reservation.payment)}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    color = Color(0xFF7C3AED)
+                    color = Color(0xFF1E88E5)
                 )
 
                 if (reservation.itinerary != null) {
                     Button(
                         onClick = onClick,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF7C3AED)
+                            containerColor = Color(0xFF1E88E5)
                         )
                     ) {
                         Icon(Icons.Default.Map, contentDescription = null)
