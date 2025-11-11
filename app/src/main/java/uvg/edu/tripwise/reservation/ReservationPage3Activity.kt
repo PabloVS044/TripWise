@@ -169,8 +169,10 @@ fun ReservationPage3Screen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
-                .fillMaxSize(),
+                .padding(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(

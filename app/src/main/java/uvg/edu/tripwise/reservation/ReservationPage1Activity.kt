@@ -4,11 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Luggage
@@ -63,6 +66,7 @@ fun ReservationScreen(propertyId: String) {
     var property by remember { mutableStateOf<Property?>(null) }
     var unavailableDates by remember { mutableStateOf<Set<String>>(emptySet()) }
     var showDateRangePicker by remember { mutableStateOf(false) }
+    var isLoadingAvailability by remember { mutableStateOf(true) }
     
     val dateRangePickerState = rememberDateRangePickerState(
         selectableDates = object : SelectableDates {
@@ -93,14 +97,20 @@ fun ReservationScreen(propertyId: String) {
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                isLoadingAvailability = true
+                
+                // Obtener la propiedad primero
                 val fetchedProperty = RetrofitInstance.PropertyApi.getPropertyById(propertyId)
                 property = fetchedProperty
                 
-                // Obtener fechas no disponibles
+                // Luego obtener fechas no disponibles
                 val availabilityResponse = RetrofitInstance.PropertyApi.getPropertyAvailability(propertyId)
                 unavailableDates = availabilityResponse.unavailableDates.toSet()
+                
+                isLoadingAvailability = false
             } catch (e: Exception) {
                 e.printStackTrace()
+                isLoadingAvailability = false
             }
         }
     }
@@ -108,13 +118,53 @@ fun ReservationScreen(propertyId: String) {
     var viajeros by remember { mutableStateOf(2) }
     var checkInDate by remember { mutableStateOf("") }
     var checkOutDate by remember { mutableStateOf("") }
+    var dateRangeError by remember { mutableStateOf<String?>(null) }
     var budgetForActivities by remember { mutableStateOf("") }
     var foodPercentage by remember { mutableStateOf(40f) }
     var placesPercentage by remember { mutableStateOf(40f) }
     var activitiesPercentage by remember { mutableStateOf(20f) }
+    var budgetError by remember { mutableStateOf<String?>(null) }
+    
+    // Función auxiliar para verificar si la distribución es válida (tolerancia de 0.5%)
+    fun isBudgetDistributionValid(): Boolean {
+        val total = foodPercentage + placesPercentage + activitiesPercentage
+        return kotlin.math.abs(total - 100f) <= 0.5f
+    }
+    
+    // Función para validar que todas las fechas en el rango estén disponibles
+    fun isDateRangeAvailable(startMillis: Long, endMillis: Long): Boolean {
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        
+        var currentMillis = startMillis
+        while (currentMillis <= endMillis) {
+            calendar.timeInMillis = currentMillis
+            val dateStr = dateFormat.format(calendar.time)
+            if (unavailableDates.contains(dateStr)) {
+                return false
+            }
+            currentMillis += 24 * 60 * 60 * 1000 // Agregar un día
+        }
+        return true
+    }
     
     // Actualizar fechas cuando se seleccionen en el picker
     LaunchedEffect(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
+        dateRangeError = null
+        dateRangePickerState.selectedStartDateMillis?.let { startMillis ->
+            dateRangePickerState.selectedEndDateMillis?.let { endMillis ->
+                // Validar que todas las fechas en el rango estén disponibles
+                if (!isDateRangeAvailable(startMillis, endMillis)) {
+                    dateRangeError = "The selected date range includes unavailable dates"
+                    checkInDate = ""
+                    checkOutDate = ""
+                    return@LaunchedEffect
+                }
+            }
+        }
+        
         dateRangePickerState.selectedStartDateMillis?.let { startMillis ->
             checkInDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(startMillis))
         }
@@ -128,7 +178,7 @@ fun ReservationScreen(propertyId: String) {
         topBar = {
             SmallTopAppBar(title = {
                 Text(
-                    text = property?.name ?: "Reserva",
+                    text = property?.name ?: stringResource(R.string.reservation_title),
                     color = Color(0xFF0066CC),
                     fontWeight = FontWeight.Bold
                 )
@@ -144,13 +194,22 @@ fun ReservationScreen(propertyId: String) {
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            property?.let { p ->
+            if (property == null) {
+                // Mostrar indicador de carga mientras se obtiene la propiedad
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color(0xFF1E40AF)
+                )
+            } else {
+                property?.let { p ->
                 val maxViajeros = p.capacity ?: 1
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                        .padding(bottom = 80.dp),
                     verticalArrangement = Arrangement.Top
                 ) {
 
@@ -184,9 +243,9 @@ fun ReservationScreen(propertyId: String) {
                             Spacer(Modifier.height(8.dp))
                             Text(text = p.description, fontSize = 14.sp, color = Color.Gray)
                             Spacer(Modifier.height(4.dp))
-                            Text(text = "Ubicación: ${p.location}", fontSize = 12.sp, color = Color.Gray)
-                            Text(text = "Capacidad: ${p.capacity}", fontSize = 12.sp, color = Color.Gray)
-                            Text(text = "Precio por noche: Q${p.pricePerNight}", fontSize = 12.sp, color = Color.Gray)
+                            Text(text = stringResource(R.string.location_label, p.location), fontSize = 12.sp, color = Color.Gray)
+                            Text(text = stringResource(R.string.capacity_info, p.capacity), fontSize = 12.sp, color = Color.Gray)
+                            Text(text = stringResource(R.string.price_per_night_info, p.pricePerNight.toString()), fontSize = 12.sp, color = Color.Gray)
                         }
                     }
 
@@ -198,7 +257,9 @@ fun ReservationScreen(propertyId: String) {
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDateRangePicker = true }
+                            .clickable(enabled = !isLoadingAvailability) { 
+                                showDateRangePicker = true 
+                            }
                     ) {
                         Row(
                             modifier = Modifier
@@ -207,43 +268,66 @@ fun ReservationScreen(propertyId: String) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            if (isLoadingAvailability) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color(0xFF1E40AF)
+                                )
+                                Spacer(Modifier.width(16.dp))
                                 Text(
-                                    text = "Check-in",
-                                    fontSize = 12.sp,
+                                    text = "Loading availability...",
+                                    fontSize = 14.sp,
                                     color = Color.Gray
                                 )
-                                Text(
-                                    text = if (checkInDate.isEmpty()) "Seleccionar fecha" else checkInDate,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (checkInDate.isEmpty()) Color.Gray else Color.Black
+                            } else {
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.check_in),
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = if (checkInDate.isEmpty()) stringResource(R.string.select_date) else checkInDate,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (checkInDate.isEmpty()) Color.Gray else Color.Black
+                                    )
+                                }
+                                Icon(
+                                    Icons.Default.CalendarToday,
+                                    contentDescription = stringResource(R.string.check_in),
+                                    tint = Color(0xFF1E40AF)
                                 )
-                            }
-                            Icon(
-                                Icons.Default.CalendarToday,
-                                contentDescription = "Calendario",
-                                tint = Color(0xFF1E40AF)
-                            )
-                            Column {
-                                Text(
-                                    text = "Check-out",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray
-                                )
-                                Text(
-                                    text = if (checkOutDate.isEmpty()) "Seleccionar fecha" else checkOutDate,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (checkOutDate.isEmpty()) Color.Gray else Color.Black
-                                )
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.check_out),
+                                        fontSize = 12.sp,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = if (checkOutDate.isEmpty()) stringResource(R.string.select_date) else checkOutDate,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (checkOutDate.isEmpty()) Color.Gray else Color.Black
+                                    )
+                                }
                             }
                         }
                     }
                     
+                    // Mensaje de error si hay fechas no disponibles en el rango
+                    dateRangeError?.let { error ->
+                        Text(
+                            text = error,
+                            fontSize = 12.sp,
+                            color = Color(0xFFD32F2F),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                    
                     if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
                         Text(
-                            text = "Duración: ${calculateDays(checkInDate, checkOutDate)} días",
+                            text = stringResource(R.string.duration_days, calculateDays(checkInDate, checkOutDate)),
                             fontSize = 12.sp,
                             color = Color(0xFF1E40AF),
                             fontWeight = FontWeight.Bold,
@@ -263,59 +347,94 @@ fun ReservationScreen(propertyId: String) {
                                     enabled = dateRangePickerState.selectedStartDateMillis != null && 
                                              dateRangePickerState.selectedEndDateMillis != null
                                 ) {
-                                    Text("Confirmar")
+                                    Text(stringResource(R.string.confirm))
                                 }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showDateRangePicker = false }) {
-                                    Text("Cancelar")
+                                    Text(stringResource(R.string.cancel))
                                 }
                             }
                         ) {
-                            DateRangePicker(
-                                state = dateRangePickerState,
-                                title = {
-                                    Text(
-                                        text = "Selecciona las fechas de tu estadía",
-                                        modifier = Modifier.padding(16.dp)
-                                    )
-                                },
-                                headline = {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Column {
-                                            Text("Check-in", fontSize = 12.sp, color = Color.Gray)
-                                            Text(
-                                                text = dateRangePickerState.selectedStartDateMillis?.let {
-                                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
-                                                } ?: "Seleccionar",
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold
+                            Column {
+                                // Información sobre disponibilidad
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .background(Color(0xFF1E40AF), RoundedCornerShape(4.dp))
                                             )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(stringResource(R.string.available_dates), fontSize = 12.sp, color = Color.Gray)
                                         }
-                                        Column {
-                                            Text("Check-out", fontSize = 12.sp, color = Color.Gray)
-                                            Text(
-                                                text = dateRangePickerState.selectedEndDateMillis?.let {
-                                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
-                                                } ?: "Seleccionar",
-                                                fontSize = 14.sp,
-                                                fontWeight = FontWeight.Bold
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .background(Color.LightGray, RoundedCornerShape(4.dp))
                                             )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(stringResource(R.string.unavailable_dates), fontSize = 12.sp, color = Color.Gray)
                                         }
                                     }
-                                },
-                                showModeToggle = false,
-                                colors = DatePickerDefaults.colors(
-                                    selectedDayContainerColor = Color(0xFF1E40AF),
-                                    todayContentColor = Color(0xFF1E40AF),
-                                    todayDateBorderColor = Color(0xFF1E40AF)
+                                }
+                                
+                                DateRangePicker(
+                                    state = dateRangePickerState,
+                                    title = {
+                                        Text(
+                                            text = stringResource(R.string.select_stay_dates),
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                    },
+                                    headline = {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Column {
+                                                Text(stringResource(R.string.check_in), fontSize = 12.sp, color = Color.Gray)
+                                                Text(
+                                                    text = dateRangePickerState.selectedStartDateMillis?.let {
+                                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                                                    } ?: stringResource(R.string.select),
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Column {
+                                                Text(stringResource(R.string.check_out), fontSize = 12.sp, color = Color.Gray)
+                                                Text(
+                                                    text = dateRangePickerState.selectedEndDateMillis?.let {
+                                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                                                    } ?: stringResource(R.string.select),
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    },
+                                    showModeToggle = false,
+                                    colors = DatePickerDefaults.colors(
+                                        selectedDayContainerColor = Color(0xFF1E40AF),
+                                        todayContentColor = Color(0xFF1E40AF),
+                                        todayDateBorderColor = Color(0xFF1E40AF),
+                                        disabledDayContentColor = Color.LightGray
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
 
@@ -323,7 +442,7 @@ fun ReservationScreen(propertyId: String) {
 
                     // Número de viajeros
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Número de viajeros", fontSize = 14.sp, color = Color.Gray)
+                        Text(stringResource(R.string.num_travelers), fontSize = 14.sp, color = Color.Gray)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -337,7 +456,7 @@ fun ReservationScreen(propertyId: String) {
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
                             ) { Text("-", color = Color.White) }
                             Spacer(Modifier.width(8.dp))
-                            Text("$viajeros viajeros", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
+                            Text(stringResource(R.string.travelers_count, viajeros), fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.Black)
                             Spacer(Modifier.width(8.dp))
                             Button(
                                 onClick = {
@@ -351,7 +470,7 @@ fun ReservationScreen(propertyId: String) {
 
                     if (viajeros == maxViajeros) {
                         Text(
-                            text = "Has alcanzado el número máximo de viajeros (${p.capacity})",
+                            text = stringResource(R.string.max_travelers_reached, p.capacity),
                             color = Color(0xFFD32F2F),
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 4.dp)
@@ -362,7 +481,7 @@ fun ReservationScreen(propertyId: String) {
 
                     // Presupuesto para actividades
                     Text(
-                        text = "Presupuesto para Actividades (Opcional)",
+                        text = stringResource(R.string.budget_activities_optional),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -376,14 +495,14 @@ fun ReservationScreen(propertyId: String) {
                                 budgetForActivities = it
                             }
                         },
-                        label = { Text("Presupuesto adicional (Q)") },
+                        label = { Text(stringResource(R.string.budget_additional)) },
                         leadingIcon = { Text("Q", fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 12.dp)) },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Ej: 500") },
+                        placeholder = { Text(stringResource(R.string.budget_example)) },
                         singleLine = true
                     )
                     Text(
-                        text = "Este presupuesto es adicional al costo de la reservación y se usará para comida, lugares turísticos y actividades.",
+                        text = stringResource(R.string.budget_description),
                         fontSize = 12.sp,
                         color = Color.Gray,
                         modifier = Modifier.padding(top = 4.dp)
@@ -400,11 +519,43 @@ fun ReservationScreen(propertyId: String) {
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(
-                                    text = "Distribución del Presupuesto",
+                                    text = stringResource(R.string.budget_distribution_title),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black
                                 )
+                                Spacer(Modifier.height(8.dp))
+                                
+                                // Mensaje de error o información
+                                val currentTotal = foodPercentage + placesPercentage + activitiesPercentage
+                                val totalDiff = kotlin.math.abs(currentTotal - 100f)
+                                when {
+                                    currentTotal > 100.5f -> {
+                                        Text(
+                                            text = "⚠️ La suma excede el 100% (${String.format("%.1f", currentTotal)}%)",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFFD32F2F),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    currentTotal < 99.5f -> {
+                                        Text(
+                                            text = "ℹ️ Falta ${String.format("%.1f", 100f - currentTotal)}% por distribuir",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFFFF9800),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    else -> {
+                                        Text(
+                                            text = "✓ Distribución completa (100%)",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF4CAF50),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                                
                                 Spacer(Modifier.height(12.dp))
 
                                 val totalBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
@@ -415,9 +566,9 @@ fun ReservationScreen(propertyId: String) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("🍽️ Comida", fontSize = 14.sp, color = Color.Black)
+                                    Text("${stringResource(R.string.food_emoji)} ${stringResource(R.string.food_category)}", fontSize = 14.sp, color = Color.Black)
                                     Text(
-                                        "Q${String.format("%.2f", totalBudget * foodPercentage / 100)} (${foodPercentage.toInt()}%)",
+                                        stringResource(R.string.budget_percentage, String.format("%.2f", totalBudget * foodPercentage / 100), foodPercentage.toInt()),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF1E40AF)
@@ -425,13 +576,12 @@ fun ReservationScreen(propertyId: String) {
                                 }
                                 Slider(
                                     value = foodPercentage,
-                                    onValueChange = { 
-                                        foodPercentage = it
-                                        // Ajustar otros porcentajes proporcionalmente
-                                        val remaining = 100f - foodPercentage
-                                        val ratio = placesPercentage / (placesPercentage + activitiesPercentage)
-                                        placesPercentage = remaining * ratio
-                                        activitiesPercentage = remaining * (1 - ratio)
+                                    onValueChange = { newValue ->
+                                        val otherTotal = placesPercentage + activitiesPercentage
+                                        // Solo permitir el cambio si no excede 100% (con tolerancia)
+                                        if (newValue + otherTotal <= 100.5f) {
+                                            foodPercentage = newValue
+                                        }
                                     },
                                     valueRange = 0f..100f,
                                     colors = SliderDefaults.colors(
@@ -448,9 +598,9 @@ fun ReservationScreen(propertyId: String) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("📍 Lugares Turísticos", fontSize = 14.sp, color = Color.Black)
+                                    Text("${stringResource(R.string.places_emoji)} ${stringResource(R.string.places_category)}", fontSize = 14.sp, color = Color.Black)
                                     Text(
-                                        "Q${String.format("%.2f", totalBudget * placesPercentage / 100)} (${placesPercentage.toInt()}%)",
+                                        stringResource(R.string.budget_percentage, String.format("%.2f", totalBudget * placesPercentage / 100), placesPercentage.toInt()),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF1E40AF)
@@ -458,12 +608,12 @@ fun ReservationScreen(propertyId: String) {
                                 }
                                 Slider(
                                     value = placesPercentage,
-                                    onValueChange = { 
-                                        placesPercentage = it
-                                        val remaining = 100f - placesPercentage
-                                        val ratio = foodPercentage / (foodPercentage + activitiesPercentage)
-                                        foodPercentage = remaining * ratio
-                                        activitiesPercentage = remaining * (1 - ratio)
+                                    onValueChange = { newValue ->
+                                        val otherTotal = foodPercentage + activitiesPercentage
+                                        // Solo permitir el cambio si no excede 100% (con tolerancia)
+                                        if (newValue + otherTotal <= 100.5f) {
+                                            placesPercentage = newValue
+                                        }
                                     },
                                     valueRange = 0f..100f,
                                     colors = SliderDefaults.colors(
@@ -480,9 +630,9 @@ fun ReservationScreen(propertyId: String) {
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("🎯 Actividades", fontSize = 14.sp, color = Color.Black)
+                                    Text("${stringResource(R.string.activities_emoji)} ${stringResource(R.string.activities_category)}", fontSize = 14.sp, color = Color.Black)
                                     Text(
-                                        "Q${String.format("%.2f", totalBudget * activitiesPercentage / 100)} (${activitiesPercentage.toInt()}%)",
+                                        stringResource(R.string.budget_percentage, String.format("%.2f", totalBudget * activitiesPercentage / 100), activitiesPercentage.toInt()),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF1E40AF)
@@ -490,12 +640,12 @@ fun ReservationScreen(propertyId: String) {
                                 }
                                 Slider(
                                     value = activitiesPercentage,
-                                    onValueChange = { 
-                                        activitiesPercentage = it
-                                        val remaining = 100f - activitiesPercentage
-                                        val ratio = foodPercentage / (foodPercentage + placesPercentage)
-                                        foodPercentage = remaining * ratio
-                                        placesPercentage = remaining * (1 - ratio)
+                                    onValueChange = { newValue ->
+                                        val otherTotal = foodPercentage + placesPercentage
+                                        // Solo permitir el cambio si no excede 100% (con tolerancia)
+                                        if (newValue + otherTotal <= 100.5f) {
+                                            activitiesPercentage = newValue
+                                        }
                                     },
                                     valueRange = 0f..100f,
                                     colors = SliderDefaults.colors(
@@ -514,7 +664,7 @@ fun ReservationScreen(propertyId: String) {
                 Button(
                     onClick = {
                         property?.let { p ->
-                            if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
+                            if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty() && dateRangeError == null) {
                                 val days = calculateDays(checkInDate, checkOutDate)
                                 val totalPayment = p.pricePerNight * days
                                 val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
@@ -534,7 +684,14 @@ fun ReservationScreen(propertyId: String) {
                             }
                         }
                     },
-                    enabled = checkInDate.isNotEmpty() && checkOutDate.isNotEmpty(),
+                    enabled = run {
+                        val hasValidDates = checkInDate.isNotEmpty() && checkOutDate.isNotEmpty() && dateRangeError == null
+                        val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
+                        
+                        // Si no hay presupuesto de actividades, solo validar fechas
+                        // Si hay presupuesto, también validar que la distribución sea ~100% (con tolerancia)
+                        hasValidDates && (activityBudget == 0.0 || isBudgetDistributionValid())
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1E40AF),
                         disabledContainerColor = Color.LightGray
@@ -543,10 +700,11 @@ fun ReservationScreen(propertyId: String) {
                         .align(Alignment.BottomEnd)
                         .padding(end = 16.dp, bottom = 80.dp)
                 ) {
-                    Text("Siguiente", color = Color.White)
+                    Text(stringResource(R.string.next), color = Color.White)
                 }
 
 
+                }
             }
         }
     }
