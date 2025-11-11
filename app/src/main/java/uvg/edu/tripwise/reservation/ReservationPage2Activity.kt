@@ -118,7 +118,7 @@ fun ReservationPage2Screen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 🔙 Botón Atrás
+                        // Botón Atrás
                         TextButton(
                             onClick = {
                                 val intent = Intent(context, ReservationPage1Activity::class.java)

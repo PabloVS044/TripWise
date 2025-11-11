@@ -90,6 +90,10 @@ data class CreatePropertyRequest(
     val longitude: Double?
 )
 
+data class PropertyAvailabilityResponse(
+    val unavailableDates: List<String>
+)
+
 data class UpdatePropertyRequest(
     val name: String? = null,
     val description: String? = null,
@@ -288,6 +292,9 @@ interface PropertyApiService {
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): Property
+
+    @GET("availability/{id}")
+    suspend fun getPropertyAvailability(@Path("id") id: String): PropertyAvailabilityResponse
 
     @POST("property/create")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<Property>

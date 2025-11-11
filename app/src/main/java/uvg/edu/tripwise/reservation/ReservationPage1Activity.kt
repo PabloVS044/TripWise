@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,6 +38,8 @@ import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ReservationPage1Activity : ComponentActivity() {
 
@@ -53,16 +56,49 @@ class ReservationPage1Activity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationScreen(propertyId: String) {
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
+    var unavailableDates by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var showDateRangePicker by remember { mutableStateOf(false) }
+    
+    val dateRangePickerState = rememberDateRangePickerState(
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+                calendar.timeInMillis = utcTimeMillis
+                val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.format(calendar.time)
+                
+                // No permitir fechas pasadas ni fechas no disponibles
+                val today = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                return utcTimeMillis >= today.timeInMillis && !unavailableDates.contains(dateStr)
+            }
+
+            override fun isSelectableYear(year: Int): Boolean {
+                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                return year >= currentYear && year <= currentYear + 2
+            }
+        }
+    )
 
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val fetchedProperty = RetrofitInstance.PropertyApi.getPropertyById(propertyId)
                 property = fetchedProperty
+                
+                // Obtener fechas no disponibles
+                val availabilityResponse = RetrofitInstance.PropertyApi.getPropertyAvailability(propertyId)
+                unavailableDates = availabilityResponse.unavailableDates.toSet()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -70,12 +106,22 @@ fun ReservationScreen(propertyId: String) {
     }
 
     var viajeros by remember { mutableStateOf(2) }
-    var checkInDate by remember { mutableStateOf("15/12/2025") }
-    var checkOutDate by remember { mutableStateOf("20/12/2025") }
+    var checkInDate by remember { mutableStateOf("") }
+    var checkOutDate by remember { mutableStateOf("") }
     var budgetForActivities by remember { mutableStateOf("") }
     var foodPercentage by remember { mutableStateOf(40f) }
     var placesPercentage by remember { mutableStateOf(40f) }
     var activitiesPercentage by remember { mutableStateOf(20f) }
+    
+    // Actualizar fechas cuando se seleccionen en el picker
+    LaunchedEffect(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
+        dateRangePickerState.selectedStartDateMillis?.let { startMillis ->
+            checkInDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(startMillis))
+        }
+        dateRangePickerState.selectedEndDateMillis?.let { endMillis ->
+            checkOutDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(endMillis))
+        }
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -146,22 +192,131 @@ fun ReservationScreen(propertyId: String) {
 
                     Spacer(Modifier.height(12.dp))
 
-                    Column {
-                        OutlinedTextField(
-                            value = checkInDate,
-                            onValueChange = { checkInDate = it },
-                            label = { Text("Check-in") },
-                            leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
-                            modifier = Modifier.fillMaxWidth()
+                    // Selector de fechas con calendario
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDateRangePicker = true }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Check-in",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    text = if (checkInDate.isEmpty()) "Seleccionar fecha" else checkInDate,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (checkInDate.isEmpty()) Color.Gray else Color.Black
+                                )
+                            }
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                contentDescription = "Calendario",
+                                tint = Color(0xFF1E40AF)
+                            )
+                            Column {
+                                Text(
+                                    text = "Check-out",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    text = if (checkOutDate.isEmpty()) "Seleccionar fecha" else checkOutDate,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (checkOutDate.isEmpty()) Color.Gray else Color.Black
+                                )
+                            }
+                        }
+                    }
+                    
+                    if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
+                        Text(
+                            text = "Duración: ${calculateDays(checkInDate, checkOutDate)} días",
+                            fontSize = 12.sp,
+                            color = Color(0xFF1E40AF),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedTextField(
-                            value = checkOutDate,
-                            onValueChange = { checkOutDate = it },
-                            label = { Text("Check-out") },
-                            leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    }
+
+                    // DateRangePicker Dialog
+                    if (showDateRangePicker) {
+                        DatePickerDialog(
+                            onDismissRequest = { showDateRangePicker = false },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showDateRangePicker = false
+                                    },
+                                    enabled = dateRangePickerState.selectedStartDateMillis != null && 
+                                             dateRangePickerState.selectedEndDateMillis != null
+                                ) {
+                                    Text("Confirmar")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDateRangePicker = false }) {
+                                    Text("Cancelar")
+                                }
+                            }
+                        ) {
+                            DateRangePicker(
+                                state = dateRangePickerState,
+                                title = {
+                                    Text(
+                                        text = "Selecciona las fechas de tu estadía",
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                },
+                                headline = {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column {
+                                            Text("Check-in", fontSize = 12.sp, color = Color.Gray)
+                                            Text(
+                                                text = dateRangePickerState.selectedStartDateMillis?.let {
+                                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                                                } ?: "Seleccionar",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Column {
+                                            Text("Check-out", fontSize = 12.sp, color = Color.Gray)
+                                            Text(
+                                                text = dateRangePickerState.selectedEndDateMillis?.let {
+                                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
+                                                } ?: "Seleccionar",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                },
+                                showModeToggle = false,
+                                colors = DatePickerDefaults.colors(
+                                    selectedDayContainerColor = Color(0xFF1E40AF),
+                                    todayContentColor = Color(0xFF1E40AF),
+                                    todayDateBorderColor = Color(0xFF1E40AF)
+                                )
+                            )
+                        }
                     }
 
                     Spacer(Modifier.height(12.dp))
@@ -359,25 +514,31 @@ fun ReservationScreen(propertyId: String) {
                 Button(
                     onClick = {
                         property?.let { p ->
-                            val days = calculateDays(checkInDate, checkOutDate)
-                            val totalPayment = p.pricePerNight * days
-                            val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
+                            if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
+                                val days = calculateDays(checkInDate, checkOutDate)
+                                val totalPayment = p.pricePerNight * days
+                                val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
 
-                            val intent = Intent(context, ReservationPage3Activity::class.java)
-                            intent.putExtra("propertyId", p.id)
-                            intent.putExtra("numTravelers", viajeros)
-                            intent.putExtra("checkInDate", checkInDate)
-                            intent.putExtra("checkOutDate", checkOutDate)
-                            intent.putExtra("days", days)
-                            intent.putExtra("payment", totalPayment)
-                            intent.putExtra("activityBudget", activityBudget)
-                            intent.putExtra("foodPercentage", foodPercentage)
-                            intent.putExtra("placesPercentage", placesPercentage)
-                            intent.putExtra("activitiesPercentage", activitiesPercentage)
-                            context.startActivity(intent)
+                                val intent = Intent(context, ReservationPage3Activity::class.java)
+                                intent.putExtra("propertyId", p.id)
+                                intent.putExtra("numTravelers", viajeros)
+                                intent.putExtra("checkInDate", checkInDate)
+                                intent.putExtra("checkOutDate", checkOutDate)
+                                intent.putExtra("days", days)
+                                intent.putExtra("payment", totalPayment)
+                                intent.putExtra("activityBudget", activityBudget)
+                                intent.putExtra("foodPercentage", foodPercentage)
+                                intent.putExtra("placesPercentage", placesPercentage)
+                                intent.putExtra("activitiesPercentage", activitiesPercentage)
+                                context.startActivity(intent)
+                            }
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF)),
+                    enabled = checkInDate.isNotEmpty() && checkOutDate.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1E40AF),
+                        disabledContainerColor = Color.LightGray
+                    ),
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 16.dp, bottom = 80.dp)
