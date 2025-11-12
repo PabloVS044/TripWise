@@ -19,6 +19,10 @@ object RetrofitInstance {
         .addInterceptor(loggingInterceptor)
         .build()
 
+    /**
+     * Instancia principal que usa UserApiService.
+     * Usada por los nuevos repositorios y pantallas de Admin.
+     */
     val api: UserApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
@@ -28,6 +32,11 @@ object RetrofitInstance {
             .create(UserApiService::class.java)
     }
 
+    /**
+     * (DEVUELTA)
+     * Instancia que usa PropertyApiService.
+     * Requerida por tus archivos ReservationPage.
+     */
     val PropertyApi: PropertyApiService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
