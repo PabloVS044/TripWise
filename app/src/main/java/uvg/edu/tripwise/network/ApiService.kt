@@ -11,7 +11,7 @@ import retrofit2.http.Path
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.model.Deleted
 
-// ===== DATA CLASSES =====
+// ===== DATA CLASSES (USERS) =====
 
 data class ApiUser(
     @SerializedName("_id") val id: String,
@@ -51,6 +51,8 @@ data class UpdatePasswordRequest(
     val newPassword: String
 )
 
+// ===== DATA CLASSES (PROPERTIES) =====
+
 data class ApiProperty(
     @SerializedName("_id") val _id: String,
     val name: String,
@@ -67,7 +69,7 @@ data class ApiProperty(
     val longitude: Double?,
     val createdAt: String,
     val deleted: PropertyDeleted,
-    val reviews: List<Map<String, String>>? = null
+    val reviews: List<ApiReviewItem>? = null
 )
 
 data class PropertyDeleted(
@@ -86,8 +88,8 @@ data class CreatePropertyRequest(
     val propertyType: String,
     val owner: String,
     val approved: String,
-    val latitude: Double?,
-    val longitude: Double?
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 data class UpdatePropertyRequest(
@@ -104,6 +106,8 @@ data class UpdatePropertyRequest(
     val longitude: Double? = null
 )
 
+// ===== DATA CLASSES (AUTH) =====
+
 data class Login(
     val email: String,
     val password: String
@@ -115,6 +119,8 @@ data class LoginResponse(
     val email: String,
     val role: String
 )
+
+// ===== DATA CLASSES (RESERVATIONS & ITINERARIES) =====
 
 data class CreateReservationRequest(
     val reservationUser: String,
@@ -170,6 +176,88 @@ data class UpdateItineraryRequest(
     val schedules: List<String>? = null,
     val days: List<Int>? = null
 )
+
+// ===== DATA CLASSES (PROPERTY RESERVATIONS AGGREGATE) =====
+
+data class PropertyReservationsResponse(
+    val property: PropertyInfo,
+    val totalReservations: Int,
+    val reservations: List<ReservationItem>
+)
+
+data class PropertyInfo(
+    val id: String,
+    val name: String
+)
+
+data class ReservationItem(
+    val reservationId: String,
+    val user: ReservationUser,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val days: Int,
+    val persons: Int,
+    val payment: Double,
+    val state: String,
+    val reservationDate: String,
+    val hasItinerary: Boolean
+)
+
+data class ReservationUser(
+    val id: String,
+    val name: String,
+    val email: String
+)
+
+// ===== DATA CLASSES (REVIEWS POR PROPIEDAD) =====
+
+data class ApiReviewsResponse(
+    val property: ApiPropertySummary,
+    val statistics: ApiStatistics,
+    val reviews: List<ApiReviewItem>
+)
+
+data class ApiPropertySummary(
+    val id: String,
+    val name: String
+)
+
+data class ApiStatistics(
+    val totalReviews: Int,
+    val averageScore: Double,
+    val scoreDistribution: Map<String, Int>  // ← CAMBIO: claves como String para JSON seguro
+)
+
+data class ApiReviewItem(
+    val reviewId: String,
+    val user: ApiUserMini,
+    val score: Int,
+    val date: String,
+    val likes: Int,
+    val commentsCount: Int,
+    val comments: List<ApiComment>
+)
+
+data class ApiUserMini(
+    val id: String,
+    val name: String,
+    val profilePicture: String?
+)
+
+data class ApiComment(
+    @SerializedName("_id") val id: String,
+    val userId: String,
+    @SerializedName(value = "comment", alternate = ["text"])
+    val comment: String?,                    // <- acepta "comment" o "text"
+    val date: String
+)
+
+
+
+data class AvailabilityResponse(
+    val unavailableDates: List<String> // formato: "YYYY-MM-DD"
+)
+
 
 // ===== API INTERFACES =====
 
@@ -232,6 +320,9 @@ interface UserApiService {
     @DELETE("reservation/deleteReservation/{id}")
     suspend fun deleteReservation(@Path("id") id: String): Response<Unit>
 
+    @GET("property/reservations/{propertyId}")
+    suspend fun getReservationsProperty(@Path("propertyId") propertyId: String): PropertyReservationsResponse
+
     @GET("reservation/property/{propertyId}")
     suspend fun getReservationsByProperty(@Path("propertyId") propertyId: String): List<ReservationResponse>
 
@@ -250,6 +341,18 @@ interface UserApiService {
 
     @GET("itinerary/user/{userId}")
     suspend fun getItinerariesByUser(@Path("userId") userId: String): List<ItineraryResponse>
+
+    // ----- REVIEWS ENDPOINT -----
+    @GET("property/reviews/{id}")
+    suspend fun getReviewsByProperty(@Path("id") id: String): Response<ApiReviewsResponse>
+
+
+    //------ CALENDAR ENDPOINT-----
+    @GET("property/availability/{id}")
+    suspend fun getAvailability(
+        @Path("id") propertyId: String
+    ): AvailabilityResponse
+
 }
 
 interface PropertyApiService {
@@ -267,4 +370,6 @@ interface PropertyApiService {
 
     @DELETE("property/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+
+
 }
