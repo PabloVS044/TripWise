@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.data.repository
 
+import retrofit2.Response
 import uvg.edu.tripwise.data.model.Deleted
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.model.PropertyReviews
@@ -7,14 +8,14 @@ import uvg.edu.tripwise.data.model.ReviewItem
 import uvg.edu.tripwise.network.ApiProperty
 import uvg.edu.tripwise.network.ApiReviewsResponse
 import uvg.edu.tripwise.network.CreatePropertyRequest
+import uvg.edu.tripwise.network.UpdatePropertyRequest
 import uvg.edu.tripwise.network.RetrofitInstance
-import retrofit2.Response
 
 class PropertyRepository {
 
     private val api = RetrofitInstance.api
 
-    // Mapper común → dominio
+    // Mapper → dominio
     private fun ApiProperty.toDomain(): Property = Property(
         id = _id,
         name = name,
@@ -75,9 +76,19 @@ class PropertyRepository {
             latitude = latitude,
             longitude = longitude
         )
+
         val resp = api.createProperty(request)
         if (!resp.isSuccessful || resp.body() == null) {
             throw IllegalStateException("No se pudo crear la propiedad (${resp.code()})")
+        }
+        return resp.body()!!.toDomain()
+    }
+
+    // UPDATE
+    suspend fun updateProperty(id: String, request: UpdatePropertyRequest): Property {
+        val resp = api.updateProperty(id, request)
+        if (!resp.isSuccessful || resp.body() == null) {
+            throw IllegalStateException("No se pudo actualizar la propiedad (${resp.code()})")
         }
         return resp.body()!!.toDomain()
     }
@@ -99,12 +110,12 @@ class PropertyRepository {
         }
         val response = resp.body()!!
 
-        // Map<String,Int> → Map<Int,Int> a prueba de basura
         val converted = mutableMapOf<Int, Int>()
         response.statistics.scoreDistribution.forEach { (k, v) ->
             k.toIntOrNull()?.let { converted[it] = v }
         }
-        // Garantiza claves 1..5 presentes
+
+        // Asegura claves 1..5
         for (s in 1..5) if (s !in converted) converted[s] = 0
 
         return PropertyReviews(
@@ -123,11 +134,9 @@ class PropertyRepository {
                     date = it.date,
                     likes = it.likes,
                     commentsCount = it.commentsCount,
-                    commentText = firstCommentText  // <- NUEVO
+                    commentText = firstCommentText
                 )
             }
-
         )
     }
-
 }
