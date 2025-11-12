@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -12,13 +13,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -110,7 +111,8 @@ fun CreatePropertyScreen(
     val propertyTypes = listOf(
         PType("house", stringResource(R.string.type_house), Icons.Filled.Home),
         PType("apartment", stringResource(R.string.type_apartment), Icons.Filled.Apartment),
-        PType("cabin", stringResource(R.string.type_cabin), Icons.Filled.HolidayVillage),
+        // 👇 Cambiado: antes "cabin", ahora el backend espera "cottage"
+        PType("cottage", stringResource(R.string.type_cabin), Icons.Filled.HolidayVillage),
         PType("hotel", stringResource(R.string.type_hotel), Icons.Filled.Hotel)
     )
     var selectedType by remember { mutableStateOf<PType?>(null) }
@@ -152,7 +154,13 @@ fun CreatePropertyScreen(
                     modifier = Modifier
                         .padding(start = 8.dp, top = 8.dp)
                         .align(Alignment.TopStart)
-                ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back), tint = BrandBlue) }
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.cd_back),
+                        tint = BrandBlue
+                    )
+                }
             }
         }
     ) { inner ->
@@ -165,15 +173,35 @@ fun CreatePropertyScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(12.dp))
-            Text(stringResource(R.string.title_new_property), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = BrandBlue)
+            Text(
+                stringResource(R.string.title_new_property),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = BrandBlue
+            )
             Spacer(Modifier.height(12.dp))
 
-            // ====== Inputs con focus styling ======
-            StyledTextField(value = name, onValueChange = { name = it }, label = stringResource(R.string.label_property_name), singleLine = true)
+            // ====== Inputs ======
+            StyledTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = stringResource(R.string.label_property_name),
+                singleLine = true
+            )
             Spacer(Modifier.height(12.dp))
-            StyledTextField(value = description, onValueChange = { description = it }, label = stringResource(R.string.label_description), minHeight = 120.dp)
+            StyledTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = stringResource(R.string.label_description),
+                minHeight = 120.dp
+            )
             Spacer(Modifier.height(12.dp))
-            StyledTextField(value = location, onValueChange = { location = it }, label = stringResource(R.string.label_location), singleLine = true)
+            StyledTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = stringResource(R.string.label_location),
+                singleLine = true
+            )
             Spacer(Modifier.height(12.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -199,7 +227,7 @@ fun CreatePropertyScreen(
             Text(stringResource(R.string.property_type_title), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
 
-            // ====== DESLIZABLE ======  -> evita que se aplasten cuando ensanchas el ícono
+            // ====== Tipos ======
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(horizontal = 2.dp)) {
                 items(propertyTypes) { type ->
                     val selected = selectedType?.key == type.key
@@ -237,13 +265,34 @@ fun CreatePropertyScreen(
                         latitude = latLng.latitude
                         longitude = latLng.longitude
                     }
-                ) { marker?.let { pos -> Marker(state = MarkerState(position = pos), title = stringResource(R.string.map_marker_selected)) } }
+                ) {
+                    marker?.let { pos ->
+                        Marker(
+                            state = MarkerState(position = pos),
+                            title = stringResource(R.string.map_marker_selected)
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                StyledTextField(value = latitude?.toString().orEmpty(), onValueChange = { latitude = it.toDoubleOrNull() }, label = stringResource(R.string.label_latitude), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
-                StyledTextField(value = longitude?.toString().orEmpty(), onValueChange = { longitude = it.toDoubleOrNull() }, label = stringResource(R.string.label_longitude), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.weight(1f))
+                StyledTextField(
+                    value = latitude?.toString().orEmpty(),
+                    onValueChange = { latitude = it.toDoubleOrNull() },
+                    label = stringResource(R.string.label_latitude),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                StyledTextField(
+                    value = longitude?.toString().orEmpty(),
+                    onValueChange = { longitude = it.toDoubleOrNull() },
+                    label = stringResource(R.string.label_longitude),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(Modifier.height(18.dp))
@@ -259,7 +308,13 @@ fun CreatePropertyScreen(
                                 label = amenity.name,
                                 icon = amenity.icon,
                                 selected = sel,
-                                onClick = { selectedAmenities = if (sel) selectedAmenities - amenity.name else selectedAmenities + amenity.name },
+                                onClick = {
+                                    selectedAmenities = if (sel) {
+                                        selectedAmenities - amenity.name
+                                    } else {
+                                        selectedAmenities + amenity.name
+                                    }
+                                },
                                 height = AMENITY_CARD_HEIGHT,
                                 modifier = Modifier.weight(1f)
                             )
@@ -280,14 +335,26 @@ fun CreatePropertyScreen(
                         .size(44.dp)
                         .clip(CircleShape)
                         .clickable(enabled = !isSubmitting) { imagesPicker.launch("image/*") }
-                ) { Box(contentAlignment = Alignment.Center) { Icon(Icons.Filled.Image, contentDescription = stringResource(R.string.cd_add_images), tint = SelectedBlue) } }
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Filled.Image,
+                            contentDescription = stringResource(R.string.cd_add_images),
+                            tint = SelectedBlue
+                        )
+                    }
+                }
                 Spacer(Modifier.width(10.dp))
-                val picsText = if (pictureUris.isEmpty()) stringResource(R.string.no_images_selected) else stringResource(R.string.images_selected_count, pictureUris.size)
+                val picsText =
+                    if (pictureUris.isEmpty()) stringResource(R.string.no_images_selected)
+                    else stringResource(R.string.images_selected_count, pictureUris.size)
                 Text(text = picsText, color = Color(0xFF475569))
             }
 
             Spacer(Modifier.height(24.dp))
-            errorMsg?.let { msg -> Text(msg, color = Color(0xFFDC2626), modifier = Modifier.padding(bottom = 12.dp)) }
+            errorMsg?.let { msg ->
+                Text(msg, color = Color(0xFFDC2626), modifier = Modifier.padding(bottom = 12.dp))
+            }
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedButton(
@@ -297,17 +364,23 @@ fun CreatePropertyScreen(
                     shape = RoundedCornerShape(Corner),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = SelectedBlue),
                     border = BorderStroke(1.5.dp, SelectedBlue)
-                ) { Text(stringResource(R.string.action_cancel)) }
+                ) {
+                    Text(stringResource(R.string.action_cancel))
+                }
 
                 Button(
                     onClick = {
                         val priceVal = price.toDoubleOrNull()
                         val capVal = capacity.toIntOrNull()
                         when {
-                            name.isBlank() || description.isBlank() || location is String && location.isBlank() -> errorMsg = context.getString(R.string.error_fill_name_desc_location)
-                            priceVal == null || capVal == null -> errorMsg = context.getString(R.string.error_price_capacity_numeric)
-                            selectedType == null -> errorMsg = context.getString(R.string.error_select_property_type)
-                            latitude == null || longitude == null -> errorMsg = context.getString(R.string.error_valid_coordinates)
+                            name.isBlank() || description.isBlank() || location.isBlank() ->
+                                errorMsg = context.getString(R.string.error_fill_name_desc_location)
+                            priceVal == null || capVal == null ->
+                                errorMsg = context.getString(R.string.error_price_capacity_numeric)
+                            selectedType == null ->
+                                errorMsg = context.getString(R.string.error_select_property_type)
+                            latitude == null || longitude == null ->
+                                errorMsg = context.getString(R.string.error_valid_coordinates)
                             else -> {
                                 errorMsg = null
                                 scope.launch {
@@ -315,14 +388,28 @@ fun CreatePropertyScreen(
                                     try {
                                         val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
                                         val ownerId = prefs.getString("USER_ID", prefs.getString("user_id", null))
-                                        if (ownerId.isNullOrBlank()) { errorMsg = context.getString(R.string.error_no_user_session); isSubmitting = false; return@launch }
+                                        if (ownerId.isNullOrBlank()) {
+                                            errorMsg = context.getString(R.string.error_no_user_session)
+                                            isSubmitting = false
+                                            return@launch
+                                        }
+
+                                        // Mapear imágenes: enviar [] si no son URLs públicas todavía
+                                        val mapped = pictureUris.map { it.toString() }
+                                        val picturesField =
+                                            if (mapped.isNotEmpty() && mapped.all { it.startsWith("http://") || it.startsWith("https://") }) {
+                                                mapped
+                                            } else {
+                                                emptyList()
+                                            }
+
                                         val req = CreatePropertyRequest(
                                             name = name,
                                             description = description,
                                             location = location,
                                             pricePerNight = priceVal,
                                             capacity = capVal,
-                                            pictures = pictureUris.map { it.toString() },
+                                            pictures = picturesField,
                                             amenities = selectedAmenities.toList(),
                                             propertyType = selectedType!!.key,
                                             owner = ownerId,
@@ -330,9 +417,21 @@ fun CreatePropertyScreen(
                                             latitude = latitude!!,
                                             longitude = longitude!!
                                         )
+
                                         val resp = RetrofitInstance.api.createProperty(req)
-                                        if (resp.isSuccessful) onCreated() else errorMsg = context.getString(R.string.server_error_with_code, resp.code())
-                                    } catch (e: Exception) { errorMsg = e.message ?: context.getString(R.string.network_error) } finally { isSubmitting = false }
+                                        if (resp.isSuccessful) {
+                                            onCreated()
+                                        } else {
+                                            val body = resp.errorBody()?.string()
+                                            errorMsg = body ?: context.getString(R.string.server_error_with_code, resp.code())
+                                            Log.e("CreateProperty", "createProperty failed: code=${resp.code()} body=$body")
+                                        }
+                                    } catch (e: Exception) {
+                                        errorMsg = e.message ?: context.getString(R.string.network_error)
+                                        Log.e("CreateProperty", "exception on createProperty", e)
+                                    } finally {
+                                        isSubmitting = false
+                                    }
                                 }
                             }
                         }
@@ -341,7 +440,9 @@ fun CreatePropertyScreen(
                     enabled = !isSubmitting,
                     shape = RoundedCornerShape(Corner),
                     colors = ButtonDefaults.buttonColors(containerColor = SelectedBlue, contentColor = Color.White)
-                ) { Text(stringResource(R.string.action_add_property)) }
+                ) {
+                    Text(stringResource(R.string.action_add_property))
+                }
             }
 
             Spacer(Modifier.height(24.dp))
@@ -406,7 +507,10 @@ private fun TypeCard(
             modifier = Modifier.fillMaxSize()
         ) {
             Surface(shape = RoundedCornerShape(10.dp), color = if (selected) SelectedBlue else Color(0xFFF2F4F8)) {
-                Box(Modifier.size(width = TYPE_ICON_BOX_WIDTH, height = TYPE_ICON_BOX_HEIGHT), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier.size(width = TYPE_ICON_BOX_WIDTH, height = TYPE_ICON_BOX_HEIGHT),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(icon, contentDescription = null, tint = if (selected) Color.White else Color(0xFF6B7280))
                 }
             }
@@ -441,11 +545,13 @@ private fun AmenityCard(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp)
         ) {
-            Box(Modifier.size(width = AMENITY_ICON_BOX_WIDTH, height = AMENITY_ICON_BOX_HEIGHT), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.size(width = AMENITY_ICON_BOX_WIDTH, height = AMENITY_ICON_BOX_HEIGHT),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(icon, contentDescription = null, tint = if (selected) SelectedBlue else Color(0xFF6B7280))
             }
             Text(label, fontSize = AMENITY_TEXT_SIZE, color = if (selected) SelectedBlue else Color.Black)
         }
     }
-
 }

@@ -423,4 +423,6 @@
     <string name="status_pending">Pending</string>
     <string name="error_valid_coordinates">Enter valid coordinates.</string>
     <string name="cd_logout">Log out</string>
+
+    <string name ="ic_user_placeholder">Imagen</string>
 </resources>
