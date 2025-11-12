@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "16665794979",
+    "project_id": "tripwise-933e7",
+    "storage_bucket": "tripwise-933e7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:16665794979:android:8564aaac70880c80e0a216",
+        "android_client_info": {
+          "package_name": "uvg.edu.tripwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsM9YZS22ycYdDC0JDq_wq0RtGpcdHGpU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

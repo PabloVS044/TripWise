@@ -37,6 +37,8 @@ import uvg.edu.tripwise.auth.RegisterActivity
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.R
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
