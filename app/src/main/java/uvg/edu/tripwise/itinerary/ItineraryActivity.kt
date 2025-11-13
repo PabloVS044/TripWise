@@ -1,7 +1,6 @@
 package uvg.edu.tripwise.itinerary
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -561,18 +560,12 @@ fun ItineraryItemCard(
             .padding(vertical = 4.dp)
             .clickable {
                 item.location?.let { loc ->
-                    val uri = Uri.parse("geo:${loc.latitude},${loc.longitude}?q=${loc.latitude},${loc.longitude}(${Uri.encode(loc.name)})")
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                    intent.setPackage("com.google.android.apps.maps")
-                    
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    } else {
-                        // Si Google Maps no está instalado, abrir en el navegador
-                        val browserIntent = Intent(Intent.ACTION_VIEW, 
-                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}"))
-                        context.startActivity(browserIntent)
-                    }
+                    // Navegar a DiscoverActivity con la ubicación específica
+                    val intent = Intent(context, uvg.edu.tripwise.discover.DiscoverActivity::class.java)
+                    intent.putExtra("targetLatitude", loc.latitude)
+                    intent.putExtra("targetLongitude", loc.longitude)
+                    intent.putExtra("targetName", loc.name)
+                    context.startActivity(intent)
                 } ?: run {
                     Toast.makeText(context, context.getString(R.string.location_unavailable), Toast.LENGTH_SHORT).show()
                 }
