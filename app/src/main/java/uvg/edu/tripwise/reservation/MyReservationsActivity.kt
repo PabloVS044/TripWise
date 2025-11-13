@@ -301,7 +301,7 @@ fun ReservationCard(
                         Button(
                             onClick = {
                                 val intent = Intent(context, uvg.edu.tripwise.review.CreateReviewActivity::class.java)
-                                intent.putExtra("propertyId", reservation.propertyBooked.id)
+                                intent.putExtra("propertyId", reservation.propertyBooked._id)
                                 intent.putExtra("propertyName", reservation.propertyBooked.name)
                                 intent.putExtra("propertyImage", reservation.propertyBooked.pictures.firstOrNull() ?: "")
                                 intent.putExtra("propertyLocation", reservation.propertyBooked.location)
