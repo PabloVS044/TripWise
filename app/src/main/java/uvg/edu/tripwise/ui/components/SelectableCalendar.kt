@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -22,8 +24,6 @@ import java.util.Locale
 
 /**
  * Componente de calendario reutilizable que soporta:
- * - Modo solo visualización (como en Host)
- * - Modo selección de rango de fechas (como en Reservation)
  */
 @Composable
 fun SelectableCalendar(

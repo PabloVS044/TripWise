@@ -40,6 +40,7 @@ import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.ui.components.AppBottomNavBar
+import uvg.edu.tripwise.ui.components.SelectableCalendar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import java.text.SimpleDateFormat
 import java.util.*
@@ -65,34 +66,7 @@ fun ReservationScreen(propertyId: String) {
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
     var unavailableDates by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var showDateRangePicker by remember { mutableStateOf(false) }
     var isLoadingAvailability by remember { mutableStateOf(true) }
-    
-    val dateRangePickerState = rememberDateRangePickerState(
-        selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                calendar.timeInMillis = utcTimeMillis
-                val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC")
-                }.format(calendar.time)
-                
-                // No permitir fechas pasadas ni fechas no disponibles
-                val today = Calendar.getInstance().apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }
-                return utcTimeMillis >= today.timeInMillis && !unavailableDates.contains(dateStr)
-            }
-
-            override fun isSelectableYear(year: Int): Boolean {
-                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-                return year >= currentYear && year <= currentYear + 2
-            }
-        }
-    )
 
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -104,7 +78,7 @@ fun ReservationScreen(propertyId: String) {
                 property = fetchedProperty
                 
                 // Luego obtener fechas no disponibles
-                val availabilityResponse = RetrofitInstance.PropertyApi.getPropertyAvailability(propertyId)
+                val availabilityResponse = RetrofitInstance.api.getAvailability(propertyId)
                 unavailableDates = availabilityResponse.unavailableDates.toSet()
                 
                 isLoadingAvailability = false
@@ -118,7 +92,6 @@ fun ReservationScreen(propertyId: String) {
     var viajeros by remember { mutableStateOf(2) }
     var checkInDate by remember { mutableStateOf("") }
     var checkOutDate by remember { mutableStateOf("") }
-    var dateRangeError by remember { mutableStateOf<String?>(null) }
     var budgetForActivities by remember { mutableStateOf("") }
     var foodPercentage by remember { mutableStateOf(40f) }
     var placesPercentage by remember { mutableStateOf(40f) }
@@ -131,47 +104,7 @@ fun ReservationScreen(propertyId: String) {
         return kotlin.math.abs(total - 100f) <= 0.5f
     }
     
-    // Función para validar que todas las fechas en el rango estén disponibles
-    fun isDateRangeAvailable(startMillis: Long, endMillis: Long): Boolean {
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        
-        var currentMillis = startMillis
-        while (currentMillis <= endMillis) {
-            calendar.timeInMillis = currentMillis
-            val dateStr = dateFormat.format(calendar.time)
-            if (unavailableDates.contains(dateStr)) {
-                return false
-            }
-            currentMillis += 24 * 60 * 60 * 1000 // Agregar un día
-        }
-        return true
-    }
-    
-    // Actualizar fechas cuando se seleccionen en el picker
-    LaunchedEffect(dateRangePickerState.selectedStartDateMillis, dateRangePickerState.selectedEndDateMillis) {
-        dateRangeError = null
-        dateRangePickerState.selectedStartDateMillis?.let { startMillis ->
-            dateRangePickerState.selectedEndDateMillis?.let { endMillis ->
-                // Validar que todas las fechas en el rango estén disponibles
-                if (!isDateRangeAvailable(startMillis, endMillis)) {
-                    dateRangeError = "The selected date range includes unavailable dates"
-                    checkInDate = ""
-                    checkOutDate = ""
-                    return@LaunchedEffect
-                }
-            }
-        }
-        
-        dateRangePickerState.selectedStartDateMillis?.let { startMillis ->
-            checkInDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(startMillis))
-        }
-        dateRangePickerState.selectedEndDateMillis?.let { endMillis ->
-            checkOutDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(endMillis))
-        }
-    }
+
 
     Scaffold(
         containerColor = Color.White,
@@ -255,31 +188,15 @@ fun ReservationScreen(propertyId: String) {
                     Card(
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = !isLoadingAvailability) { 
-                                showDateRangePicker = true 
-                            }
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (isLoadingAvailability) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    color = Color(0xFF1E40AF)
-                                )
-                                Spacer(Modifier.width(16.dp))
-                                Text(
-                                    text = "Loading availability...",
-                                    fontSize = 14.sp,
-                                    color = Color.Gray
-                                )
-                            } else {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            // Mostrar fechas seleccionadas
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Column {
                                     Text(
                                         text = stringResource(R.string.check_in),
@@ -312,17 +229,24 @@ fun ReservationScreen(propertyId: String) {
                                     )
                                 }
                             }
+                            
+                            Spacer(Modifier.height(16.dp))
+                            
+                            // Calendario integrado
+                            SelectableCalendar(
+                                unavailableDates = unavailableDates,
+                                isLoading = isLoadingAvailability,
+                                selectionMode = true,
+                                onDateRangeSelected = { startDate, endDate ->
+                                    // Convertir de "yyyy-MM-dd" a "dd/MM/yyyy"
+                                    val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                    val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                    
+                                    checkInDate = outputFormat.format(inputFormat.parse(startDate) ?: Date())
+                                    checkOutDate = outputFormat.format(inputFormat.parse(endDate) ?: Date())
+                                }
+                            )
                         }
-                    }
-                    
-                    // Mensaje de error si hay fechas no disponibles en el rango
-                    dateRangeError?.let { error ->
-                        Text(
-                            text = error,
-                            fontSize = 12.sp,
-                            color = Color(0xFFD32F2F),
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
                     }
                     
                     if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
@@ -333,109 +257,6 @@ fun ReservationScreen(propertyId: String) {
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 4.dp)
                         )
-                    }
-
-                    // DateRangePicker Dialog
-                    if (showDateRangePicker) {
-                        DatePickerDialog(
-                            onDismissRequest = { showDateRangePicker = false },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        showDateRangePicker = false
-                                    },
-                                    enabled = dateRangePickerState.selectedStartDateMillis != null && 
-                                             dateRangePickerState.selectedEndDateMillis != null
-                                ) {
-                                    Text(stringResource(R.string.confirm))
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showDateRangePicker = false }) {
-                                    Text(stringResource(R.string.cancel))
-                                }
-                            }
-                        ) {
-                            Column {
-                                // Información sobre disponibilidad
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(bottom = 4.dp)
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(16.dp)
-                                                    .background(Color(0xFF1E40AF), RoundedCornerShape(4.dp))
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(stringResource(R.string.available_dates), fontSize = 12.sp, color = Color.Gray)
-                                        }
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(16.dp)
-                                                    .background(Color.LightGray, RoundedCornerShape(4.dp))
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                            Text(stringResource(R.string.unavailable_dates), fontSize = 12.sp, color = Color.Gray)
-                                        }
-                                    }
-                                }
-                                
-                                DateRangePicker(
-                                    state = dateRangePickerState,
-                                    title = {
-                                        Text(
-                                            text = stringResource(R.string.select_stay_dates),
-                                            modifier = Modifier.padding(16.dp)
-                                        )
-                                    },
-                                    headline = {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Column {
-                                                Text(stringResource(R.string.check_in), fontSize = 12.sp, color = Color.Gray)
-                                                Text(
-                                                    text = dateRangePickerState.selectedStartDateMillis?.let {
-                                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
-                                                    } ?: stringResource(R.string.select),
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                            Column {
-                                                Text(stringResource(R.string.check_out), fontSize = 12.sp, color = Color.Gray)
-                                                Text(
-                                                    text = dateRangePickerState.selectedEndDateMillis?.let {
-                                                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it))
-                                                    } ?: stringResource(R.string.select),
-                                                    fontSize = 14.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    },
-                                    showModeToggle = false,
-                                    colors = DatePickerDefaults.colors(
-                                        selectedDayContainerColor = Color(0xFF1E40AF),
-                                        todayContentColor = Color(0xFF1E40AF),
-                                        todayDateBorderColor = Color(0xFF1E40AF),
-                                        disabledDayContentColor = Color.LightGray
-                                    )
-                                )
-                            }
-                        }
                     }
 
                     Spacer(Modifier.height(12.dp))
@@ -664,7 +485,7 @@ fun ReservationScreen(propertyId: String) {
                 Button(
                     onClick = {
                         property?.let { p ->
-                            if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty() && dateRangeError == null) {
+                            if (checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()) {
                                 val days = calculateDays(checkInDate, checkOutDate)
                                 val totalPayment = p.pricePerNight * days
                                 val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
@@ -685,7 +506,7 @@ fun ReservationScreen(propertyId: String) {
                         }
                     },
                     enabled = run {
-                        val hasValidDates = checkInDate.isNotEmpty() && checkOutDate.isNotEmpty() && dateRangeError == null
+                        val hasValidDates = checkInDate.isNotEmpty() && checkOutDate.isNotEmpty()
                         val activityBudget = budgetForActivities.toDoubleOrNull() ?: 0.0
                         
                         // Si no hay presupuesto de actividades, solo validar fechas
