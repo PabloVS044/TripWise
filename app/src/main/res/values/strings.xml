@@ -474,4 +474,5 @@
     <string name="location_label">Location: %1$s</string>
     <string name="capacity_info">Capacity: %1$d</string>
     <string name="price_per_night_info">Price per night: Q%1$s</string>
+    <string name ="ic_user_placeholder">Imagen</string>
 </resources>
