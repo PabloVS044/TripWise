@@ -1,7 +1,6 @@
 package uvg.edu.tripwise.itinerary
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -21,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.network.BudgetInfo
 import uvg.edu.tripwise.network.ItineraryResponse
 import uvg.edu.tripwise.network.LocationData
@@ -310,7 +311,7 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Información del Viaje",
+                text = stringResource(R.string.trip_info_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = Color(0xFF1E293B)
@@ -320,9 +321,9 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                InfoItem("📅 Duración", "$maxDay días")
-                InfoItem("📋 Actividades", "${itinerary.schedules.size}")
-                InfoItem("🗺️ Lugares", "${itinerary.touristicPlaces.size}")
+                InfoItem("📅 ${stringResource(R.string.duration_label)}", stringResource(R.string.days_count, maxDay))
+                InfoItem("📋 ${stringResource(R.string.activities_label)}", "${itinerary.schedules.size}")
+                InfoItem("🗺️ ${stringResource(R.string.places_label)}", "${itinerary.touristicPlaces.size}")
             }
         }
     }
@@ -341,14 +342,14 @@ fun BudgetInfoCard(budgetInfo: BudgetInfo) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Presupuesto del Viaje",
+                text = stringResource(R.string.budget_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = Color(0xFF1E88E5)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Total: Q${String.format("%.2f", budgetInfo.totalBudget)} para ${budgetInfo.days} días",
+                text = stringResource(R.string.budget_total, String.format("%.2f", budgetInfo.totalBudget), budgetInfo.days),
                 fontSize = 14.sp,
                 color = Color(0xFF424242)
             )
@@ -368,7 +369,7 @@ fun BudgetInfoCard(budgetInfo: BudgetInfo) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Presupuesto por Día",
+                            stringResource(R.string.budget_per_day),
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = Color(0xFF1E88E5)
@@ -391,11 +392,11 @@ fun BudgetInfoCard(budgetInfo: BudgetInfo) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🍽️ ", fontSize = 16.sp)
-                            Text("Comida", fontSize = 14.sp, color = Color(0xFF424242))
+                            Text(stringResource(R.string.food_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_food), fontSize = 14.sp, color = Color(0xFF424242))
                         }
                         Text(
-                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.food)} (${budgetInfo.distribution.food.toInt()}%)",
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.food), budgetInfo.distribution.food.toInt()),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF1E88E5)
@@ -410,11 +411,11 @@ fun BudgetInfoCard(budgetInfo: BudgetInfo) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("📍 ", fontSize = 16.sp)
-                            Text("Lugares", fontSize = 14.sp, color = Color(0xFF424242))
-                        )
+                            Text(stringResource(R.string.places_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_places), fontSize = 14.sp, color = Color(0xFF424242))
+                        }
                         Text(
-                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.places)} (${budgetInfo.distribution.places.toInt()}%)",
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.places), budgetInfo.distribution.places.toInt()),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF1E88E5)
@@ -429,11 +430,11 @@ fun BudgetInfoCard(budgetInfo: BudgetInfo) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("🎯 ", fontSize = 16.sp)
-                            Text("Actividades", fontSize = 14.sp, color = Color(0xFF424242))
+                            Text(stringResource(R.string.activities_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_activities), fontSize = 14.sp, color = Color(0xFF424242))
                         }
                         Text(
-                            "Q${String.format("%.2f", budgetInfo.dailyBudgets.activities)} (${budgetInfo.distribution.activities.toInt()}%)",
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.activities), budgetInfo.distribution.activities.toInt()),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF1E88E5)
@@ -470,7 +471,7 @@ fun DayHeader(day: Int) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Text(
-            text = "Día $day",
+            text = stringResource(R.string.day_header, day),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -559,20 +560,14 @@ fun ItineraryItemCard(
             .padding(vertical = 4.dp)
             .clickable {
                 item.location?.let { loc ->
-                    val uri = Uri.parse("geo:${loc.latitude},${loc.longitude}?q=${loc.latitude},${loc.longitude}(${Uri.encode(loc.name)})")
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                    intent.setPackage("com.google.android.apps.maps")
-                    
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    } else {
-                        // Si Google Maps no está instalado, abrir en el navegador
-                        val browserIntent = Intent(Intent.ACTION_VIEW, 
-                            Uri.parse("https://www.google.com/maps/search/?api=1&query=${loc.latitude},${loc.longitude}"))
-                        context.startActivity(browserIntent)
-                    }
+                    // Navegar a DiscoverActivity con la ubicación específica
+                    val intent = Intent(context, uvg.edu.tripwise.discover.DiscoverActivity::class.java)
+                    intent.putExtra("targetLatitude", loc.latitude)
+                    intent.putExtra("targetLongitude", loc.longitude)
+                    intent.putExtra("targetName", loc.name)
+                    context.startActivity(intent)
                 } ?: run {
-                    Toast.makeText(context, "Ubicación no disponible", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.location_unavailable), Toast.LENGTH_SHORT).show()
                 }
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -601,7 +596,7 @@ fun ItineraryItemCard(
             if (item.location != null) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Ver en mapa",
+                    contentDescription = stringResource(R.string.view_on_map),
                     tint = Color(0xFF1E88E5),
                     modifier = Modifier.size(20.dp)
                 )

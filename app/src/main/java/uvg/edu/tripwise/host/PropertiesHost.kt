@@ -38,24 +38,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.repository.PropertyRepository
+import uvg.edu.tripwise.host.reviews.ReviewsSection
+import uvg.edu.tripwise.host.reviews.ReviewsViewModel
+import uvg.edu.tripwise.host.ReviewsViewModelFactory
 import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
-/* ====== Colors (aligned with Sign In button #2563EB) ====== */
-private val PrimaryBlue = Color(0xFF2563EB) // RGB(37,99,235)
+private val PrimaryBlue = Color(0xFF2563EB)
 private val SuccessGreen = Color(0xFF0AA12E)
-private val DangerRed   = Color(0xFFE2265B)
-private val PageBg      = Color(0xFFF7F7FB)
-private val SelectedBg  = Color(0xFFEFF4FF) // igual que en otras pantallas
+private val DangerRed = Color(0xFFE2265B)
+private val PageBg = Color(0xFFF7F7FB)
+private val SelectedBg = Color(0xFFEFF4FF)
 
-/* ====== Tabs ====== */
 enum class HostTab(@StringRes val titleRes: Int) {
     Overview(R.string.tab_overview),
     Bookings(R.string.tab_bookings),
@@ -72,30 +73,27 @@ fun PropertiesHost(
 ) {
     val context = LocalContext.current
     val repo = remember { PropertyRepository() }
-
     val scope = rememberCoroutineScope()
 
     var selectedTab by remember { mutableStateOf(HostTab.Overview) }
     var showSearchSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Remote state: properties of the logged-in owner
     var properties by remember { mutableStateOf<List<Property>>(emptyList()) }
     var loadingProps by remember { mutableStateOf(false) }
     var errorProps by remember { mutableStateOf<String?>(null) }
 
-    // Selection (list → detail)
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
-
-    // Pull-to-refresh
     var isRefreshing by remember { mutableStateOf(false) }
-
-    // Key to force reloading detail section
     var detailReloadTick by remember { mutableStateOf(0) }
+
+    val reviewsViewModel: ReviewsViewModel = viewModel(
+        factory = ReviewsViewModelFactory(repo)
+    )
 
     fun loadPropertiesForSession() {
         scope.launch {
-            val prefs  = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+            val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
             val userId = prefs.getString("USER_ID", prefs.getString("user_id", null))
             if (userId.isNullOrBlank()) {
                 errorProps = context.getString(R.string.error_no_user_session)
@@ -106,7 +104,6 @@ fun PropertiesHost(
                 loadingProps = true
                 val list = repo.getPropertiesByOwner(userId)
                 properties = list
-                // If a propertyId came in, preselect it
                 propertyId?.let { id -> list.firstOrNull { it.id == id }?.let { selectedProperty = it } }
             } catch (e: Exception) {
                 errorProps = e.message
@@ -122,16 +119,13 @@ fun PropertiesHost(
         if (selectedProperty == null) {
             loadPropertiesForSession()
         } else {
-            // Force SummarySectionRemote to reload
+            // igual que Bookings/Reviews/Overview: incremento notifica recarga
             detailReloadTick++
             isRefreshing = false
         }
     }
 
-    // Initial load using session user
     LaunchedEffect(Unit) { loadPropertiesForSession() }
-
-    // When switching tabs, close the search sheet (if not in Bookings)
     LaunchedEffect(selectedTab) {
         if (selectedTab != HostTab.Bookings && showSearchSheet) showSearchSheet = false
     }
@@ -140,11 +134,9 @@ fun PropertiesHost(
         topBar = {
             Box {
                 LogoAppTopBar(onLogout)
-
-                // Host profile (with session USER_ID)
                 IconButton(
                     onClick = {
-                        val prefs  = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+                        val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
                         val userId = prefs.getString("USER_ID", prefs.getString("user_id", null))
                         val intent = Intent(context, ProfileHostActivity::class.java)
                             .putExtra(EXTRA_USER_ID, userId)
@@ -169,26 +161,24 @@ fun PropertiesHost(
                 .fillMaxSize()
                 .background(PageBg)
         ) {
+            // Pull-to-refresh global (como ya lo tienes)
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
                 onRefresh = { refreshHost() }
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
-                ) {
-                    /* KPIs */
+                // 🔁 Scroll SIEMPRE en el contenedor padre (como patrón único)
+                val parentModifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+
+                Column(modifier = parentModifier) {
                     StatsGrid()
                     Spacer(Modifier.height(16.dp))
-
-                    /* Divider */
                     Divider(thickness = 1.dp, color = PrimaryBlue.copy(alpha = 0.15f))
                     Spacer(Modifier.height(16.dp))
 
                     if (selectedProperty == null) {
-                        // ===== PROPERTY LIST =====
                         when {
                             loadingProps -> PlaceholderSection(stringResource(R.string.loading_properties))
                             errorProps != null -> PlaceholderSection(stringResource(R.string.error_with_message, errorProps ?: ""))
@@ -202,7 +192,7 @@ fun PropertiesHost(
                                     Text(
                                         text = stringResource(R.string.your_properties_header),
                                         color = PrimaryBlue,
-                                        fontSize = 22.sp, // larger
+                                        fontSize = 22.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Button(
@@ -210,7 +200,7 @@ fun PropertiesHost(
                                             val i = Intent(context, CreatePropertyActivity::class.java)
                                             context.startActivity(i)
                                         },
-                                        shape = RoundedCornerShape(14.dp), // soft pill
+                                        shape = RoundedCornerShape(14.dp),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = PrimaryBlue,
                                             contentColor = Color.White
@@ -232,7 +222,6 @@ fun PropertiesHost(
                             }
                         }
                     } else {
-                        // ===== DETAIL: NAVBAR (Overview/Bookings/Reviews/Calendar) =====
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
@@ -259,10 +248,23 @@ fun PropertiesHost(
                         Spacer(Modifier.height(24.dp))
 
                         when (selectedTab) {
-                            HostTab.Overview  -> SummarySectionRemote(propertyId = selectedProperty!!.id, reloadKey = detailReloadTick)
-                            HostTab.Bookings  -> ReservationsSection()
-                            HostTab.Reviews   -> PlaceholderSection(stringResource(R.string.reviews_coming_soon))
-                            HostTab.Calendar  -> PlaceholderSection(stringResource(R.string.calendar_coming_soon))
+                            HostTab.Overview -> SummarySectionRemote(
+                                propertyId = selectedProperty!!.id,
+                                reloadKey = detailReloadTick
+                            )
+                            HostTab.Bookings -> ReservationsSection(
+                                propertyId = selectedProperty!!.id,
+                                reloadKey = detailReloadTick
+                            )
+                            HostTab.Reviews -> ReviewsSection(
+                                propertyId = selectedProperty!!.id,
+                                viewModel = reviewsViewModel,
+                                reloadKey = detailReloadTick
+                            )
+                            HostTab.Calendar -> CalendarSection(
+                                propertyId = selectedProperty!!.id,
+                                reloadKey = detailReloadTick // ✅ mismo patrón de recarga
+                            )
                         }
 
                         Spacer(Modifier.height(24.dp))
@@ -270,7 +272,6 @@ fun PropertiesHost(
                 }
             }
 
-            // Filters FAB only on Bookings tab in detail (outside SwipeRefresh so it stays fixed)
             if (selectedProperty != null && selectedTab == HostTab.Bookings) {
                 ExtendedFloatingActionButton(
                     onClick = { showSearchSheet = true },
@@ -299,7 +300,6 @@ fun PropertiesHost(
     }
 }
 
-/* ---------------- LIST: card con icono por tipo + highlight (ícono y TÍTULO) al pulsar ---------------- */
 @Composable
 private fun PropertyRowCard(property: Property, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
@@ -330,7 +330,6 @@ private fun PropertyRowCard(property: Property, onClick: () -> Unit) {
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono según propertyType
             val icon: ImageVector = iconForType(property.propertyType)
             Surface(shape = CircleShape, color = if (active) Color.White else Color(0xFFF1F5F9)) {
                 Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
@@ -340,7 +339,7 @@ private fun PropertyRowCard(property: Property, onClick: () -> Unit) {
             Spacer(Modifier.width(10.dp))
             Text(
                 text = property.name,
-                color = titleColor, // ← highlight animado del título
+                color = titleColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -350,128 +349,13 @@ private fun PropertyRowCard(property: Property, onClick: () -> Unit) {
 
 @Composable
 private fun iconForType(type: String?): ImageVector = when (type?.lowercase()) {
-    "house"     -> Icons.Filled.Home
+    "house" -> Icons.Filled.Home
     "apartment" -> Icons.Filled.Apartment
-    "cabin"     -> Icons.Filled.HolidayVillage
-    "hotel"     -> Icons.Filled.Hotel
-    else         -> Icons.Filled.Apartment // fallback genérico
+    "cottage", "cabin" -> Icons.Filled.HolidayVillage
+    "hotel" -> Icons.Filled.Hotel
+    else -> Icons.Filled.Apartment
 }
 
-/* ---------------- Overview (remote; uses repo/back) ---------------- */
-@Composable
-private fun SummarySectionRemote(
-    propertyId: String?,
-    repo: PropertyRepository = PropertyRepository(),
-    reloadKey: Int = 0
-) {
-    var property by remember { mutableStateOf<Property?>(null) }
-    var loading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(propertyId, reloadKey) {
-        val id = propertyId?.takeIf { it.isNotBlank() } ?: return@LaunchedEffect
-        try {
-            loading = true
-            property = repo.getPropertyById(id)
-        } catch (e: Exception) {
-            error = e.message
-        } finally {
-            loading = false
-        }
-    }
-
-    when {
-        propertyId.isNullOrBlank() -> PlaceholderSection(stringResource(R.string.select_property_to_see_overview))
-        loading -> PlaceholderSection(stringResource(R.string.loading_property))
-        error != null -> PlaceholderSection(stringResource(R.string.error_with_message, error ?: ""))
-        property == null -> PlaceholderSection(stringResource(R.string.property_not_found))
-        else -> SummarySectionBound(property = property!!)
-    }
-}
-
-@Composable
-private fun SummarySectionBound(property: Property) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        WhiteCard(title = stringResource(R.string.basic_information)) {
-            KeyValueRow(stringResource(R.string.label_type),        property.propertyType.ifBlank { stringResource(R.string.placeholder_em_dash) })
-            KeyValueRow(stringResource(R.string.label_guests),      property.capacity.toString())
-            KeyValueRow(stringResource(R.string.label_rooms),       stringResource(R.string.placeholder_em_dash)) // not available in back
-            KeyValueRow(stringResource(R.string.label_bathrooms),   stringResource(R.string.placeholder_em_dash)) // not available in back
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.label_price_per_night), fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
-                Text("$${property.pricePerNight}", fontWeight = FontWeight.Bold, color = SuccessGreen)
-            }
-        }
-
-        WhiteCard(title = stringResource(R.string.amenities_title)) {
-            val amenities = property.amenities
-            if (amenities.isEmpty()) Text(stringResource(R.string.placeholder_em_dash), color = Color(0xFF26364D)) else AmenitiesGrid(amenities)
-        }
-
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            border = BorderStroke(2.dp, PrimaryBlue),
-            elevation = CardDefaults.cardElevation(0.dp)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text(stringResource(R.string.description_title), fontWeight = FontWeight.Bold, color = PrimaryBlue, fontSize = 18.sp)
-                Spacer(Modifier.height(8.dp))
-                Text(property.description.ifBlank { stringResource(R.string.placeholder_em_dash) }, color = Color(0xFF102A43), lineHeight = 20.sp)
-            }
-        }
-    }
-}
-
-/* ---------------- Filter bottom sheet ---------------- */
-@Composable
-private fun SearchFilterSheet(
-    onApply: () -> Unit,
-    onCancel: () -> Unit
-) {
-    var query by remember { mutableStateOf("") }
-    var confirmed by remember { mutableStateOf(true) }
-    var pending by remember { mutableStateOf(true) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(stringResource(R.string.filter_bookings_title), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = PrimaryBlue)
-        Spacer(Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            label = { Text(stringResource(R.string.search_by_guest_notes)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.status_title), fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
-        Spacer(Modifier.height(8.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            FilterChip(selected = confirmed, onClick = { confirmed = !confirmed }, label = { Text(stringResource(R.string.status_confirmed)) })
-            FilterChip(selected = pending, onClick = { pending = !pending }, label = { Text(stringResource(R.string.status_pending)) })
-        }
-
-        Spacer(Modifier.height(20.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
-            Spacer(Modifier.width(8.dp))
-            Button(
-                onClick = onApply,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue, contentColor = Color.White)
-            ) { Text(stringResource(R.string.action_apply)) }
-        }
-        Spacer(Modifier.height(12.dp))
-    }
-}
-
-/* ---------------- Supporting UI ---------------- */
 @Composable
 private fun StatsGrid() {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -487,7 +371,7 @@ private fun StatsGrid() {
 }
 
 @Composable
-fun StatCard(
+private fun StatCard(
     title: String,
     value: String,
     bg: Color,
@@ -549,94 +433,6 @@ fun HostTopTabBar(
     }
 }
 
-/* ============================ BOOKINGS (demo UI) ============================ */
-private enum class ReservationStatus { Confirmed, Pending }
-private data class Reservation(
-    val guestName: String,
-    val dateRange: String,
-    val amountUsd: String,
-    val status: ReservationStatus
-)
-
-@Composable
-private fun ReservationsSection() {
-    var selectedIndex by remember { mutableStateOf(0) }
-    val reservations = listOf(
-        Reservation("Ana Gomez", "Oct 12–15", "$320", ReservationStatus.Confirmed),
-        Reservation("Luis Perez", "Oct 20–22", "$210", ReservationStatus.Pending),
-        Reservation("Carla Soto", "Nov 02–05", "$450", ReservationStatus.Confirmed)
-    )
-    val activeCount = reservations.count { it.status == ReservationStatus.Confirmed }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(stringResource(R.string.your_bookings_title), color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            PillTag(text = stringResource(R.string.active_count, activeCount), color = SuccessGreen)
-        }
-
-        Spacer(Modifier.height(14.dp))
-
-        reservations.forEachIndexed { index, r ->
-            ReservationItem(
-                reservation = r,
-                selected = index == selectedIndex,
-                onClick = { selectedIndex = index }
-            )
-        }
-    }
-}
-
-@Composable
-private fun PillTag(text: String, color: Color) {
-    Surface(color = color, contentColor = Color.White, shape = RoundedCornerShape(50), shadowElevation = 0.dp) {
-        Text(text, modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp), fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun ReservationItem(
-    reservation: Reservation,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    val border = if (selected) BorderStroke(2.dp, PrimaryBlue) else BorderStroke(1.dp, Color(0xFFE8E8F0))
-    val statusColor = if (reservation.status == ReservationStatus.Confirmed) SuccessGreen else DangerRed
-    val statusText = if (reservation.status == ReservationStatus.Confirmed) stringResource(R.string.status_confirmed) else stringResource(R.string.status_pending)
-
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = border,
-        elevation = CardDefaults.cardElevation(0.dp),
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }
-    ) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(reservation.guestName, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
-                Spacer(Modifier.height(4.dp))
-                Text(reservation.dateRange, color = Color(0xFF6B7A90))
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(reservation.amountUsd, color = SuccessGreen, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                StatusChip(text = statusText, color = statusColor)
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusChip(text: String, color: Color) {
-    Surface(color = color, contentColor = Color.White, shape = RoundedCornerShape(50), shadowElevation = 0.dp) {
-        Text(text, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), fontWeight = FontWeight.SemiBold)
-    }
-}
-
-/* ---------------- Shared helpers ---------------- */
 @Composable
 fun WhiteCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
@@ -691,8 +487,38 @@ fun PlaceholderSection(text: String) {
     }
 }
 
-/* ---------------- Preview ---------------- */
-@Preview(name = "Host · Properties (list first)", showBackground = true, showSystemUi = true)
+@Composable
+fun SearchFilterSheet(
+    onApply: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Filters",
+            fontWeight = FontWeight.Bold,
+            color = PrimaryBlue,
+            fontSize = 18.sp
+        )
+        Spacer(Modifier.height(12.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedButton(onClick = onCancel) { Text("Cancelar") }
+            Button(
+                onClick = onApply,
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+            ) { Text("Aplicar") }
+        }
+    }
+}
+
+@Preview(name = "Host · Properties", showBackground = true, showSystemUi = true)
 @Composable
 fun PropertiesHostPreview() {
     TripWiseTheme { PropertiesHost(propertyId = null) }
