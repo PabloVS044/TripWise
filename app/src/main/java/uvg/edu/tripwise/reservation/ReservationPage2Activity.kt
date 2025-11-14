@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Luggage
@@ -118,7 +120,7 @@ fun ReservationPage2Screen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 🔙 Botón Atrás
+                        // Botón Atrás
                         TextButton(
                             onClick = {
                                 val intent = Intent(context, ReservationPage1Activity::class.java)
@@ -165,7 +167,9 @@ fun ReservationPage2Screen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                        .padding(bottom = 80.dp),
                     verticalArrangement = Arrangement.Top
                 ) {
                     Text(

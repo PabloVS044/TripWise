@@ -424,5 +424,55 @@
     <string name="error_valid_coordinates">Enter valid coordinates.</string>
     <string name="cd_logout">Log out</string>
 
+    <!-- ========================= ITINERARY & RESERVATION STRINGS ========================= -->
+    <!-- Itinerary -->
+    <string name="trip_info_title">Trip Information</string>
+    <string name="duration_label">Duration</string>
+    <string name="activities_label">Activities</string>
+    <string name="places_label">Places</string>
+    <string name="days_count">%1$d days</string>
+    <string name="day_header">Day %1$d</string>
+    <string name="location_unavailable">Location unavailable</string>
+    <string name="view_on_map">View on map</string>
+    
+    <!-- Budget Info -->
+    <string name="budget_title">Trip Budget</string>
+    <string name="budget_total">Total: Q%1$s for %2$d days</string>
+    <string name="budget_per_day">Budget per Day</string>
+    <string name="budget_food">Food</string>
+    <string name="budget_places">Places</string>
+    <string name="budget_activities">Activities</string>
+    <string name="budget_percentage">Q%1$s (%2$d%%)</string>
+    
+    <!-- Reservation Page 1 -->
+    <string name="reservation_title">Reservation</string>
+    <string name="check_in">Check-in</string>
+    <string name="check_out">Check-out</string>
+    <string name="select_date">Select date</string>
+    <string name="duration_days">Duration: %1$d days</string>
+    <string name="select_stay_dates">Select your stay dates</string>
+    <string name="select">Select</string>
+    <string name="available_dates">Available dates</string>
+    <string name="unavailable_dates">Unavailable dates</string>
+    <string name="date_range_error">The selected date range includes unavailable dates</string>
+    <string name="num_travelers">Number of travelers</string>
+    <string name="travelers_count">%1$d travelers</string>
+    <string name="max_travelers_reached">Maximum travelers reached (%1$d)</string>
+    <string name="budget_activities_optional">Budget for Activities (Optional)</string>
+    <string name="budget_additional">Additional budget (Q)</string>
+    <string name="budget_example">Ex: 500</string>
+    <string name="budget_description">This budget is additional to the reservation cost and will be used for food, tourist places and activities.</string>
+    <string name="budget_distribution_title">Budget Distribution</string>
+    <string name="food_emoji">🍽️</string>
+    <string name="places_emoji">📍</string>
+    <string name="activities_emoji">🎯</string>
+    <string name="food_category">Food</string>
+    <string name="places_category">Tourist Places</string>
+    <string name="activities_category">Activities</string>
+    
+    <!-- Property Info -->
+    <string name="location_label">Location: %1$s</string>
+    <string name="capacity_info">Capacity: %1$d</string>
+    <string name="price_per_night_info">Price per night: Q%1$s</string>
     <string name ="ic_user_placeholder">Imagen</string>
 </resources>

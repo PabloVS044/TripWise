@@ -114,6 +114,34 @@ data class LoginResponse(
     val role: String
 )
 
+// ---------- BUDGET ----------
+data class BudgetDistribution(
+    val food: Float = 40f,
+    val places: Float = 40f,
+    val activities: Float = 20f
+)
+
+data class DailyBudgets(
+    val food: Double = 0.0,
+    val places: Double = 0.0,
+    val activities: Double = 0.0
+)
+
+data class BudgetInfo(
+    val totalBudget: Double = 0.0,
+    val days: Int = 1,
+    val budgetPerDay: Double = 0.0,
+    val distribution: BudgetDistribution = BudgetDistribution(),
+    val dailyBudgets: DailyBudgets = DailyBudgets()
+)
+
+// ---------- LOCATION ----------
+data class LocationData(
+    val name: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
 // ---------- RESERVATIONS ----------
 data class CreateReservationRequest(
     val reservationUser: String,
@@ -122,7 +150,9 @@ data class CreateReservationRequest(
     val checkOutDate: String,
     val payment: Double,
     val persons: Int,
-    val days: Int
+    val days: Int,
+    val activityBudget: Double = 0.0,
+    val budgetDistribution: BudgetDistribution = BudgetDistribution()
 )
 
 data class ReservationResponse(
@@ -160,7 +190,9 @@ data class ItineraryResponse(
     val touristicPlaces: List<String>,
     val activities: List<String>,
     val schedules: List<String>,
-    val days: List<Int>
+    val days: List<Int>,
+    val locations: List<LocationData>? = null,
+    val budgetInfo: BudgetInfo? = null
 )
 
 data class UpdateItineraryRequest(
@@ -169,6 +201,28 @@ data class UpdateItineraryRequest(
     val activities: List<String>? = null,
     val schedules: List<String>? = null,
     val days: List<Int>? = null
+)
+
+// ----- REVIEW DATA CLASSES -----
+data class ReviewResponse(
+    @SerializedName("_id") val id: String,
+    val userId: String,
+    val propertyId: String,
+    val score: Int,
+    val date: String,
+    val likes: Int = 0,
+    val comments: List<String> = emptyList()
+)
+
+data class CreateReviewRequest(
+    val userId: String,
+    val propertyId: String,
+    val score: Int
+)
+
+data class UpdateReviewRequest(
+    val score: Int? = null,
+    val likes: Int? = null
 )
 
 // ---------- PROPERTY RESERVATIONS AGGREGATE ----------
@@ -249,9 +303,12 @@ data class AvailabilityResponse(
     val unavailableDates: List<String>
 )
 
+typealias PropertyAvailabilityResponse = AvailabilityResponse
+
 // ==================== API INTERFACES ====================
 
 interface UserApiService {
+
     // ----- USERS -----
     @GET("users")
     suspend fun getUsers(): List<ApiUser>
@@ -349,6 +406,9 @@ interface PropertyApiService {
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): Property
 
+    @GET("availability/{id}")
+    suspend fun getPropertyAvailability(@Path("id") id: String): PropertyAvailabilityResponse
+
     @POST("property/create")
     suspend fun createProperty(@Body property: CreatePropertyRequest): Response<Property>
 
@@ -357,4 +417,21 @@ interface PropertyApiService {
 
     @DELETE("property/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
+}
+
+interface ReviewApiService {
+    @GET("review")
+    suspend fun getReviews(): List<ReviewResponse>
+
+    @GET("review/{id}")
+    suspend fun getReviewById(@Path("id") id: String): ReviewResponse
+
+    @POST("review/createReview")
+    suspend fun createReview(@Body request: CreateReviewRequest): Response<ReviewResponse>
+
+    @PUT("review/updateReview/{id}")
+    suspend fun updateReview(@Path("id") id: String, @Body request: UpdateReviewRequest): Response<ReviewResponse>
+
+    @DELETE("review/softDeleteReview/{id}")
+    suspend fun deleteReview(@Path("id") id: String): Response<Unit>
 }

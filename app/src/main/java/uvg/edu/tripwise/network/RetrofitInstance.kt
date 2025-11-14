@@ -5,6 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import android.util.Log
+import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
     private const val BASE_URL = "https://trip-wise-backend.vercel.app/api/"
@@ -17,6 +18,9 @@ object RetrofitInstance {
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        .connectTimeout(60, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
     /**
@@ -44,5 +48,14 @@ object RetrofitInstance {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(PropertyApiService::class.java)
+    }
+
+    val ReviewApi: ReviewApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ReviewApiService::class.java)
     }
 }
