@@ -12,8 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterAlt
-import androidx.compose.material.icons.filled.Luggage
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,10 +38,14 @@ import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.reservation.MyReservationsActivity
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.viewModel.PropertyViewModel
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
 
 class DiscoverActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +66,12 @@ class DiscoverActivity : ComponentActivity() {
                     filterMaxPrice = maxPrice,
                     filterCapacity = capacity,
                     filterType = propertyType,
-                    filterApproved = approved
+                    filterApproved = approved,
+                    onLogout = {
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
                 )
             }
         }
@@ -81,58 +88,62 @@ fun DiscoverScreen(
     filterMaxPrice: Double? = null,
     filterCapacity: Int? = null,
     filterType: String = "",
-    filterApproved: String = ""
+    filterApproved: String = "",
+    onLogout: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
     val anyPlaceholder = stringResource(R.string.any_placeholder)
     val properties by viewModel.properties.collectAsState()
     val selectedProperty by viewModel.selectedProperty.collectAsState()
     // Search Bar
     var searchText by remember { mutableStateOf("Guatemala") }
-    
+
     // Filter dropdown state
     var showFilters by remember { mutableStateOf(false) }
-    
+
     // Filter states
     var name by remember { mutableStateOf(filterName) }
     var minPrice by remember { mutableStateOf(filterMinPrice?.toString() ?: "") }
     var maxPrice by remember { mutableStateOf(filterMaxPrice?.toString() ?: "") }
     var capacity by remember { mutableStateOf(filterCapacity?.toString() ?: "") }
     var location by remember { mutableStateOf(filterLocation) }
-    
+
     // ComboBox Tipo de propiedad
     val propertyTypes = listOf(anyPlaceholder, "Apartamento", "Casa", "Hotel", "Hostel")
     var selectedType by remember { mutableStateOf(if (filterType.isBlank()) propertyTypes.first() else filterType) }
     var typeExpanded by remember { mutableStateOf(false) }
-    
+
     // ComboBox Aprobación
     val approvalOptions = listOf(anyPlaceholder, "Sí", "No")
     var selectedApproved by remember { mutableStateOf(if (filterApproved.isBlank()) approvalOptions.first() else filterApproved) }
     var approvedExpanded by remember { mutableStateOf(false) }
     val filteredProperties = properties.filter { property ->
-        // Filtro por nombre 
+
+        val matchesSearch = searchText.isBlank() ||
+                property.name.contains(searchText, ignoreCase = true) ||
+                property.location.contains(searchText, ignoreCase = true)
+
+        // Filtro por nombre
         val matchesName = name.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.name.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
-        // Filtro por ubicación 
+        // Filtro por ubicación
         val matchesLocation = location.takeIf { it.isNotBlank() }?.let { searchTerm ->
             property.location.trim().contains(searchTerm.trim(), ignoreCase = true)
         } ?: true
 
         // Filtros de precio
-        val matchesMinPrice = minPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { minPriceValue -> 
-            property.pricePerNight >= minPriceValue 
+        val matchesMinPrice = minPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { minPriceValue ->
+            property.pricePerNight >= minPriceValue
         } ?: true
-        
-        val matchesMaxPrice = maxPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { maxPriceValue -> 
-            property.pricePerNight <= maxPriceValue 
+
+        val matchesMaxPrice = maxPrice.takeIf { it.isNotBlank() }?.toDoubleOrNull()?.let { maxPriceValue ->
+            property.pricePerNight <= maxPriceValue
         } ?: true
-        
-        // Filtro de capacidad 
-        val matchesCapacity = capacity.takeIf { it.isNotBlank() }?.toIntOrNull()?.let { requiredCapacity -> 
-            property.capacity >= requiredCapacity 
+
+        // Filtro de capacidad
+        val matchesCapacity = capacity.takeIf { it.isNotBlank() }?.toIntOrNull()?.let { requiredCapacity ->
+            property.capacity >= requiredCapacity
         } ?: true
 
         // Filtro por tipo de propiedad
@@ -153,7 +164,7 @@ fun DiscoverScreen(
         } ?: true
 
         // Todos los filtros deben coincidir
-        matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
+        matchesSearch && matchesName && matchesLocation && matchesMinPrice && matchesMaxPrice &&
                 matchesCapacity && matchesType && matchesApproved
     }
 
@@ -163,145 +174,152 @@ fun DiscoverScreen(
         position = CameraPosition.fromLatLngZoom(guatemala, 8f)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // Status Bar Space
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(
+    Scaffold(
+        topBar = {
+            LogoAppTopBar(onLogout = onLogout)
+        },
+        bottomBar = {
+            AppBottomNavBar(currentScreen = "Discover")
+        }
+    ){
+            innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color.White)
         ) {
-            // Card de búsqueda (solo diseño)
-            Card(
+            // Status Bar Space
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
                 modifier = Modifier
-                    .weight(1f) // Ocupa todo el espacio disponible
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text(stringResource(R.string.search_button)) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        if (searchText.isNotEmpty()) {
+                            IconButton(onClick = { searchText = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1f)
+                        .height(56.dp)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                // Ícono pequeño de filtros
+                IconButton(
+                    onClick = { showFilters = !showFilters },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color.White)
                 ) {
-                    Text(
-                        text = searchLabel,
-                        color = Color.Gray
+                    Icon(
+                        imageVector = Icons.Default.FilterAlt,
+                        contentDescription = "Filtros",
+                        tint = Color.Black,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
 
-            // Ícono pequeño de filtros
-            IconButton(
-                onClick = { showFilters = !showFilters },
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color.White)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FilterAlt,
-                    contentDescription = "Filtros",
-                    tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+            // Filter Card
+            if (showFilters) {
+                FilterCard(
+                    name = name,
+                    onNameChange = { name = it },
+                    minPrice = minPrice,
+                    onMinPriceChange = { minPrice = it },
+                    maxPrice = maxPrice,
+                    onMaxPriceChange = { maxPrice = it },
+                    capacity = capacity,
+                    onCapacityChange = { capacity = it },
+                    location = location,
+                    onLocationChange = { location = it },
+                    selectedType = selectedType,
+                    onTypeChange = { selectedType = it },
+                    typeExpanded = typeExpanded,
+                    onTypeExpandedChange = { typeExpanded = it },
+                    propertyTypes = propertyTypes,
+                    selectedApproved = selectedApproved,
+                    onApprovedChange = { selectedApproved = it },
+                    approvedExpanded = approvedExpanded,
+                    onApprovedExpandedChange = { approvedExpanded = it },
+                    approvalOptions = approvalOptions,
+                    onClearFilters = {
+                        name = ""
+                        minPrice = ""
+                        maxPrice = ""
+                        capacity = ""
+                        location = ""
+                        selectedType = propertyTypes.first()
+                        selectedApproved = approvalOptions.first()
+                    },
+                    onClose = { showFilters = false }
                 )
             }
-        }
-        
-        // Filter Card
-        if (showFilters) {
-            FilterCard(
-                name = name,
-                onNameChange = { name = it },
-                minPrice = minPrice,
-                onMinPriceChange = { minPrice = it },
-                maxPrice = maxPrice,
-                onMaxPriceChange = { maxPrice = it },
-                capacity = capacity,
-                onCapacityChange = { capacity = it },
-                location = location,
-                onLocationChange = { location = it },
-                selectedType = selectedType,
-                onTypeChange = { selectedType = it },
-                typeExpanded = typeExpanded,
-                onTypeExpandedChange = { typeExpanded = it },
-                propertyTypes = propertyTypes,
-                selectedApproved = selectedApproved,
-                onApprovedChange = { selectedApproved = it },
-                approvedExpanded = approvedExpanded,
-                onApprovedExpandedChange = { approvedExpanded = it },
-                approvalOptions = approvalOptions,
-                onClearFilters = {
-                    name = ""
-                    minPrice = ""
-                    maxPrice = ""
-                    capacity = ""
-                    location = ""
-                    selectedType = propertyTypes.first()
-                    selectedApproved = approvalOptions.first()
-                },
-                onClose = { showFilters = false }
-            )
-        }
-        
-        // Google Maps
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(8.dp))
-        ) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    isMyLocationEnabled = false,
-                    mapStyleOptions = null
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = false,
-                    myLocationButtonEnabled = false
-                )
-            ) {
-                filteredProperties.forEach { property ->
-                    // Verificar que las coordenadas no sean nulas
-                    val latitude = property.latitude ?: 0.0
-                    val longitude = property.longitude ?: 0.0
 
-                    if (latitude != 0.0 && longitude != 0.0) {
-                        Marker(
-                            state = MarkerState(position = LatLng(latitude, longitude)),
-                            title = property.name,
-                            snippet = property.description,
-                            onClick = {
-                                viewModel.getPropertyById(property.id)
-                                false
-                            }
-                        )
+            // Google Maps
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState,
+                    properties = MapProperties(
+                        isMyLocationEnabled = false,
+                        mapStyleOptions = null
+                    ),
+                    uiSettings = MapUiSettings(
+                        zoomControlsEnabled = false,
+                        myLocationButtonEnabled = false
+                    )
+                ) {
+                    filteredProperties.forEach { property ->
+                        // Verificar que las coordenadas no sean nulas
+                        val latitude = property.latitude ?: 0.0
+                        val longitude = property.longitude ?: 0.0
+
+                        if (latitude != 0.0 && longitude != 0.0) {
+                            Marker(
+                                state = MarkerState(position = LatLng(latitude, longitude)),
+                                title = property.name,
+                                snippet = property.description,
+                                onClick = {
+                                    viewModel.getPropertyById(property.id)
+                                    false
+                                }
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Properties Found Section
-        selectedProperty?.let { property ->
-            PropertyCard(
-                property = property,
-                onClose = { viewModel.clearSelectedProperty() }
-            )
+            // Properties Found Section
+            selectedProperty?.let { property ->
+                PropertyCard(
+                    property = property,
+                    onClose = { viewModel.clearSelectedProperty() }
+                )
+            }
         }
-
-        // Bottom Navigation
-        BottomNavigationBar(onFilterClick = { showFilters = !showFilters })
     }
 }
 
@@ -376,11 +394,10 @@ fun PropertyCard(property: Property, onClose: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔹 Botón de reserva
             Button(
                 onClick = {
                     val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                    intent.putExtra("propertyId", property.id) // puedes enviar el id si lo necesitas
+                    intent.putExtra("propertyId", property.id)
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -468,7 +485,7 @@ fun FilterCard(
                     )
                 }
             }
-            
+
             // Nombre
             OutlinedTextField(
                 value = name,
@@ -479,7 +496,7 @@ fun FilterCard(
 
             // Precio Min / Max
             Row(
-                modifier = Modifier.fillMaxWidth(), 
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 OutlinedTextField(
@@ -599,78 +616,6 @@ fun FilterCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(onFilterClick: () -> Unit = {}) {
-    val context = LocalContext.current
-    val searchLabel = stringResource(R.string.search_button)
-    val profileLabel = stringResource(R.string.profile_button)
-    val reservationLabel = stringResource(R.string.reservation_button)
-    NavigationBar(
-        containerColor = Color.White,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = searchLabel
-                )
-            },
-            label = { Text(searchLabel) },
-            selected = true,
-            onClick = {
-                val intent = Intent(context, DiscoverActivity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Luggage,
-                    contentDescription = reservationLabel
-                )
-            },
-            label = { Text(reservationLabel) },
-            selected = false,
-            onClick = {
-                val intent = Intent(context, uvg.edu.tripwise.reservation.ReservationPage1Activity::class.java)
-                context.startActivity(intent)
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = profileLabel
-                )
-            },
-            label = { Text(profileLabel) },
-            selected = false,
-            onClick = {
-                /* navegación al perfil */
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF1976D2),
-                selectedTextColor = Color(0xFF1976D2),
-                unselectedIconColor = Color.Gray,
-                unselectedTextColor = Color.Gray
-            )
-        )
     }
 }
 

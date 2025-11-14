@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.auth
 
+import android.content.Context.MODE_PRIVATE
 import uvg.edu.tripwise.MainActivity
 import uvg.edu.tripwise.admin.DashboardActivity
 import uvg.edu.tripwise.network.RetrofitInstance
@@ -22,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,16 +33,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import uvg.edu.tripwise.R
+import uvg.edu.tripwise.components.TripWiseLoadingOverlay
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.host.PropertiesHostActivity
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import uvg.edu.tripwise.ui.components.AppLogoHeader
+import java.io.IOException
 
 class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Verificar si el usuario ya está logueado
+        val sessionManager = SessionManager(this)
+        if (sessionManager.isLoggedIn()) {
+            Log.d("LoginActivity", "Usuario ya logueado: ID=${sessionManager.getUserId()}, Rol=${sessionManager.getUserRole()}")
+            val role = sessionManager.getUserRole()?.lowercase() ?: ""
+            val intent = when (role) {
+                "admin" -> Intent(this, DashboardActivity::class.java)
+                "user" -> Intent(this, DiscoverActivity::class.java)
+                "owner" -> Intent(this, PropertiesHostActivity::class.java)
+                else -> Intent(this, MainActivity::class.java)
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
         setContent {
             TripWiseTheme {
                 LoginScreen(
@@ -56,6 +78,9 @@ class LoginActivity : ComponentActivity() {
                             "owner" -> Intent(this, PropertiesHostActivity::class.java)
                             else -> Intent(this, MainActivity::class.java)
                         }
+                            .apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            }
                         startActivity(intent)
                         finish()
                     },
@@ -88,30 +113,15 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showSuccessSnackbar by remember { mutableStateOf(false) }
-    var userRole by remember { mutableStateOf("") }
-
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
 
-    val loginSuccessfulMsg = stringResource(R.string.login_successful)
     val pleaseFillAllFieldsMsg = stringResource(R.string.please_fill_all_fields)
     val userNotFoundMsg = stringResource(R.string.user_not_found)
     val incorrectCredentialsMsg = stringResource(R.string.incorrect_credentials)
     val serverErrorMsg = stringResource(R.string.server_error)
     val connectionErrorMsg = stringResource(R.string.connection_error)
-
-    LaunchedEffect(showSuccessSnackbar) {
-        if (showSuccessSnackbar) {
-            snackbarHostState.showSnackbar(
-                message = loginSuccessfulMsg,
-                duration = SnackbarDuration.Short
-            )
-            kotlinx.coroutines.delay(1000)
-            onLoginSuccess(userRole)
-            showSuccessSnackbar = false
-        }
-    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -235,7 +245,8 @@ fun LoginScreen(
                             focusedContainerColor = Color(0xFFEBF4FF),
                             unfocusedContainerColor = Color(0xFFEBF4FF)
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !isLoading
                     )
 
                     Text(
@@ -272,7 +283,8 @@ fun LoginScreen(
                             focusedContainerColor = Color(0xFFEBF4FF),
                             unfocusedContainerColor = Color(0xFFEBF4FF)
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        enabled = !isLoading
                     )
 
                     Row(
@@ -288,7 +300,8 @@ fun LoginScreen(
                                 onCheckedChange = { rememberMe = it },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = Color(0xFF2563EB)
-                                )
+                                ),
+                                enabled = !isLoading
                             )
                             Text(
                                 text = stringResource(R.string.remember_me),
@@ -302,7 +315,9 @@ fun LoginScreen(
                             fontSize = 14.sp,
                             color = Color(0xFF2563EB),
                             textDecoration = TextDecoration.Underline,
-                            modifier = Modifier.clickable { onForgotPasswordClick() }
+                            modifier = Modifier.clickable(enabled = !isLoading) {
+                                onForgotPasswordClick()
+                            }
                         )
                     }
 
@@ -330,36 +345,66 @@ fun LoginScreen(
                                 return@Button
                             }
 
+                            errorMessage = null
+                            isLoading = true
+
                             coroutineScope.launch {
                                 try {
-                                    isLoading = true
-                                    errorMessage = null
-
-                                    val loginRequest = Login(email = email, password = password)
-                                    val response = RetrofitInstance.api.login(loginRequest)
+                                    Log.d("LoginActivity", "Intentando login con email: $email")
+                                    val response = RetrofitInstance.api.login(Login(email, password))
+                                    Log.d("LoginActivity", "Respuesta del servidor: ${response.code()}")
 
                                     if (response.isSuccessful) {
-                                        val responseBody = response.body()
-                                        val token = responseBody?.get("token")
-                                        val userEmail = responseBody?.get("email")
-                                        val role = responseBody?.get("role") ?: "user"
+                                        val loginResponse = response.body()
 
-                                        Log.d("LoginActivity", "Login successful. Token: $token, Email: $userEmail, Role: $role")
+                                        if (loginResponse != null) {
+                                            val userId = loginResponse._id
+                                            val token = loginResponse.token
+                                            val userEmail = loginResponse.email
+                                            val role = loginResponse.role
 
-                                        userRole = role
-                                        showSuccessSnackbar = true
+                                            Log.d("LoginActivity", "Login exitoso: ID=$userId, Rol=$role")
+                                            sessionManager.saveUserDetails(token, userId, userEmail, role)
+
+                                            // Guardar también en SharedPreferences para compatibilidad
+                                            val prefs = context.getSharedPreferences("auth", MODE_PRIVATE)
+                                            prefs.edit()
+                                                .putString("USER_ID", userId)
+                                                .putString("user_id", userId)
+                                                .putString("TOKEN", token)
+                                                .putString("ROLE", role)
+                                                .apply()
+
+                                            // Pequeño delay para UX
+                                            kotlinx.coroutines.delay(800)
+                                            onLoginSuccess(role)
+                                        } else {
+                                            Log.e("LoginActivity", "Login failed: Response body is null")
+                                            errorMessage = serverErrorMsg
+                                            isLoading = false
+                                        }
                                     } else {
                                         when (response.code()) {
                                             404 -> errorMessage = userNotFoundMsg
                                             401 -> errorMessage = incorrectCredentialsMsg
-                                            else -> errorMessage = "$serverErrorMsg ${response.code()}"
+                                            else -> {
+                                                Log.e("LoginActivity", "Error HTTP: ${response.code()}")
+                                                errorMessage = "$serverErrorMsg ${response.code()}"
+                                            }
                                         }
-                                        Log.e("LoginActivity", "Login failed: ${response.code()} - ${response.message()}")
+                                        isLoading = false
                                     }
-                                } catch (e: Exception) {
-                                    Log.e("LoginActivity", "Login error", e)
+                                } catch (e: HttpException) {
+                                    Log.e("LoginActivity", "Error HTTP: ${e.message()}", e)
+                                    errorMessage = serverErrorMsg
+                                    isLoading = false
+                                } catch (e: IOException) {
+                                    Log.e("LoginActivity", "Error de conexión: ${e.message}", e)
                                     errorMessage = connectionErrorMsg
-                                } finally {
+                                    isLoading = false
+                                } catch (e: Exception) {
+                                    Log.e("LoginActivity", "Error inesperado: ${e.message}", e)
+                                    errorMessage = serverErrorMsg
                                     isLoading = false
                                 }
                             }
@@ -373,20 +418,12 @@ fun LoginScreen(
                         ),
                         enabled = !isLoading
                     ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(R.string.sign_in),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.sign_in),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -410,14 +447,16 @@ fun LoginScreen(
                             text = stringResource(R.string.google),
                             icon = Icons.Default.Email,
                             onClick = { /* TODO: Google login */ },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isLoading
                         )
 
                         SocialLoginButton(
                             text = stringResource(R.string.facebook),
                             icon = Icons.Default.Facebook,
                             onClick = { /* TODO: Facebook login */ },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            enabled = !isLoading
                         )
                     }
 
@@ -437,24 +476,21 @@ fun LoginScreen(
                             fontSize = 14.sp,
                             color = Color(0xFF2563EB),
                             fontWeight = FontWeight.Medium,
-                            modifier = Modifier.clickable { onSignUpClick() }
+                            modifier = Modifier.clickable(enabled = !isLoading) {
+                                onSignUpClick()
+                            }
                         )
                     }
                 }
             }
         }
 
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) { snackbarData ->
-            Snackbar(
-                snackbarData = snackbarData,
-                containerColor = Color(0xFF4CAF50),
-                contentColor = Color.White,
-                shape = RoundedCornerShape(8.dp)
+        if (isLoading) {
+            TripWiseLoadingOverlay(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(2f),
+                message = "Iniciando sesión..."
             )
         }
     }
@@ -465,7 +501,8 @@ fun SocialLoginButton(
     text: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -474,7 +511,8 @@ fun SocialLoginButton(
         colors = ButtonDefaults.outlinedButtonColors(
             contentColor = Color.Black
         ),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD1D5DB))
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFD1D5DB)),
+        enabled = enabled
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

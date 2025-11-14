@@ -17,5 +17,5 @@ data class Property(
     val latitude: Double?,
     val longitude: Double?,
     val createdAt: String,
-    val deleted: Deleted // Usa el mismo modelo Deleted
+    val deleted: Deleted
 )

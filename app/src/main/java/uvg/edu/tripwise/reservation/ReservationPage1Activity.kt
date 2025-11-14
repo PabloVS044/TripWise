@@ -35,6 +35,7 @@ import uvg.edu.tripwise.R
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class ReservationPage1Activity : ComponentActivity() {
@@ -57,7 +58,6 @@ fun ReservationScreen(propertyId: String) {
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
 
-    // Cargar la propiedad desde la API
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -69,8 +69,9 @@ fun ReservationScreen(propertyId: String) {
         }
     }
 
-    // Estado para número de viajeros
     var viajeros by remember { mutableStateOf(2) }
+    var checkInDate by remember { mutableStateOf("15/12/2025") }
+    var checkOutDate by remember { mutableStateOf("20/12/2025") }
 
     Scaffold(
         containerColor = Color.White,
@@ -84,47 +85,7 @@ fun ReservationScreen(propertyId: String) {
             })
         },
         bottomBar = {
-            NavigationBar(containerColor = Color(0xFFF7F0F7)) {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                    label = { Text("Buscar") },
-                    selected = false,
-                    onClick = {
-                        val intent = Intent(context, DiscoverActivity::class.java)
-                        context.startActivity(intent)
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF1976D2),
-                        selectedTextColor = Color(0xFF1976D2),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservas") },
-                    label = { Text("Reservas") },
-                    selected = true,
-                    onClick = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF1976D2),
-                        selectedTextColor = Color(0xFF1976D2),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                    label = { Text("Perfil") },
-                    selected = false,
-                    onClick = {},
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF1976D2),
-                        selectedTextColor = Color(0xFF1976D2),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    )
-                )
-            }
+            AppBottomNavBar(currentScreen = "Reservation")
         }
     ) { innerPadding ->
 
@@ -179,21 +140,20 @@ fun ReservationScreen(propertyId: String) {
                         }
                     }
 
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(12.dp))
 
-                    // Fechas
                     Column {
                         OutlinedTextField(
-                            value = "15/12/2025",
-                            onValueChange = {},
+                            value = checkInDate,
+                            onValueChange = { checkInDate = it },
                             label = { Text("Check-in") },
                             leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(12.dp))
                         OutlinedTextField(
-                            value = "20/12/2025",
-                            onValueChange = {},
+                            value = checkOutDate,
+                            onValueChange = { checkOutDate = it },
                             label = { Text("Check-out") },
                             leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
                             modifier = Modifier.fillMaxWidth()
@@ -244,9 +204,16 @@ fun ReservationScreen(propertyId: String) {
                 Button(
                     onClick = {
                         property?.let { p ->
-                            val intent = Intent(context, ReservationPage2Activity::class.java)
-                            intent.putExtra("propertyId", p.id)          // ✅ usamos p.id
-                            intent.putExtra("numTravelers", viajeros)    // ✅ número de viajeros
+                            val days = calculateDays(checkInDate, checkOutDate)
+                            val totalPayment = p.pricePerNight * days
+
+                            val intent = Intent(context, ReservationPage3Activity::class.java)
+                            intent.putExtra("propertyId", p.id)
+                            intent.putExtra("numTravelers", viajeros)
+                            intent.putExtra("checkInDate", checkInDate)
+                            intent.putExtra("checkOutDate", checkOutDate)
+                            intent.putExtra("days", days)
+                            intent.putExtra("payment", totalPayment)
                             context.startActivity(intent)
                         }
                     },
@@ -261,6 +228,18 @@ fun ReservationScreen(propertyId: String) {
 
             }
         }
+    }
+}
+
+fun calculateDays(checkIn: String, checkOut: String): Int {
+    return try {
+        val format = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        val startDate = format.parse(checkIn)
+        val endDate = format.parse(checkOut)
+        val diff = endDate.time - startDate.time
+        (diff / (1000 * 60 * 60 * 24)).toInt()
+    } catch (e: Exception) {
+        1
     }
 }
 

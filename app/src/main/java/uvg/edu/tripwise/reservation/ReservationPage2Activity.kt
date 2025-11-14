@@ -27,19 +27,30 @@ import kotlinx.coroutines.launch
 import uvg.edu.tripwise.discover.DiscoverActivity
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
 class ReservationPage2Activity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Recibimos datos de la pantalla anterior
         val propertyId = intent.getStringExtra("propertyId") ?: ""
         val numTravelers = intent.getIntExtra("numTravelers", 1)
+        val checkInDate = intent.getStringExtra("checkInDate") ?: ""
+        val checkOutDate = intent.getStringExtra("checkOutDate") ?: ""
+        val days = intent.getIntExtra("days", 1)
+        val payment = intent.getDoubleExtra("payment", 0.0)
 
         setContent {
             TripWiseTheme {
-                ReservationPage2Screen(propertyId, numTravelers)
+                ReservationPage2Screen(
+                    propertyId = propertyId,
+                    numTravelers = numTravelers,
+                    checkInDate = checkInDate,
+                    checkOutDate = checkOutDate,
+                    days = days,
+                    payment = payment
+                )
             }
         }
     }
@@ -47,11 +58,17 @@ class ReservationPage2Activity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReservationPage2Screen(propertyId: String, numTravelers: Int) {
+fun ReservationPage2Screen(
+    propertyId: String,
+    numTravelers: Int,
+    checkInDate: String,
+    checkOutDate: String,
+    days: Int,
+    payment: Double
+) {
     val context = LocalContext.current
     var property by remember { mutableStateOf<Property?>(null) }
 
-    // ✅ Obtener datos de la propiedad desde la API
     LaunchedEffect(propertyId) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -115,16 +132,18 @@ fun ReservationPage2Screen(propertyId: String, numTravelers: Int) {
                             Text("Atrás")
                         }
 
-                        // ✅ Botón Siguiente (lleva a ReservationPage3Activity)
                         Button(
                             onClick = {
                                 Log.d("DEBUG", "Going to ReservationPage3Activity with $numTravelers travelers for propertyId $propertyId")
                                 val intent = Intent(context, ReservationPage3Activity::class.java)
                                 intent.putExtra("propertyId", propertyId)
                                 intent.putExtra("numTravelers", numTravelers)
+                                intent.putExtra("checkInDate", checkInDate)
+                                intent.putExtra("checkOutDate", checkOutDate)
+                                intent.putExtra("days", days)
+                                intent.putExtra("payment", payment)
                                 context.startActivity(intent)
-                            }
-                            ,
+                            },
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
                         ) {
                             Text("Siguiente", color = Color.White)
@@ -133,47 +152,7 @@ fun ReservationPage2Screen(propertyId: String, numTravelers: Int) {
                 }
 
                 //  Barra inferior de navegación
-                NavigationBar(containerColor = Color(0xFFF7F0F7)) {
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
-                        label = { Text("Buscar") },
-                        selected = false,
-                        onClick = {
-                            val intent = Intent(context, DiscoverActivity::class.java)
-                            context.startActivity(intent)
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Luggage, contentDescription = "Reservas") },
-                        label = { Text("Reservas") },
-                        selected = true,
-                        onClick = {},
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                    NavigationBarItem(
-                        icon = { Icon(Icons.Default.Person, contentDescription = "Perfil") },
-                        label = { Text("Perfil") },
-                        selected = false,
-                        onClick = {},
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF1976D2),
-                            selectedTextColor = Color(0xFF1976D2),
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
-                        )
-                    )
-                }
+                AppBottomNavBar(currentScreen = "Reservation")
             }
         }
     ) { innerPadding ->

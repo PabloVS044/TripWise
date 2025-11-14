@@ -72,7 +72,8 @@ fun RegisterScreen(
     var selectedAmenities by remember { mutableStateOf(setOf<String>()) }
 
     var selectedInterests by remember { mutableStateOf(setOf<String>()) }
-
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
     val wifiText = stringResource(R.string.wifi)
     val poolText = stringResource(R.string.pool)
     val kitchenText = stringResource(R.string.kitchen)
@@ -114,7 +115,7 @@ fun RegisterScreen(
     }
 
     fun getMaxSteps(): Int {
-        return if (selectedRole == "owner") 4 else 3
+        return if (selectedRole == "owner") 3 else 3
     }
 
     fun mapPropertyType(frontendType: String): String {
@@ -193,9 +194,9 @@ fun RegisterScreen(
                             amenities = mapAmenities(selectedAmenities),
                             propertyType = mapPropertyType(propertyType),
                             owner = user.id,
-                            approved = "pending",
-                            latitude = 14.5984,
-                            longitude = -90.5155
+                            approved = "approved",
+                            latitude = latitude,
+                            longitude = longitude
                         )
 
                         Log.d("RegisterActivity", "Enviando request de propiedad: $propertyRequest")
@@ -273,7 +274,9 @@ fun RegisterScreen(
                         onPropertyTypeChange = { propertyType = it },
                         onSelectedAmenitiesChange = { selectedAmenities = it },
                         totalSteps = getMaxSteps(),
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        onLatitudeChange = { latitude = it },
+                        onLongitudeChange = { longitude = it },
                     )
                 } else {
                     InterestsScreen(
@@ -285,16 +288,6 @@ fun RegisterScreen(
                 }
             }
 
-            3 -> {
-                if (selectedRole == "owner") {
-                    InterestsScreen(
-                        selectedInterests = selectedInterests,
-                        onInterestsChanged = { selectedInterests = it },
-                        totalSteps = getMaxSteps(),
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
         }
 
         LinearProgressIndicator(

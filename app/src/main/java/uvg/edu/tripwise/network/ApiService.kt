@@ -2,14 +2,13 @@ package uvg.edu.tripwise.network
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 import uvg.edu.tripwise.data.model.Property
+import uvg.edu.tripwise.data.model.Deleted
 
+// ==================== DATA CLASSES ====================
+
+// ---------- USERS ----------
 data class ApiUser(
     @SerializedName("_id") val id: String,
     val name: String,
@@ -26,11 +25,6 @@ data class ApiUser(
     val deleted: Deleted? = null
 )
 
-data class Deleted(
-    @SerializedName("is") val isDeleted: Boolean,
-    val at: String? = null
-)
-
 data class CreateUserRequest(
     val name: String,
     val email: String,
@@ -38,6 +32,44 @@ data class CreateUserRequest(
     val pfp: String? = null,
     val role: String? = null,
     val interests: List<String>? = null
+)
+
+data class UpdateUserRequest(
+    val name: String? = null,
+    val email: String? = null,
+    val pfp: String? = null,
+    val role: String? = null,
+    val interests: List<String>? = null
+)
+
+data class UpdatePasswordRequest(
+    val currentPassword: String,
+    val newPassword: String
+)
+
+// ---------- PROPERTIES ----------
+data class ApiProperty(
+    @SerializedName("_id") val _id: String,
+    val name: String,
+    val description: String,
+    val location: String,
+    val pricePerNight: Double,
+    val capacity: Number,
+    val pictures: List<String>,
+    val amenities: List<String>,
+    val propertyType: String,
+    val owner: String,
+    val approved: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val createdAt: String,
+    val deleted: PropertyDeleted,
+    val reviews: List<ApiReviewItem>? = null
+)
+
+data class PropertyDeleted(
+    @SerializedName("is") val `is`: Boolean,
+    val at: String? = null
 )
 
 data class CreatePropertyRequest(
@@ -51,64 +83,176 @@ data class CreatePropertyRequest(
     val propertyType: String,
     val owner: String,
     val approved: String,
-    val latitude: Double,
-    val longitude: Double
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
-data class UpdateUserRequest(
+data class UpdatePropertyRequest(
     val name: String? = null,
-    val email: String? = null,
-    val pfp: String? = null,
-    val role: String? = null
+    val description: String? = null,
+    val location: String? = null,
+    val pricePerNight: Double? = null,
+    val capacity: Int? = null,
+    val pictures: List<String>? = null,
+    val amenities: List<String>? = null,
+    val propertyType: String? = null,
+    val approved: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
-data class ApiProperty(
-    @SerializedName("_id") val _id: String,
-    val name: String,
-    val description: String,
-    val location: String,
-    val pricePerNight: Double,
-    val capacity: Number, // Changed from Int to Number to handle potential float values
-    val pictures: List<String>,
-    val amenities: List<String>,
-    val propertyType: String,
-    val owner: String,
-    val approved: String,
-    val latitude: Double,
-    val longitude: Double,
-    val createdAt: String,
-    val deleted: PropertyDeleted,
-    val reviews: List<Map<String, String>>? = null // Added to match backend schema
-)
-
-data class PropertyDeleted(
-    @SerializedName("is") val `is`: Boolean,
-    val at: String? = null
-)
-data class Login (
+// ---------- AUTH ----------
+data class Login(
     val email: String,
     val password: String
 )
 
-data class Property(
-    val id: String,
-    val name: String,
-    val description: String,
-    val location: String,
-    val pricePerNight: Double,
-    val capacity: Number,
-    val pictures: List<String>,
-    val amenities: List<String>,
-    val propertyType: String,
-    val owner: String,
-    val approved: String,
-    val latitude: Double,
-    val longitude: Double,
-    val createdAt: String,
-    val isDeleted: Boolean
+data class LoginResponse(
+    @SerializedName("_id") val _id: String,
+    val token: String,
+    val email: String,
+    val role: String
 )
 
+// ---------- RESERVATIONS ----------
+data class CreateReservationRequest(
+    val reservationUser: String,
+    val propertyBooked: String,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val payment: Double,
+    val persons: Int,
+    val days: Int
+)
+
+data class ReservationResponse(
+    @SerializedName("_id") val id: String,
+    val reservationUser: ApiUser,
+    val propertyBooked: ApiProperty,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val payment: Double,
+    val state: String,
+    val persons: Int,
+    val days: Int,
+    val itinerary: ItineraryResponse?
+)
+
+data class UpdateReservationRequest(
+    val checkInDate: String? = null,
+    val checkOutDate: String? = null,
+    val payment: Double? = null,
+    val persons: Int? = null,
+    val days: Int? = null,
+    val state: String? = null
+)
+
+data class CreateReservationResponse(
+    val reservation: ReservationResponse,
+    val itinerary: ItineraryResponse?,
+    val message: String
+)
+
+// ---------- ITINERARIES ----------
+data class ItineraryResponse(
+    @SerializedName("_id") val id: String,
+    val restaurants: List<String>,
+    val touristicPlaces: List<String>,
+    val activities: List<String>,
+    val schedules: List<String>,
+    val days: List<Int>
+)
+
+data class UpdateItineraryRequest(
+    val restaurants: List<String>? = null,
+    val touristicPlaces: List<String>? = null,
+    val activities: List<String>? = null,
+    val schedules: List<String>? = null,
+    val days: List<Int>? = null
+)
+
+// ---------- PROPERTY RESERVATIONS AGGREGATE ----------
+data class PropertyReservationsResponse(
+    val property: PropertyInfo,
+    val totalReservations: Int,
+    val reservations: List<ReservationItem>
+)
+
+data class PropertyInfo(
+    val id: String,
+    val name: String
+)
+
+data class ReservationItem(
+    val reservationId: String,
+    val user: ReservationUser,
+    val checkInDate: String,
+    val checkOutDate: String,
+    val days: Int,
+    val persons: Int,
+    val payment: Double,
+    val state: String,
+    val reservationDate: String,
+    val hasItinerary: Boolean
+)
+
+data class ReservationUser(
+    val id: String,
+    val name: String,
+    val email: String
+)
+
+// ---------- REVIEWS ----------
+data class ApiReviewsResponse(
+    val property: ApiPropertySummary,
+    val statistics: ApiStatistics,
+    val reviews: List<ApiReviewItem>
+)
+
+data class ApiPropertySummary(
+    val id: String,
+    val name: String
+)
+
+data class ApiStatistics(
+    val totalReviews: Int,
+    val averageScore: Double,
+    val scoreDistribution: Map<String, Int>
+)
+
+data class ApiReviewItem(
+    val reviewId: String,
+    val user: ApiUserMini,
+    val score: Int,
+    val date: String,
+    val likes: Int,
+    val commentsCount: Int,
+    val comments: List<ApiComment>
+)
+
+data class ApiUserMini(
+    val id: String,
+    val name: String,
+    val profilePicture: String?
+)
+
+data class ApiComment(
+    @SerializedName("_id") val id: String,
+    val userId: String,
+    @SerializedName(value = "comment", alternate = ["text"])
+    val comment: String?,
+    val date: String
+)
+
+// ---------- AVAILABILITY ----------
+data class AvailabilityResponse(
+    val unavailableDates: List<String>
+)
+
+// ==================== API INTERFACES ====================
+
 interface UserApiService {
+    // ----- USERS -----
     @GET("users")
     suspend fun getUsers(): List<ApiUser>
 
@@ -121,34 +265,96 @@ interface UserApiService {
     @PUT("users/updateUser/{id}")
     suspend fun updateUser(@Path("id") id: String, @Body request: UpdateUserRequest): ApiUser
 
+    @PUT("users/updatePassword/{id}")
+    suspend fun updatePassword(@Path("id") id: String, @Body request: UpdatePasswordRequest): Response<Unit>
+
     @DELETE("users/deleteUser/{id}")
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
+    // ----- AUTH -----
+    @POST("login")
+    suspend fun login(@Body login: Login): Response<LoginResponse>
+
+    // ----- PROPERTIES -----
     @GET("property")
-    suspend fun getProperties(): List<ApiProperty>// Changed to Response for error handling
+    suspend fun getProperties(): List<ApiProperty>
 
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): ApiProperty
 
+    @POST("property/createProperty")
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+
+    @PUT("property/updateProperty/{id}")
+    suspend fun updateProperty(@Path("id") id: String, @Body request: UpdatePropertyRequest): Response<ApiProperty>
+
     @DELETE("property/deleteProperty/{id}")
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 
-    @POST("login")
-    suspend fun login(@Body login: Login): Response<Map<String, String>>
+    @GET("users/{id}/properties")
+    suspend fun getOwnerProperties(@Path("id") id: String): List<ApiProperty>
 
-    @POST("property/createProperty")
-    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<ApiProperty>
+    // ----- RESERVATIONS -----
+    @POST("reservation/createReservation")
+    suspend fun createReservation(@Body request: CreateReservationRequest): Response<CreateReservationResponse>
+
+    @GET("reservation/{id}")
+    suspend fun getReservationById(@Path("id") id: String): ReservationResponse
+
+    @GET("reservation/user/{userId}")
+    suspend fun getReservationsByUser(@Path("userId") userId: String): List<ReservationResponse>
+
+    @PUT("reservation/updateReservation/{id}")
+    suspend fun updateReservation(@Path("id") id: String, @Body request: UpdateReservationRequest): Response<ReservationResponse>
+
+    @DELETE("reservation/deleteReservation/{id}")
+    suspend fun deleteReservation(@Path("id") id: String): Response<Unit>
+
+    @GET("property/reservations/{propertyId}")
+    suspend fun getReservationsProperty(@Path("propertyId") propertyId: String): PropertyReservationsResponse
+
+    @GET("reservation/property/{propertyId}")
+    suspend fun getReservationsByProperty(@Path("propertyId") propertyId: String): List<ReservationResponse>
+
+    // ----- ITINERARIES -----
+    @GET("itinerary/{id}")
+    suspend fun getItineraryById(@Path("id") id: String): ItineraryResponse
+
+    @GET("itinerary/reservation/{reservationId}")
+    suspend fun getItineraryByReservation(@Path("reservationId") reservationId: String): ItineraryResponse
+
+    @PUT("itinerary/updateItinerary/{id}")
+    suspend fun updateItinerary(@Path("id") id: String, @Body request: UpdateItineraryRequest): Response<ItineraryResponse>
+
+    @DELETE("itinerary/deleteItinerary/{id}")
+    suspend fun deleteItinerary(@Path("id") id: String): Response<Unit>
+
+    @GET("itinerary/user/{userId}")
+    suspend fun getItinerariesByUser(@Path("userId") userId: String): List<ItineraryResponse>
+
+    // ----- REVIEWS -----
+    @GET("property/reviews/{id}")
+    suspend fun getReviewsByProperty(@Path("id") id: String): Response<ApiReviewsResponse>
+
+    // ----- AVAILABILITY -----
+    @GET("property/availability/{id}")
+    suspend fun getAvailability(@Path("id") propertyId: String): AvailabilityResponse
 }
 
+// Interfaz auxiliar para compatibilidad con RetrofitInstance.PropertyApi
 interface PropertyApiService {
     @GET("property")
     suspend fun getProperties(): List<Property>
+
     @GET("property/{id}")
     suspend fun getPropertyById(@Path("id") id: String): Property
+
     @POST("property/create")
-    suspend fun createProperty(): List<ApiProperty>
+    suspend fun createProperty(@Body property: CreatePropertyRequest): Response<Property>
+
     @PUT("property/{id}")
-    suspend fun updateProperty(): List<ApiProperty>
+    suspend fun updateProperty(@Path("id") id: String, @Body request: UpdatePropertyRequest): Response<Property>
+
     @DELETE("property/{id}")
-    suspend fun deleteProperty(id: String): List<ApiProperty>
+    suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 }
