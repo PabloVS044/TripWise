@@ -59,6 +59,12 @@ class DiscoverActivity : ComponentActivity() {
                 val capacity = intent.getStringExtra("capacity")?.toIntOrNull()
                 val propertyType = intent.getStringExtra("propertyType") ?: ""
                 val approved = intent.getStringExtra("approved") ?: ""
+                
+                // Parámetros de ubicación específica desde itinerario
+                val targetLatitude = intent.getDoubleExtra("targetLatitude", Double.NaN)
+                val targetLongitude = intent.getDoubleExtra("targetLongitude", Double.NaN)
+                val targetName = intent.getStringExtra("targetName") ?: ""
+                
                 DiscoverScreen(
                     filterName = name,
                     filterLocation = location,
@@ -67,6 +73,9 @@ class DiscoverActivity : ComponentActivity() {
                     filterCapacity = capacity,
                     filterType = propertyType,
                     filterApproved = approved,
+                    targetLatitude = if (!targetLatitude.isNaN()) targetLatitude else null,
+                    targetLongitude = if (!targetLongitude.isNaN()) targetLongitude else null,
+                    targetName = targetName,
                     onLogout = {
                         val intent = Intent(this, MainActivity::class.java)
                         startActivity(intent)
@@ -89,6 +98,9 @@ fun DiscoverScreen(
     filterCapacity: Int? = null,
     filterType: String = "",
     filterApproved: String = "",
+    targetLatitude: Double? = null,
+    targetLongitude: Double? = null,
+    targetName: String = "",
     onLogout: () -> Unit = {}
 ) {
     val anyPlaceholder = stringResource(R.string.any_placeholder)
@@ -168,10 +180,17 @@ fun DiscoverScreen(
                 matchesCapacity && matchesType && matchesApproved
     }
 
-    // Coordenadas de Guatemala como ubicación por defecto
-    val guatemala = LatLng(14.644734, -90.587886)
+    // Coordenadas de Guatemala como ubicación por defecto o ubicación específica del itinerario
+    val initialLocation = if (targetLatitude != null && targetLongitude != null) {
+        LatLng(targetLatitude, targetLongitude)
+    } else {
+        LatLng(14.644734, -90.587886) // Guatemala
+    }
+    
+    val initialZoom = if (targetLatitude != null && targetLongitude != null) 15f else 8f
+    
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(guatemala, 8f)
+        position = CameraPosition.fromLatLngZoom(initialLocation, initialZoom)
     }
 
     Scaffold(
@@ -292,6 +311,15 @@ fun DiscoverScreen(
                         myLocationButtonEnabled = false
                     )
                 ) {
+                    // Marcador especial para ubicación del itinerario
+                    if (targetLatitude != null && targetLongitude != null) {
+                        Marker(
+                            state = MarkerState(position = LatLng(targetLatitude, targetLongitude)),
+                            title = targetName.ifEmpty { "Ubicación del itinerario" },
+                            snippet = "Lat: ${"%.6f".format(targetLatitude)}, Lng: ${"%.6f".format(targetLongitude)}"
+                        )
+                    }
+                    
                     filteredProperties.forEach { property ->
                         // Verificar que las coordenadas no sean nulas
                         val latitude = property.latitude ?: 0.0

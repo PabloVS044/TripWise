@@ -54,86 +54,51 @@ class UserRepository {
     }
 
 
-        suspend fun updateUser(id: String, name: String?, email: String, pfp: String?, interests: List<String>?): User {
+    // --- FUNCIÓN 'updateUser' CORREGIDA ---
+    // Ahora acepta 'role' como parámetro
+    suspend fun updateUser(
+        id: String,
+        name: String?,
+        email: String,
+        pfp: String?,
+        role: String?, // <-- CAMBIO: Parámetro añadido
+        interests: List<String>?
+    ): User {
 
+        // Pasamos el 'role' al request
+        val req = UpdateUserRequest(
+            name = name,
+            email = email,
+            pfp = pfp,
+            role = role, // <-- CAMBIO: Parámetro añadido
+            interests = interests
+        )
 
-            val req = UpdateUserRequest(name = name, email = email, pfp = pfp, interests = interests)
+        val u = api.updateUser(id, req)
 
+        return User(
+            id = u.id,
+            name = u.name,
+            email = u.email,
+            pfp = u.pfp,
+            role = u.role,
+            properties = u.properties,
+            bookings = u.bookings,
+            itineraries = u.itineraries,
+            moneyProperty = u.moneyProperty,
+            moneyItinerary = u.moneyItinerary,
+            interests = u.interests,
+            createdAt = u.createdAt,
+            deleted = u.deleted?.let { d -> Deleted(isDeleted = d.isDeleted, at = d.at) }
+        )
+    }
 
-            val u = api.updateUser(id, req)
-
-
-            return User(
-
-
-                id = u.id,
-
-
-                name = u.name,
-
-
-                email = u.email,
-
-
-                pfp = u.pfp,
-
-
-                role = u.role,
-
-
-                properties = u.properties,
-
-
-                bookings = u.bookings,
-
-
-                itineraries = u.itineraries,
-
-
-                moneyProperty = u.moneyProperty,
-
-
-                moneyItinerary = u.moneyItinerary,
-
-
-                interests = u.interests,
-
-
-                createdAt = u.createdAt,
-
-
-                deleted = u.deleted?.let { d -> Deleted(isDeleted = d.isDeleted, at = d.at) }
-
-
-            )
-
-
+    suspend fun updatePassword(id: String, currentPassword: String, newPassword: String): Boolean {
+        return try {
+            val response = api.updatePassword(id, UpdatePasswordRequest(currentPassword, newPassword))
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
         }
-
-
-    
-
-
-        suspend fun updatePassword(id: String, currentPassword: String, newPassword: String): Boolean {
-
-
-            return try {
-
-
-                val response = api.updatePassword(id, UpdatePasswordRequest(currentPassword, newPassword))
-
-
-                response.isSuccessful
-
-
-            } catch (e: Exception) {
-
-
-                false
-
-
-            }
-
-
-        }
+    }
 }
