@@ -1,12 +1,14 @@
 package uvg.edu.tripwise.network
 
 import com.google.gson.annotations.SerializedName
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.model.Deleted
 
 // ==================== DATA CLASSES ====================
+// (ESTA SECCIÓN ESTABA INCOMPLETA EN TU ARCHIVO ORIGINAL)
 
 // ---------- USERS ----------
 data class ApiUser(
@@ -47,7 +49,7 @@ data class UpdatePasswordRequest(
     val newPassword: String
 )
 
-// ---------- PROPERTIES ----------
+// ---------- PROPERTIES (CLASES FALTANTES) ----------
 data class ApiProperty(
     @SerializedName("_id") val _id: String,
     val name: String,
@@ -101,7 +103,7 @@ data class UpdatePropertyRequest(
     val longitude: Double? = null
 )
 
-// ---------- AUTH ----------
+// ---------- AUTH (CLASES FALTANTES) ----------
 data class Login(
     val email: String,
     val password: String
@@ -114,7 +116,7 @@ data class LoginResponse(
     val role: String
 )
 
-// ---------- BUDGET ----------
+// ---------- BUDGET (CLASES FALTANTES) ----------
 data class BudgetDistribution(
     val food: Float = 40f,
     val places: Float = 40f,
@@ -135,14 +137,14 @@ data class BudgetInfo(
     val dailyBudgets: DailyBudgets = DailyBudgets()
 )
 
-// ---------- LOCATION ----------
+// ---------- LOCATION (CLASES FALTANTES) ----------
 data class LocationData(
     val name: String,
     val latitude: Double,
     val longitude: Double
 )
 
-// ---------- RESERVATIONS ----------
+// ---------- RESERVATIONS (CLASES FALTANTES) ----------
 data class CreateReservationRequest(
     val reservationUser: String,
     val propertyBooked: String,
@@ -183,7 +185,7 @@ data class CreateReservationResponse(
     val message: String
 )
 
-// ---------- ITINERARIES ----------
+// ---------- ITINERARIES (CLASES FALTANTES) ----------
 data class ItineraryResponse(
     @SerializedName("_id") val id: String,
     val restaurants: List<String>,
@@ -203,7 +205,7 @@ data class UpdateItineraryRequest(
     val days: List<Int>? = null
 )
 
-// ----- REVIEW DATA CLASSES -----
+// ----- REVIEW DATA CLASSES (CLASES FALTANTES) -----
 data class ReviewResponse(
     @SerializedName("_id") val id: String,
     val userId: String,
@@ -225,7 +227,7 @@ data class UpdateReviewRequest(
     val likes: Int? = null
 )
 
-// ---------- PROPERTY RESERVATIONS AGGREGATE ----------
+// ---------- PROPERTY RESERVATIONS AGGREGATE (CLASES FALTANTES) ----------
 data class PropertyReservationsResponse(
     val property: PropertyInfo,
     val totalReservations: Int,
@@ -256,7 +258,7 @@ data class ReservationUser(
     val email: String
 )
 
-// ---------- REVIEWS ----------
+// ---------- REVIEWS (CLASES FALTANTES) ----------
 data class ApiReviewsResponse(
     val property: ApiPropertySummary,
     val statistics: ApiStatistics,
@@ -298,12 +300,19 @@ data class ApiComment(
     val date: String
 )
 
-// ---------- AVAILABILITY ----------
+// ---------- AVAILABILITY (CLASES FALTANTES) ----------
 data class AvailabilityResponse(
     val unavailableDates: List<String>
 )
 
 typealias PropertyAvailabilityResponse = AvailabilityResponse
+
+// ---------- CLOUDINARY UPLOAD (LA QUE AÑADIMOS) ----------
+data class UploadImageResponse(
+    val message: String,
+    val url: String,
+    val public_id: String
+)
 
 // ==================== API INTERFACES ====================
 
@@ -328,11 +337,11 @@ interface UserApiService {
     @DELETE("users/deleteUser/{id}")
     suspend fun softDeleteUser(@Path("id") id: String): Response<Unit>
 
-    // ----- AUTH -----
+    // ----- AUTH (ENDPOINT FALTANTE) -----
     @POST("login")
     suspend fun login(@Body login: Login): Response<LoginResponse>
 
-    // ----- PROPERTIES -----
+    // ----- PROPERTIES (ENDPOINTS FALTANTES) -----
     @GET("property")
     suspend fun getProperties(): List<ApiProperty>
 
@@ -351,7 +360,7 @@ interface UserApiService {
     @GET("users/{id}/properties")
     suspend fun getOwnerProperties(@Path("id") id: String): List<ApiProperty>
 
-    // ----- RESERVATIONS -----
+    // ----- RESERVATIONS (ENDPOINTS FALTANTES) -----
     @POST("reservation/createReservation")
     suspend fun createReservation(@Body request: CreateReservationRequest): Response<CreateReservationResponse>
 
@@ -373,7 +382,7 @@ interface UserApiService {
     @GET("reservation/property/{propertyId}")
     suspend fun getReservationsByProperty(@Path("propertyId") propertyId: String): List<ReservationResponse>
 
-    // ----- ITINERARIES -----
+    // ----- ITINERARIES (ENDPOINTS FALTANTES) -----
     @GET("itinerary/{id}")
     suspend fun getItineraryById(@Path("id") id: String): ItineraryResponse
 
@@ -389,13 +398,20 @@ interface UserApiService {
     @GET("itinerary/user/{userId}")
     suspend fun getItinerariesByUser(@Path("userId") userId: String): List<ItineraryResponse>
 
-    // ----- REVIEWS -----
+    // ----- REVIEWS (ENDPOINT FALTANTE) -----
     @GET("property/reviews/{id}")
     suspend fun getReviewsByProperty(@Path("id") id: String): Response<ApiReviewsResponse>
 
-    // ----- AVAILABILITY -----
+    // ----- AVAILABILITY (ENDPOINT FALTANTE) -----
     @GET("property/availability/{id}")
     suspend fun getAvailability(@Path("id") propertyId: String): AvailabilityResponse
+
+    // ----- CLOUDINARY UPLOAD (EL QUE AÑADIMOS) -----
+    @Multipart
+    @POST("upload")
+    suspend fun uploadImage(
+        @Part image: MultipartBody.Part
+    ): UploadImageResponse
 }
 
 // Interfaz auxiliar para compatibilidad con RetrofitInstance.PropertyApi
@@ -419,6 +435,7 @@ interface PropertyApiService {
     suspend fun deleteProperty(@Path("id") id: String): Response<Unit>
 }
 
+// Interfaz auxiliar para compatibilidad con RetrofitInstance.ReviewApi
 interface ReviewApiService {
     @GET("review")
     suspend fun getReviews(): List<ReviewResponse>
