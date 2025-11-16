@@ -106,7 +106,7 @@ fun MyReservationsScreen() {
                 isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF7C3AED)
+                        color = Color(0xFF1E88E5)
                     )
                 }
                 errorMessage != null -> {
@@ -195,6 +195,11 @@ fun ReservationCard(
     reservation: ReservationResponse,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val isPastReservation = remember(reservation.checkOutDate) {
+        isReservationPast(reservation.checkOutDate)
+    }
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -285,19 +290,56 @@ fun ReservationCard(
                     text = "Q${String.format("%.2f", reservation.payment)}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    color = Color(0xFF7C3AED)
+                    color = Color(0xFF1E88E5)
                 )
 
-                if (reservation.itinerary != null) {
-                    Button(
-                        onClick = onClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF7C3AED)
-                        )
-                    ) {
-                        Icon(Icons.Default.Map, contentDescription = null)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Ver Itinerario")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Botón de review para reservaciones pasadas
+                    if (isPastReservation && reservation.state == "confirmed") {
+                        Button(
+                            onClick = {
+                                val intent = Intent(context, uvg.edu.tripwise.review.CreateReviewActivity::class.java)
+                                intent.putExtra("propertyId", reservation.propertyBooked._id)
+                                intent.putExtra("propertyName", reservation.propertyBooked.name)
+                                intent.putExtra("propertyImage", reservation.propertyBooked.pictures.firstOrNull() ?: "")
+                                intent.putExtra("propertyLocation", reservation.propertyBooked.location)
+                                context.startActivity(intent)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFC107)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Reseña", color = Color.White, fontSize = 14.sp)
+                        }
+                    }
+                    
+                    // Botón de itinerario
+                    if (reservation.itinerary != null) {
+                        Button(
+                            onClick = onClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1E88E5)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Map,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Itinerario", fontSize = 14.sp)
+                        }
                     }
                 }
             }
@@ -357,5 +399,17 @@ fun formatDate(dateString: String): String {
         outputFormat.format(date!!)
     } catch (e: Exception) {
         dateString
+    }
+}
+
+fun isReservationPast(checkOutDateString: String): Boolean {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val checkOutDate = inputFormat.parse(checkOutDateString)
+        val currentDate = Date()
+        checkOutDate?.before(currentDate) ?: false
+    } catch (e: Exception) {
+        false
     }
 }

@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,7 +30,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.network.BudgetInfo
 import uvg.edu.tripwise.network.ItineraryResponse
+import uvg.edu.tripwise.network.LocationData
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
@@ -62,7 +67,8 @@ data class ItineraryItem(
     val type: ItemType,
     val name: String,
     val day: Int,
-    val schedule: String
+    val schedule: String,
+    val location: LocationData? = null
 )
 
 enum class ItemType {
@@ -120,6 +126,11 @@ fun ItineraryScreen(
             val day = itinerary.days.getOrNull(i) ?: 1
             val schedule = itinerary.schedules[i]
             
+            // Encontrar la ubicación correspondiente
+            val location = itinerary.locations?.find { loc -> 
+                schedule.contains(loc.name, ignoreCase = true)
+            }
+            
             // Determinar el tipo de actividad basándose en palabras clave
             val type = when {
                 schedule.contains("Desayuno", ignoreCase = true) || 
@@ -152,7 +163,7 @@ fun ItineraryScreen(
                 else -> ItemType.SCHEDULE
             }
             
-            items.add(ItineraryItem(type, schedule, day, ""))
+            items.add(ItineraryItem(type, schedule, day, "", location))
         }
         
         return items
@@ -166,7 +177,7 @@ fun ItineraryScreen(
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.align(Alignment.Center),
-                color = Color(0xFF7C3AED)
+                color = Color(0xFF1E88E5)
             )
         } else if (errorMessage != null) {
             Column(
@@ -184,7 +195,7 @@ fun ItineraryScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = onBackPressed,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C3AED))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
                 ) {
                     Text("Regresar", color = Color.White)
                 }
@@ -200,7 +211,7 @@ fun ItineraryScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF7C3AED)),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Row(
@@ -247,6 +258,15 @@ fun ItineraryScreen(
                     TripInfoCard(itineraryData)
                 }
 
+                // Mostrar información de presupuesto si existe
+                itineraryData.budgetInfo?.let { budgetInfo ->
+                    if (budgetInfo.totalBudget > 0) {
+                        item {
+                            BudgetInfoCard(budgetInfo)
+                        }
+                    }
+                }
+
                 itineraryByDays.forEach { (day, items) ->
                     item {
                         DayHeader(day = day)
@@ -291,7 +311,7 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = "Información del Viaje",
+                text = stringResource(R.string.trip_info_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
                 color = Color(0xFF1E293B)
@@ -301,9 +321,126 @@ fun TripInfoCard(itinerary: ItineraryResponse) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                InfoItem("📅 Duración", "$maxDay días")
-                InfoItem("📋 Actividades", "${itinerary.schedules.size}")
-                InfoItem("🗺️ Lugares", "${itinerary.touristicPlaces.size}")
+                InfoItem("📅 ${stringResource(R.string.duration_label)}", stringResource(R.string.days_count, maxDay))
+                InfoItem("📋 ${stringResource(R.string.activities_label)}", "${itinerary.schedules.size}")
+                InfoItem("🗺️ ${stringResource(R.string.places_label)}", "${itinerary.touristicPlaces.size}")
+            }
+        }
+    }
+}
+
+@Composable
+fun BudgetInfoCard(budgetInfo: BudgetInfo) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.budget_title),
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Color(0xFF1E88E5)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.budget_total, String.format("%.2f", budgetInfo.totalBudget), budgetInfo.days),
+                fontSize = 14.sp,
+                color = Color(0xFF424242)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Presupuesto por día
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            stringResource(R.string.budget_per_day),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1E88E5)
+                        )
+                        Text(
+                            "Q${String.format("%.2f", budgetInfo.budgetPerDay)}",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Divider()
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // Comida
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.food_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_food), fontSize = 14.sp, color = Color(0xFF424242))
+                        }
+                        Text(
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.food), budgetInfo.distribution.food.toInt()),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Lugares
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.places_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_places), fontSize = 14.sp, color = Color(0xFF424242))
+                        }
+                        Text(
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.places), budgetInfo.distribution.places.toInt()),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    // Actividades
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.activities_emoji) + " ", fontSize = 16.sp)
+                            Text(stringResource(R.string.budget_activities), fontSize = 14.sp, color = Color(0xFF424242))
+                        }
+                        Text(
+                            stringResource(R.string.budget_percentage, String.format("%.2f", budgetInfo.dailyBudgets.activities), budgetInfo.distribution.activities.toInt()),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1E88E5)
+                        )
+                    }
+                }
             }
         }
     }
@@ -330,11 +467,11 @@ fun InfoItem(label: String, value: String) {
 fun DayHeader(day: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF7C3AED)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E88E5)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Text(
-            text = "Día $day",
+            text = stringResource(R.string.day_header, day),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
@@ -415,10 +552,24 @@ fun ItineraryItemCard(
     backgroundColor: Color,
     iconTint: Color
 ) {
+    val context = LocalContext.current
+    
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .clickable {
+                item.location?.let { loc ->
+                    // Navegar a DiscoverActivity con la ubicación específica
+                    val intent = Intent(context, uvg.edu.tripwise.discover.DiscoverActivity::class.java)
+                    intent.putExtra("targetLatitude", loc.latitude)
+                    intent.putExtra("targetLongitude", loc.longitude)
+                    intent.putExtra("targetName", loc.name)
+                    context.startActivity(intent)
+                } ?: run {
+                    Toast.makeText(context, context.getString(R.string.location_unavailable), Toast.LENGTH_SHORT).show()
+                }
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
@@ -442,6 +593,14 @@ fun ItineraryItemCard(
                 color = Color.Black.copy(alpha = 0.87f),
                 modifier = Modifier.weight(1f)
             )
+            if (item.location != null) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = stringResource(R.string.view_on_map),
+                    tint = Color(0xFF1E88E5),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
