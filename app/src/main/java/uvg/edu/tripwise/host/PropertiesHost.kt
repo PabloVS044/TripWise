@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.HolidayVillage
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -45,11 +44,14 @@ import kotlinx.coroutines.launch
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.repository.PropertyRepository
+import uvg.edu.tripwise.data.repository.HostStatsRepository
 import uvg.edu.tripwise.host.reviews.ReviewsSection
 import uvg.edu.tripwise.host.reviews.ReviewsViewModel
 import uvg.edu.tripwise.host.ReviewsViewModelFactory
 import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import java.text.NumberFormat
+import java.util.Locale
 
 private val PrimaryBlue = Color(0xFF2563EB)
 private val SuccessGreen = Color(0xFF0AA12E)
@@ -72,24 +74,51 @@ fun PropertiesHost(
     onLogout: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val repo = remember { PropertyRepository() }
     val scope = rememberCoroutineScope()
 
-    var selectedTab by remember { mutableStateOf(HostTab.Overview) }
-    var showSearchSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    // repos
+    val propRepo = remember { PropertyRepository() }
+    val statsRepo = remember { HostStatsRepository() }
 
+    // tabs/props
+    var selectedTab by remember { mutableStateOf(HostTab.Overview) }
     var properties by remember { mutableStateOf<List<Property>>(emptyList()) }
     var loadingProps by remember { mutableStateOf(false) }
     var errorProps by remember { mutableStateOf<String?>(null) }
-
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
+
+    // refresh
     var isRefreshing by remember { mutableStateOf(false) }
     var detailReloadTick by remember { mutableStateOf(0) }
 
+    // stats
+    var stats by remember { mutableStateOf<HostStatsRepository.HostStatsUi?>(null) }
+    var statsLoading by remember { mutableStateOf(false) }
+    var statsError by remember { mutableStateOf<String?>(null) }
+
     val reviewsViewModel: ReviewsViewModel = viewModel(
-        factory = ReviewsViewModelFactory(repo)
+        factory = ReviewsViewModelFactory(propRepo)
     )
+
+    fun loadOwnerStats() {
+        scope.launch {
+            val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
+            val userId = prefs.getString("USER_ID", prefs.getString("user_id", null))
+            if (userId.isNullOrBlank()) {
+                statsError = context.getString(R.string.error_no_user_session)
+                return@launch
+            }
+            try {
+                statsLoading = true
+                stats = statsRepo.getStatsUi(userId)
+                statsError = null
+            } catch (e: Exception) {
+                statsError = e.message
+            } finally {
+                statsLoading = false
+            }
+        }
+    }
 
     fun loadPropertiesForSession() {
         scope.launch {
@@ -102,9 +131,11 @@ fun PropertiesHost(
             }
             try {
                 loadingProps = true
-                val list = repo.getPropertiesByOwner(userId)
+                val list = propRepo.getPropertiesByOwner(userId)
                 properties = list
                 propertyId?.let { id -> list.firstOrNull { it.id == id }?.let { selectedProperty = it } }
+                // también carga stats aquí para el primer render
+                loadOwnerStats()
             } catch (e: Exception) {
                 errorProps = e.message
             } finally {
@@ -116,6 +147,8 @@ fun PropertiesHost(
 
     fun refreshHost() {
         isRefreshing = true
+        // refresca stats SIEMPRE
+        loadOwnerStats()
         if (selectedProperty == null) {
             loadPropertiesForSession()
         } else {
@@ -126,9 +159,6 @@ fun PropertiesHost(
     }
 
     LaunchedEffect(Unit) { loadPropertiesForSession() }
-    LaunchedEffect(selectedTab) {
-        if (selectedTab != HostTab.Bookings && showSearchSheet) showSearchSheet = false
-    }
 
     Scaffold(
         topBar = {
@@ -161,19 +191,22 @@ fun PropertiesHost(
                 .fillMaxSize()
                 .background(PageBg)
         ) {
-            // Pull-to-refresh global (como ya lo tienes)
+            // Pull-to-refresh global
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
                 onRefresh = { refreshHost() }
             ) {
-                // 🔁 Scroll SIEMPRE en el contenedor padre (como patrón único)
+                // Scroll SIEMPRE en el contenedor padre
                 val parentModifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
 
                 Column(modifier = parentModifier) {
-                    StatsGrid()
+
+                    // === Tarjetas con datos reales del endpoint ===
+                    StatsGrid(stats = stats, loading = statsLoading, error = statsError)
+
                     Spacer(Modifier.height(16.dp))
                     Divider(thickness = 1.dp, color = PrimaryBlue.copy(alpha = 0.15f))
                     Spacer(Modifier.height(16.dp))
@@ -263,36 +296,11 @@ fun PropertiesHost(
                             )
                             HostTab.Calendar -> CalendarSection(
                                 propertyId = selectedProperty!!.id,
-                                reloadKey = detailReloadTick // ✅ mismo patrón de recarga
+                                reloadKey = detailReloadTick
                             )
                         }
 
                         Spacer(Modifier.height(24.dp))
-                    }
-                }
-            }
-
-            if (selectedProperty != null && selectedTab == HostTab.Bookings) {
-                ExtendedFloatingActionButton(
-                    onClick = { showSearchSheet = true },
-                    icon = { Icon(Icons.Outlined.Search, contentDescription = stringResource(R.string.cd_search)) },
-                    text = { Text(stringResource(R.string.filter_search)) },
-                    containerColor = PrimaryBlue,
-                    contentColor = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                )
-
-                if (showSearchSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = { showSearchSheet = false },
-                        sheetState = sheetState
-                    ) {
-                        SearchFilterSheet(
-                            onApply = { showSearchSheet = false },
-                            onCancel = { showSearchSheet = false }
-                        )
                     }
                 }
             }
@@ -356,16 +364,55 @@ private fun iconForType(type: String?): ImageVector = when (type?.lowercase()) {
     else -> Icons.Filled.Apartment
 }
 
+/**
+ * StatsGrid dinámico: acepta datos del endpoint y maneja loading/errores.
+ */
 @Composable
-private fun StatsGrid() {
+private fun StatsGrid(
+    stats: HostStatsRepository.HostStatsUi?,
+    loading: Boolean,
+    error: String?
+) {
+    val moneyFmt = remember {
+        NumberFormat.getCurrencyInstance(Locale.US).apply { maximumFractionDigits = 0 }
+    }
+
+    val occ = when {
+        loading -> "—"
+        stats == null -> "—"
+        else -> "${stats.occupancyPct}%"
+    }
+    val revenue = when {
+        loading -> "—"
+        stats == null -> "—"
+        else -> moneyFmt.format(stats.revenueMonth)
+    }
+    val rating = when {
+        loading -> "—"
+        stats == null -> "—"
+        else -> String.format(Locale.US, "%.1f", stats.rating)
+    }
+    val response = when {
+        loading -> "—"
+        stats == null -> "—"
+        else -> "${stats.responseRatePct}%"
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard(title = stringResource(R.string.stat_occupancy), value = "85%", bg = Color(0xFF2E63F1), modifier = Modifier.weight(1f))
-            StatCard(title = stringResource(R.string.stat_revenue_per_month), value = "$4500", bg = SuccessGreen, modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.stat_occupancy), value = occ, bg = Color(0xFF2E63F1), modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.stat_revenue_per_month), value = revenue, bg = SuccessGreen, modifier = Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard(title = stringResource(R.string.stat_rating), value = "4.8", bg = Color(0xFF8E198A), modifier = Modifier.weight(1f))
-            StatCard(title = stringResource(R.string.stat_response_rate), value = "98%", bg = DangerRed, modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.stat_rating), value = rating, bg = Color(0xFF8E198A), modifier = Modifier.weight(1f))
+            StatCard(title = stringResource(R.string.stat_response_rate), value = response, bg = DangerRed, modifier = Modifier.weight(1f))
+        }
+        if (!error.isNullOrBlank()) {
+            Text(
+                text = stringResource(R.string.error_with_message, error),
+                color = DangerRed.copy(alpha = 0.9f),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
@@ -388,47 +435,6 @@ private fun StatCard(
             Text(title, color = Color.White.copy(alpha = 0.92f), fontSize = 14.sp)
             Spacer(Modifier.height(4.dp))
             Text(value, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-        }
-    }
-}
-
-@Composable
-fun HostTopTabBar(
-    selected: HostTab,
-    onSelected: (HostTab) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val tabs = HostTab.values().toList()
-    val selectedIndex = tabs.indexOf(selected)
-
-    Surface(modifier = modifier.fillMaxWidth(), color = PrimaryBlue, shape = RoundedCornerShape(8.dp)) {
-        TabRow(
-            selectedTabIndex = selectedIndex,
-            containerColor = Color.Transparent,
-            contentColor = Color.White,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
-                    height = 2.dp,
-                    color = Color.White
-                )
-            },
-            divider = {}
-        ) {
-            tabs.forEach { tab ->
-                Tab(
-                    selected = tab == selected,
-                    onClick = { onSelected(tab) },
-                    text = {
-                        Text(
-                            text = stringResource(tab.titleRes),
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            maxLines = 1
-                        )
-                    }
-                )
-            }
         }
     }
 }
@@ -488,35 +494,50 @@ fun PlaceholderSection(text: String) {
 }
 
 @Composable
-fun SearchFilterSheet(
-    onApply: () -> Unit,
-    onCancel: () -> Unit
+fun HostTopTabBar(
+    selected: HostTab,
+    onSelected: (HostTab) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Filters",
-            fontWeight = FontWeight.Bold,
-            color = PrimaryBlue,
-            fontSize = 18.sp
-        )
-        Spacer(Modifier.height(12.dp))
+    val tabs = HostTab.values().toList()
+    val selectedIndex = tabs.indexOf(selected)
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth()
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = PrimaryBlue,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        TabRow(
+            selectedTabIndex = selectedIndex,
+            containerColor = Color.Transparent,
+            contentColor = Color.White,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+                    height = 2.dp,
+                    color = Color.White
+                )
+            },
+            divider = {}
         ) {
-            OutlinedButton(onClick = onCancel) { Text("Cancelar") }
-            Button(
-                onClick = onApply,
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-            ) { Text("Aplicar") }
+            tabs.forEach { tab ->
+                Tab(
+                    selected = tab == selected,
+                    onClick = { onSelected(tab) },
+                    text = {
+                        Text(
+                            text = stringResource(tab.titleRes),
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            maxLines = 1
+                        )
+                    }
+                )
+            }
         }
     }
 }
+
 
 @Preview(name = "Host · Properties", showBackground = true, showSystemUi = true)
 @Composable

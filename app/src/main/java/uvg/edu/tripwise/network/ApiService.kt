@@ -5,6 +5,11 @@ import retrofit2.Response
 import retrofit2.http.*
 import uvg.edu.tripwise.data.model.Property
 import uvg.edu.tripwise.data.model.Deleted
+import uvg.edu.tripwise.data.repository.HostStatsRepository
+import okhttp3.MultipartBody
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
 
 // ==================== DATA CLASSES ====================
 
@@ -249,6 +254,22 @@ data class AvailabilityResponse(
     val unavailableDates: List<String>
 )
 
+
+//-----------PROPERTY HOST STATISTICS ----
+data class OwnerStats(
+    val ocupacion: Double,   // 0..1
+    val ingresosMes: Double, // en moneda
+    val calificacion: Double, // 0..5 (o 0..1 si decides normalizar)
+    val respuesta: Double    // 0..1 o 0..100 según definas
+)
+
+//---------CLOUDINARY----------
+data class UploadResponse(
+    val message: String?,
+    val url: String,
+    val public_id: String?
+)
+
 // ==================== API INTERFACES ====================
 
 interface UserApiService {
@@ -339,6 +360,20 @@ interface UserApiService {
     // ----- AVAILABILITY -----
     @GET("property/availability/{id}")
     suspend fun getAvailability(@Path("id") propertyId: String): AvailabilityResponse
+
+
+    //------ PROPERTY HOST STATISTICS ----
+    @GET("users/{id}/properties-stats")
+    suspend fun getOwnerStats(@Path("id") id: String): HostStatsRepository.OwnerPropertiesStatsResponse
+
+
+    // ----- CLOUDINARY -----
+// ApiService.kt
+    @Multipart
+    @POST("upload")        // <-- antes decía "api/upload"
+    suspend fun uploadImage(
+        @Part imagen: MultipartBody.Part
+    ): UploadResponse
 }
 
 // Interfaz auxiliar para compatibilidad con RetrofitInstance.PropertyApi
