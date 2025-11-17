@@ -1,5 +1,6 @@
 package uvg.edu.tripwise.host.reviews
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,10 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.PropertyReviews
 import uvg.edu.tripwise.data.model.ReviewItem
 
@@ -37,29 +41,50 @@ fun ReviewsSection(
 
     when {
         state.loading -> {
-            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator(color = PrimaryBlue)
             }
         }
+
         state.error != null -> {
-            Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Error: ${state.error}", color = Color(0xFFE2265B), style = MaterialTheme.typography.bodyMedium)
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(
+                        R.string.error_with_message,
+                        state.error ?: ""
+                    ),
+                    color = Color(0xFFE2265B),
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 Spacer(Modifier.height(12.dp))
-                Button(onClick = { viewModel.load(propertyId) }, colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)) {
-                    Text("Reintentar")
+                Button(
+                    onClick = { viewModel.load(propertyId) },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                ) {
+                    Text(stringResource(R.string.retry))
                 }
             }
         }
+
         state.data != null -> ReviewsContent(state.data!!)
     }
 }
 
 @Composable
 private fun ReviewsContent(data: PropertyReviews) {
-    // Sin LazyColumn. El scroll lo maneja el padre.
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Reseñas de huéspedes",
+            text = stringResource(R.string.reviews_title),
             color = PrimaryBlue,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
@@ -67,11 +92,28 @@ private fun ReviewsContent(data: PropertyReviews) {
         Spacer(Modifier.height(12.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(String.format("%.1f", data.averageScore), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF102A43))
+            Text(
+                String.format("%.1f", data.averageScore),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF102A43)
+            )
             Spacer(Modifier.width(4.dp))
-            Icon(Icons.Filled.Star, contentDescription = null, tint = StarYellow, modifier = Modifier.size(20.dp))
+            Icon(
+                Icons.Filled.Star,
+                contentDescription = null,
+                tint = StarYellow,
+                modifier = Modifier.size(20.dp)
+            )
             Spacer(Modifier.width(8.dp))
-            Text("· ${data.totalReviews} reviews", fontSize = 16.sp, color = Color(0xFF50607A))
+            Text(
+                text = stringResource(
+                    R.string.reviews_count,
+                    data.totalReviews
+                ),
+                fontSize = 16.sp,
+                color = Color(0xFF50607A)
+            )
         }
         Spacer(Modifier.height(12.dp))
 
@@ -80,8 +122,6 @@ private fun ReviewsContent(data: PropertyReviews) {
 
         Divider(thickness = 1.dp, color = PrimaryBlue.copy(alpha = 0.15f))
         Spacer(Modifier.height(12.dp))
-
-        // Lista
         data.reviews.forEachIndexed { idx, review ->
             ReviewCard(review)
             if (idx < data.reviews.lastIndex) Spacer(Modifier.height(12.dp))
@@ -99,11 +139,25 @@ private fun ScoreDistributionBlock(
         for (score in 5 downTo 1) {
             val count = dist[score] ?: 0
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("$score", fontSize = 14.sp, color = Color(0xFF102A43), fontWeight = FontWeight.Medium)
+                Text(
+                    "$score",
+                    fontSize = 14.sp,
+                    color = Color(0xFF102A43),
+                    fontWeight = FontWeight.Medium
+                )
                 Spacer(Modifier.width(4.dp))
-                Icon(Icons.Filled.Star, contentDescription = null, tint = StarYellow, modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = StarYellow,
+                    modifier = Modifier.size(16.dp)
+                )
                 Spacer(Modifier.width(8.dp))
-                Text("· $count", fontSize = 14.sp, color = Color(0xFF50607A))
+                Text(
+                    text = stringResource(R.string.reviews_score_count, count),
+                    fontSize = 14.sp,
+                    color = Color(0xFF50607A)
+                )
             }
         }
     }
@@ -111,6 +165,9 @@ private fun ScoreDistributionBlock(
 
 @Composable
 private fun ReviewCard(review: ReviewItem) {
+    val context = LocalContext.current
+    val dateText = remember(review.date) { formatDate(review.date, context) }
+
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -118,21 +175,45 @@ private fun ReviewCard(review: ReviewItem) {
         border = BorderStroke(1.dp, Color(0xFFE8E8F0)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                    AsyncImage(model = review.userAvatar, contentDescription = null, modifier = Modifier.size(44.dp).clip(CircleShape))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    AsyncImage(
+                        model = review.userAvatar,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                    )
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text(review.userName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF102A43))
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                        Text(
+                            review.userName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF102A43)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
                             repeat(5) { i ->
                                 Icon(
-                                    imageVector = if (i < review.score) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                                    imageVector = if (i < review.score)
+                                        Icons.Filled.Star
+                                    else
+                                        Icons.Outlined.StarOutline,
                                     contentDescription = null,
                                     tint = StarYellow,
                                     modifier = Modifier.size(16.dp)
@@ -141,18 +222,37 @@ private fun ReviewCard(review: ReviewItem) {
                         }
                     }
                 }
-                Text(formatDate(review.date), fontSize = 12.sp, color = Color(0xFF50607A), modifier = Modifier.padding(start = 8.dp))
+                Text(
+                    text = dateText,
+                    fontSize = 12.sp,
+                    color = Color(0xFF50607A),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
 
             review.commentText?.let { text ->
                 Spacer(Modifier.height(10.dp))
-                Text(text = text, fontSize = 14.sp, color = Color(0xFF26364D), lineHeight = 20.sp)
+                Text(
+                    text = text,
+                    fontSize = 14.sp,
+                    color = Color(0xFF26364D),
+                    lineHeight = 20.sp
+                )
             }
 
             if (review.commentsCount > 0) {
                 Spacer(Modifier.height(12.dp))
+                val commentsText =
+                    if (review.commentsCount == 1)
+                        stringResource(R.string.review_one_comment)
+                    else
+                        stringResource(
+                            R.string.review_multiple_comments,
+                            review.commentsCount
+                        )
+
                 Text(
-                    text = "${review.commentsCount} comentario${if (review.commentsCount != 1) "s" else ""}",
+                    text = commentsText,
                     fontSize = 13.sp,
                     color = PrimaryBlue,
                     fontWeight = FontWeight.Medium
@@ -162,35 +262,48 @@ private fun ReviewCard(review: ReviewItem) {
     }
 }
 
-/* =========================
-   Helpers
-   ========================= */
-
-private fun formatDate(dateString: String): String {
+private fun formatDate(dateString: String, context: Context): String {
     return try {
         val parts = dateString.split("T")
         if (parts.isNotEmpty()) {
             val d = parts[0].split("-")
             if (d.size == 3) {
-                val y = d[0].toInt(); val m = d[1].toInt(); val dd = d[2].toInt()
+                val y = d[0].toInt()
+                val m = d[1].toInt()
+                val dd = d[2].toInt()
                 val days = calculateDaysAgo(y, m, dd)
+                val res = context.resources
                 when {
-                    days == 0 -> "Hoy"
-                    days == 1 -> "Hace 1 día"
-                    days < 7 -> "Hace $days días"
-                    days < 14 -> "Hace 1 semana"
-                    days < 30 -> "Hace ${days / 7} semanas"
-                    days < 60 -> "Hace 1 mes"
-                    else -> "Hace ${days / 30} meses"
+                    days == 0 -> res.getString(R.string.review_time_today)
+                    days == 1 -> res.getString(R.string.review_time_one_day)
+                    days < 7 -> res.getString(R.string.review_time_days, days)
+                    days < 14 -> res.getString(R.string.review_time_one_week)
+                    days < 30 -> res.getString(
+                        R.string.review_time_weeks,
+                        days / 7
+                    )
+
+                    days < 60 -> res.getString(R.string.review_time_one_month)
+                    else -> res.getString(
+                        R.string.review_time_months,
+                        days / 30
+                    )
                 }
             } else dateString
         } else dateString
-    } catch (_: Exception) { dateString }
+    } catch (_: Exception) {
+        dateString
+    }
 }
 
 private fun calculateDaysAgo(year: Int, month: Int, day: Int): Int {
     val currentYear = 2025
     val currentMonth = 11
     val currentDay = 8
-    return maxOf(0, (currentYear - year) * 365 + (currentMonth - month) * 30 + (currentDay - day))
+    return maxOf(
+        0,
+        (currentYear - year) * 365 +
+                (currentMonth - month) * 30 +
+                (currentDay - day)
+    )
 }

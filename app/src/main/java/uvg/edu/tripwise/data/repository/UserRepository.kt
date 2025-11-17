@@ -1,14 +1,14 @@
 package uvg.edu.tripwise.data.repository
 
-import android.content.Context // ++ IMPORTACIÓN AÑADIDA ++
-import android.net.Uri // ++ IMPORTACIÓN AÑADIDA ++
+import android.content.Context
+import android.net.Uri
 import uvg.edu.tripwise.data.model.Deleted
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.UpdatePasswordRequest
 import uvg.edu.tripwise.network.UpdateUserRequest
-import uvg.edu.tripwise.network.UploadImageResponse // ++ IMPORTACIÓN AÑADIDA ++
-import uvg.edu.tripwise.utils.createMultipartBodyFromUri // ++ IMPORTACIÓN AÑADIDA ++
+import uvg.edu.tripwise.network.UploadImageResponse
+import uvg.edu.tripwise.utils.createMultipartBodyFromUri
 
 
 class UserRepository {
@@ -57,23 +57,20 @@ class UserRepository {
     }
 
 
-    // --- FUNCIÓN 'updateUser' CORREGIDA ---
-    // Ahora acepta 'role' como parámetro
     suspend fun updateUser(
         id: String,
         name: String?,
         email: String,
         pfp: String?,
-        role: String?, // <-- CAMBIO: Parámetro añadido
+        role: String?,
         interests: List<String>?
     ): User {
 
-        // Pasamos el 'role' al request
         val req = UpdateUserRequest(
             name = name,
             email = email,
             pfp = pfp,
-            role = role, // <-- CAMBIO: Parámetro añadido
+            role = role,
             interests = interests
         )
 
@@ -105,15 +102,8 @@ class UserRepository {
         }
     }
 
-    // ++ INICIO: FUNCIÓN NUEVA AÑADIDA ++
-    /**
-     * Sube una imagen al backend de Cloudinary.
-     * Usa la función de ApiService.
-     */
     suspend fun uploadImage(imageUri: Uri, context: Context): UploadImageResponse {
-        // El nombre "imagen" debe coincidir con 'upload.single('imagen')' de tu backend
         val imagePart = createMultipartBodyFromUri(imageUri, context, "imagen")
         return api.uploadImage(imagePart)
     }
-    // ++ FIN: FUNCIÓN NUEVA AÑADIDA ++
 }

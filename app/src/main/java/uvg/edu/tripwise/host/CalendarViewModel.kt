@@ -9,7 +9,7 @@ import uvg.edu.tripwise.data.repository.AvailabilityRepository
 
 data class CalendarUiState(
     val loading: Boolean = false,
-    val unavailable: Set<String> = emptySet(), // "YYYY-MM-DD"
+    val unavailable: Set<String> = emptySet(),
     val error: String? = null
 )
 
