@@ -18,10 +18,10 @@ import java.io.FileOutputStream
 class ImageRepository(
     private val api: uvg.edu.tripwise.network.UserApiService = RetrofitInstance.api
 ) {
-    private val MAX_BYTES = 5L * 1024 * 1024 // 5 MB
+    private val MAX_BYTES = 5L * 1024 * 1024
 
     suspend fun uploadImageFromUri(resolver: ContentResolver, uri: Uri): String {
-        // 1) MIME real
+
         val mime = (resolver.getType(uri) ?: "image/jpeg").let { m ->
             when {
                 m.startsWith("image/") -> m
@@ -29,7 +29,6 @@ class ImageRepository(
             }
         }
 
-        // 2) Extensión y filename
         val ext = when (mime) {
             "image/png"  -> ".png"
             "image/webp" -> ".webp"
@@ -38,17 +37,14 @@ class ImageRepository(
         val displayName = queryDisplayName(resolver, uri)
         val safeFileName = displayName?.takeIf { it.contains('.') } ?: "photo_${System.currentTimeMillis()}$ext"
 
-        // 3) Determinar tamaño para decidir si comprimimos
         val length = resolver.openAssetFileDescriptor(uri, "r")?.length ?: -1L
         val tmp = File.createTempFile("tw_upload_", ext)
 
         if (length in 1..Long.MAX_VALUE && length <= MAX_BYTES) {
-            // copiar tal cual
             resolver.openInputStream(uri)!!.use { input ->
                 FileOutputStream(tmp).use { out -> input.copyTo(out) }
             }
         } else {
-            // Comprimir a JPEG calidad 85 si es grande o tamaño desconocido
             val bitmap = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it) }
                 ?: error("No se pudo leer la imagen")
             FileOutputStream(tmp).use { out ->
@@ -56,12 +52,11 @@ class ImageRepository(
             }
         }
 
-        // 4) Part con MIME y filename correctos
         val body = tmp.asRequestBody(mime.toMediaType())
         val part = MultipartBody.Part.createFormData(
-            /* name = */ "imagen",      // <- el backend espera este campo
-            /* filename = */ safeFileName,
-            /* body = */ body
+            "imagen",
+            safeFileName,
+            body
         )
 
         try {

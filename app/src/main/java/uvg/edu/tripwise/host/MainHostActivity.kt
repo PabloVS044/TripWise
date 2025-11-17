@@ -31,7 +31,6 @@ class MainHostActivity : ComponentActivity() {
             TripWiseTheme {
                 MainHostScreen(
                     onManageProperties = {
-                        // Abre la pantalla de propiedades del host
                         PropertiesHostActivity.launch(
                             context = act,
                             propertyId = null,
@@ -39,7 +38,6 @@ class MainHostActivity : ComponentActivity() {
                         )
                     },
                     onLogout = {
-                        // Limpia sesión y regresa a Login
                         getSharedPreferences("auth", MODE_PRIVATE)
                             .edit()
                             .clear()
@@ -119,7 +117,6 @@ fun MainHostScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón principal para ir a gestionar propiedades
             Button(
                 onClick = onManageProperties,
                 shape = RoundedCornerShape(12.dp),

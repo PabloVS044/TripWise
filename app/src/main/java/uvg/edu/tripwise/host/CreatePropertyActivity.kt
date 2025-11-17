@@ -1,5 +1,5 @@
 package uvg.edu.tripwise.host
-  
+
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +50,11 @@ import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+
+
+
 
 class CreatePropertyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,19 +81,14 @@ private val SoftGray     = Color(0xFFE8ECF2)
 private val SelectedBg   = Color(0xFFEFF4FF)
 private val Corner       = 12.dp
 
-/* ======= KNOBS: TAMAÑOS MANEJABLES DESDE AQUÍ ======= */
-// TextFields
 private const val FIELD_WIDTH_FRACTION = 1f
 private val FIELD_MIN_HEIGHT           = 52.dp
-
-// Property Type (cards + ícono + texto)
 private val TYPE_CARD_WIDTH            = 110.dp
 private val TYPE_CARD_HEIGHT           = 96.dp
 private val TYPE_ICON_BOX_WIDTH        = 36.dp
 private val TYPE_ICON_BOX_HEIGHT       = 32.dp
 private val TYPE_TEXT_SIZE             = 12.sp
 
-// Amenities (card + ícono + texto)
 private val AMENITY_CARD_HEIGHT        = 50.dp
 private val AMENITY_ICON_BOX_WIDTH     = 30.dp
 private val AMENITY_ICON_BOX_HEIGHT    = 22.dp
@@ -113,7 +114,6 @@ fun CreatePropertyScreen(
     val propertyTypes = listOf(
         PType("house", stringResource(R.string.type_house), Icons.Filled.Home),
         PType("apartment", stringResource(R.string.type_apartment), Icons.Filled.Apartment),
-        // el backend usa "cottage"
         PType("cottage", stringResource(R.string.type_cabin), Icons.Filled.HolidayVillage),
         PType("hotel", stringResource(R.string.type_hotel), Icons.Filled.Hotel)
     )
@@ -139,7 +139,6 @@ fun CreatePropertyScreen(
         position = CameraPosition.fromLatLngZoom(defaultLatLng, 8f)
     }
 
-    // URLs reales subidas a Cloudinary
     var pictureUrls by remember { mutableStateOf<List<String>>(emptyList()) }
     var uploading by remember { mutableStateOf(false) }
 
@@ -167,22 +166,14 @@ fun CreatePropertyScreen(
 
                     val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
                     val fileName = "prop_${System.currentTimeMillis()}.jpg"
-
-                    // El campo "imagen" debe coincidir con upload.single('imagen') en tu backend
                     val part = MultipartBody.Part.createFormData(
                         "imagen",
                         fileName,
                         requestBody
                     )
-
-                    // Llamada REAL al endpoint de Cloudinary
                     val uploadResponse = RetrofitInstance.api.uploadImage(part)
-
-                    // Guardamos la URL segura de Cloudinary
                     newUrls += uploadResponse.url
                 }
-
-                // Acumulamos las URLs sin duplicados
                 pictureUrls = (pictureUrls + newUrls).distinct()
             } catch (e: Exception) {
                 Log.e("CreateProperty", "Error subiendo imagen", e)
@@ -228,8 +219,6 @@ fun CreatePropertyScreen(
                 color = BrandBlue
             )
             Spacer(Modifier.height(12.dp))
-
-            // ====== Inputs ======
             StyledTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -277,8 +266,6 @@ fun CreatePropertyScreen(
             Spacer(Modifier.height(18.dp))
             Text(stringResource(R.string.property_type_title), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
-
-            // ====== Tipos ======
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 2.dp)
@@ -414,20 +401,46 @@ fun CreatePropertyScreen(
                 }
                 Text(text = picsText, color = Color(0xFF475569))
             }
-
-            // Previsualización sencilla (placeholders)
             if (pictureUrls.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(pictureUrls) { _ ->
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = SelectedBg,
-                            modifier = Modifier.size(72.dp)
-                        ) {}
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    itemsIndexed(pictureUrls) { index, url ->
+                        Box(
+                            modifier = Modifier.size(80.dp)
+                        ) {
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            IconButton(
+                                onClick = {
+                                    pictureUrls = pictureUrls.toMutableList().also { it.removeAt(index) }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                                    .size(24.dp)
+                                    .background(Color.White, CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Remove image",
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
+
 
             Spacer(Modifier.height(24.dp))
             errorMsg?.let { msg ->
@@ -440,7 +453,7 @@ fun CreatePropertyScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedButton(
                     onClick = onBack,
@@ -484,8 +497,6 @@ fun CreatePropertyScreen(
                                             isSubmitting = false
                                             return@launch
                                         }
-
-                                        // Enviamos las URLs que ya vienen de Cloudinary
                                         val req = CreatePropertyRequest(
                                             name = name,
                                             description = description,

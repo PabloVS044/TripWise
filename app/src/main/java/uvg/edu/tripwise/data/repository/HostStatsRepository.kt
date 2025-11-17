@@ -8,39 +8,24 @@ import uvg.edu.tripwise.network.OwnerStats
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.UserApiService
 
-/**
- * Repositorio para consumir /users/{id}/properties-stats
- * y transformar los valores al formato de la UI.
- *
- * Usa RetrofitInstance.api y el método existente:
- *   @GET("users/{id}/properties-stats")
- *   suspend fun getOwnerStats(@Path("id") id: String): Map<String, Any>
- */
 class HostStatsRepository(
     private val api: UserApiService = RetrofitInstance.api,
     private val gson: Gson = Gson()
 ) {
 
-    /** DTO que refleja exactamente la respuesta del endpoint */
+
     data class OwnerPropertiesStatsResponse(
         val properties: List<ApiProperty>,
         val stats: OwnerStats
     )
 
-    /** Modelo para pintar en las tarjetas de la Home del Host */
     data class HostStatsUi(
-        val occupancyPct: Int,   // 0..100
+        val occupancyPct: Int,
         val revenueMonth: Double,
-        val rating: Double,      // 0..5
-        val responseRatePct: Int // 0..100
+        val rating: Double,
+        val responseRatePct: Int
     )
 
-    /**
-     * Devuelve sólo las estadísticas normalizadas para UI.
-     * - ocupacion: si viene 0..1 -> multiplica x100; si ya viene 0..100, lo respeta.
-     * - calificacion: si viene 0..1 -> multiplica x5; si ya viene 1..5, lo respeta.
-     * - respuesta: si viene 0..1 -> multiplica x100; si ya viene 0..100, lo respeta.
-     */
     suspend fun getStatsUi(userId: String): HostStatsUi {
         val parsed = fetchAndParse(userId)
 
@@ -58,11 +43,8 @@ class HostStatsRepository(
         )
     }
 
-    /** Si además quieres las propiedades que devuelve el endpoint. */
     suspend fun getOwnerProperties(userId: String): List<ApiProperty> =
         fetchAndParse(userId).properties
-
-    // ----------------- Privado -----------------
 
     private fun normalizePercent(value: Double): Int {
         val pct = if (value <= 1.0) value * 100.0 else value

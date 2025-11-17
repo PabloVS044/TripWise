@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,23 +45,22 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import uvg.edu.tripwise.R
-import uvg.edu.tripwise.data.model.User
-import uvg.edu.tripwise.data.repository.UserRepository
-import uvg.edu.tripwise.ui.components.LogoAppTopBar
-import uvg.edu.tripwise.ui.theme.TripWiseTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import uvg.edu.tripwise.R
+import uvg.edu.tripwise.data.model.User
+import uvg.edu.tripwise.data.repository.UserRepository
 import uvg.edu.tripwise.network.RetrofitInstance
-import uvg.edu.tripwise.network.UploadResponse
-import uvg.edu.tripwise.network.UpdateUserRequest
 import uvg.edu.tripwise.network.UpdatePasswordRequest
+import uvg.edu.tripwise.network.UpdateUserRequest
+import uvg.edu.tripwise.network.UploadResponse
+import uvg.edu.tripwise.ui.components.LogoAppTopBar
+import uvg.edu.tripwise.ui.theme.TripWiseTheme
 
-/* ====== Paleta / Tokens ====== */
 private val BrandBlue    = Color(0xFF1F47B2)
 private val SelectedBlue = Color(0xFF2F5BFF)
 private val SelectedBg   = Color(0xFFEFF4FF)
@@ -90,14 +88,13 @@ class ProfileHostActivity : ComponentActivity() {
                 ProfileHostScreen(
                     userId = resolvedUserId,
                     onBack = { act.onBackPressedDispatcher.onBackPressed() },
-                    onEditProfile = {} // ya no lo usamos, manejo local
+                    onEditProfile = {}
                 )
             }
         }
     }
 }
 
-// Modelo UI local
 data class HostProfileUi(
     val name: String,
     val email: String,
@@ -113,40 +110,24 @@ fun ProfileHostScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    // Vista / Edición
     var isEditing by remember { mutableStateOf(false) }
-
-    // Bitmap solo para preview inmediata
     var avatarBitmap by remember { mutableStateOf<Bitmap?>(null) }
-
-    // URL de Cloudinary persistente (user.pfp)
     var avatarUrl by remember { mutableStateOf<String?>(null) }
-
     var user by remember { mutableStateOf<User?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
-
-    // Estado de subida a Cloudinary
     var uploadInProgress by remember { mutableStateOf(false) }
     var uploadError by remember { mutableStateOf<String?>(null) }
-
-    // ====== ESTADO FORM EDITAR PERFIL ======
     var editName by remember { mutableStateOf("") }
     var editEmail by remember { mutableStateOf("") }
-
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-
     var showCurrentPassword by remember { mutableStateOf(false) }
     var showNewPassword by remember { mutableStateOf(false) }
     var showConfirmPassword by remember { mutableStateOf(false) }
-
     var isSaving by remember { mutableStateOf(false) }
     var formError by remember { mutableStateOf<String?>(null) }
-
-    // Cargar usuario
     LaunchedEffect(userId) {
         if (!userId.isNullOrBlank()) {
             try {
@@ -161,13 +142,9 @@ fun ProfileHostScreen(
             error = context.getString(R.string.error_no_user_session)
         }
     }
-
-    // Cada vez que llega el usuario desde backend, tomar su pfp
     LaunchedEffect(user) {
         avatarUrl = user?.pfp
     }
-
-    // Cuando entramos a modo edición, rellenar campos con datos actuales
     LaunchedEffect(isEditing, user) {
         if (isEditing && user != null) {
             editName = user?.name.orEmpty()
@@ -183,30 +160,22 @@ fun ProfileHostScreen(
             memberSinceIso = user?.createdAt ?: "—"
         )
     }
-
-    // Picker de imagen que además sube a Cloudinary y guarda pfp
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            // Preview local inmediata
             avatarBitmap = decodeBitmapFromUri(context, uri)
-
-            // Subir a Cloudinary vía backend
             scope.launch {
                 uploadInProgress = true
                 uploadError = null
                 try {
                     val response: UploadResponse = uploadImageToCloudinary(context, uri)
-
-                    // Guardar URL en backend como pfp del usuario
                     if (!userId.isNullOrBlank()) {
                         try {
                             RetrofitInstance.api.updateUser(
                                 userId,
                                 UpdateUserRequest(pfp = response.url)
                             )
-                            // refrescar usuario
                             val refreshed = withContext(Dispatchers.IO) {
                                 repo.getUserById(userId)
                             }
@@ -215,21 +184,22 @@ fun ProfileHostScreen(
                             e.printStackTrace()
                         }
                     }
-
-                    // Actualizar URL local para que se vea sin salir de la pantalla
                     avatarUrl = response.url
 
                     Toast.makeText(
                         context,
-                        "Imagen subida correctamente",
+                        context.getString(R.string.success_image_uploaded),
                         Toast.LENGTH_SHORT
                     ).show()
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    uploadError = "Error al subir imagen: ${e.message}"
+                    uploadError = context.getString(
+                        R.string.error_uploading_image_detail,
+                        e.message ?: ""
+                    )
                     Toast.makeText(
                         context,
-                        "Error al subir imagen",
+                        context.getString(R.string.error_uploading_image),
                         Toast.LENGTH_SHORT
                     ).show()
                 } finally {
@@ -246,7 +216,6 @@ fun ProfileHostScreen(
                 IconButton(
                     onClick = {
                         if (isEditing) {
-                            // Si estamos editando, salir de la edición
                             isEditing = false
                         } else {
                             onBack()
@@ -273,11 +242,8 @@ fun ProfileHostScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.Start
         ) {
-
-            // ===== Avatar + cámara (igual en ambos modos) =====
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Box(modifier = Modifier.size(140.dp)) {
-                    // Avatar
                     Surface(
                         shape = CircleShape,
                         color = SelectedBg,
@@ -285,7 +251,6 @@ fun ProfileHostScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             when {
-                                // 1) Preferir URL de Cloudinary (persistente)
                                 !avatarUrl.isNullOrBlank() -> {
                                     AsyncImage(
                                         model = avatarUrl,
@@ -295,7 +260,6 @@ fun ProfileHostScreen(
                                             .clip(CircleShape)
                                     )
                                 }
-                                // 2) Si no hay URL, mostrar bitmap local
                                 avatarBitmap != null -> {
                                     Image(
                                         bitmap = avatarBitmap!!.asImageBitmap(),
@@ -305,7 +269,6 @@ fun ProfileHostScreen(
                                             .clip(CircleShape)
                                     )
                                 }
-                                // 3) Placeholder
                                 else -> {
                                     Icon(
                                         Icons.Default.Person,
@@ -317,7 +280,6 @@ fun ProfileHostScreen(
                             }
                         }
                     }
-                    // Botón cámara
                     Surface(
                         shape = CircleShape,
                         color = SelectedBg,
@@ -360,7 +322,6 @@ fun ProfileHostScreen(
             Spacer(Modifier.height(20.dp))
 
             if (!isEditing) {
-                // ================= MODO VISTA PERFIL =================
                 Text(
                     when {
                         loading -> stringResource(R.string.loading_ellipsis)
@@ -389,12 +350,11 @@ fun ProfileHostScreen(
                         context.startActivity(i)
                     }
                 }
-                // Ya no mostramos teléfono ni ubicación
                 InfoRow(
                     icon = Icons.Default.Today,
                     text = stringResource(
                         R.string.member_since,
-                        formatMemberSince(profile.memberSinceIso)
+                        formatMemberSince(context, profile.memberSinceIso)
                     )
                 )
 
@@ -408,32 +368,27 @@ fun ProfileHostScreen(
                     shape = RoundedCornerShape(Corner)
                 ) { Text(stringResource(R.string.action_edit_profile)) }
             } else {
-                // ================= MODO EDICIÓN PERFIL =================
                 Text(
-                    text = "Edita tu información",
+                    text = stringResource(R.string.edit_profile_title),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFF111827),
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-
-                // Nombre completo
                 OutlinedTextField(
                     value = editName,
                     onValueChange = { editName = it },
-                    label = { Text("Nombre Completo") },
+                    label = { Text(stringResource(R.string.label_full_name)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(Corner)
                 )
-
-                // Correo electrónico
                 OutlinedTextField(
                     value = editEmail,
                     onValueChange = { editEmail = it },
-                    label = { Text("Correo Electrónico") },
+                    label = { Text(stringResource(R.string.label_email)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email
@@ -451,12 +406,10 @@ fun ProfileHostScreen(
                 )
 
                 Spacer(Modifier.height(8.dp))
-
-                // Contraseña actual
                 OutlinedTextField(
                     value = currentPassword,
                     onValueChange = { currentPassword = it },
-                    label = { Text("Contraseña Actual") },
+                    label = { Text(stringResource(R.string.label_current_password)) },
                     singleLine = true,
                     visualTransformation = if (showCurrentPassword)
                         VisualTransformation.None
@@ -479,11 +432,10 @@ fun ProfileHostScreen(
                     shape = RoundedCornerShape(Corner)
                 )
 
-                // Nueva contraseña
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("Nueva Contraseña") },
+                    label = { Text(stringResource(R.string.label_new_password)) },
                     singleLine = true,
                     visualTransformation = if (showNewPassword)
                         VisualTransformation.None
@@ -506,11 +458,10 @@ fun ProfileHostScreen(
                     shape = RoundedCornerShape(Corner)
                 )
 
-                // Confirmar nueva contraseña
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Confirmar Nueva Contraseña") },
+                    label = { Text(stringResource(R.string.label_confirm_new_password)) },
                     singleLine = true,
                     visualTransformation = if (showConfirmPassword)
                         VisualTransformation.None
@@ -558,34 +509,31 @@ fun ProfileHostScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(Corner)
                     ) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.action_cancel))
                     }
 
                     Button(
                         onClick = {
                             scope.launch {
                                 if (userId.isNullOrBlank()) {
-                                    formError = "No hay usuario en sesión."
+                                    formError = context.getString(R.string.error_no_user_session)
                                     return@launch
                                 }
-
-                                // Validaciones básicas
                                 if (editName.isBlank() || editEmail.isBlank()) {
-                                    formError = "Nombre y correo no pueden estar vacíos."
+                                    formError = context.getString(R.string.error_name_email_required)
                                     return@launch
                                 }
 
                                 if ((newPassword.isNotBlank() || confirmPassword.isNotBlank() || currentPassword.isNotBlank())
                                     && newPassword != confirmPassword
                                 ) {
-                                    formError = "La nueva contraseña y su confirmación no coinciden."
+                                    formError = context.getString(R.string.error_password_mismatch)
                                     return@launch
                                 }
 
                                 isSaving = true
                                 formError = null
                                 try {
-                                    // 1) Actualizar nombre / email
                                     withContext(Dispatchers.IO) {
                                         RetrofitInstance.api.updateUser(
                                             userId,
@@ -595,14 +543,10 @@ fun ProfileHostScreen(
                                             )
                                         )
                                     }
-
-                                    // refrescar usuario
                                     val refreshed = withContext(Dispatchers.IO) {
                                         repo.getUserById(userId)
                                     }
                                     user = refreshed
-
-                                    // 2) Actualizar contraseña (solo si el usuario llenó campos)
                                     if (newPassword.isNotBlank() || currentPassword.isNotBlank() || confirmPassword.isNotBlank()) {
                                         val resp = withContext(Dispatchers.IO) {
                                             RetrofitInstance.api.updatePassword(
@@ -615,9 +559,9 @@ fun ProfileHostScreen(
                                         }
                                         if (!resp.isSuccessful) {
                                             formError = if (resp.code() == 401) {
-                                                "La contraseña actual es incorrecta."
+                                                context.getString(R.string.error_current_password_incorrect)
                                             } else {
-                                                "Error al actualizar la contraseña."
+                                                context.getString(R.string.error_update_password_generic)
                                             }
                                             return@launch
                                         }
@@ -625,17 +569,18 @@ fun ProfileHostScreen(
 
                                     Toast.makeText(
                                         context,
-                                        "Datos actualizados correctamente",
+                                        context.getString(R.string.success_profile_updated),
                                         Toast.LENGTH_SHORT
                                     ).show()
-
-                                    // Limpiar y salir de edición
                                     currentPassword = ""
                                     newPassword = ""
                                     confirmPassword = ""
                                     isEditing = false
                                 } catch (e: Exception) {
-                                    formError = "Error al guardar cambios: ${e.message}"
+                                    formError = context.getString(
+                                        R.string.error_saving_changes_detail,
+                                        e.message ?: ""
+                                    )
                                 } finally {
                                     isSaving = false
                                 }
@@ -649,7 +594,12 @@ fun ProfileHostScreen(
                         ),
                         shape = RoundedCornerShape(Corner)
                     ) {
-                        Text(if (isSaving) "Guardando..." else "Guardar cambios")
+                        val label = if (isSaving) {
+                            stringResource(R.string.action_saving_ellipsis)
+                        } else {
+                            stringResource(R.string.action_save_changes)
+                        }
+                        Text(label)
                     }
                 }
             }
@@ -688,27 +638,28 @@ private fun InfoRow(
     }
 }
 
-private fun formatMemberSince(iso: String?): String {
-    if (iso.isNullOrBlank()) return "—"
+private fun formatMemberSince(context: Context, iso: String?): String {
+    if (iso.isNullOrBlank()) return context.getString(R.string.placeholder_em_dash)
     return try {
         val y = iso.take(7)
         val (yy, mm) = y.split("-")
-        val month = when (mm) {
-            "01" -> "Enero"
-            "02" -> "Febrero"
-            "03" -> "Marzo"
-            "04" -> "Abril"
-            "05" -> "Mayo"
-            "06" -> "Junio"
-            "07" -> "Julio"
-            "08" -> "Agosto"
-            "09" -> "Septiembre"
-            "10" -> "Octubre"
-            "11" -> "Noviembre"
-            "12" -> "Diciembre"
-            else -> mm
+        val monthRes = when (mm) {
+            "01" -> R.string.month_january
+            "02" -> R.string.month_february
+            "03" -> R.string.month_march
+            "04" -> R.string.month_april
+            "05" -> R.string.month_may
+            "06" -> R.string.month_june
+            "07" -> R.string.month_july
+            "08" -> R.string.month_august
+            "09" -> R.string.month_september
+            "10" -> R.string.month_october
+            "11" -> R.string.month_november
+            "12" -> R.string.month_december
+            else -> null
         }
-        "$month $yy"
+        val monthName = monthRes?.let { context.getString(it) } ?: mm
+        "$monthName $yy"
     } catch (_: Exception) {
         iso
     }
@@ -728,10 +679,6 @@ private fun decodeBitmapFromUri(context: Context, uri: Uri): Bitmap? {
     }
 }
 
-/**
- * Sube una imagen seleccionada al backend (/upload), que a su vez la manda a Cloudinary.
- * Devuelve el UploadResponse con la URL resultante.
- */
 suspend fun uploadImageToCloudinary(
     context: Context,
     uri: Uri
@@ -739,25 +686,18 @@ suspend fun uploadImageToCloudinary(
     return withContext(Dispatchers.IO) {
         val contentResolver = context.contentResolver
 
-        // Leer bytes del Uri
         val inputStream = contentResolver.openInputStream(uri)
             ?: throw IllegalStateException("No se pudo abrir el archivo")
         val bytes = inputStream.use { it.readBytes() }
-
-        // Mime type
         val mimeType = contentResolver.getType(uri) ?: "image/*"
-
-        // RequestBody
         val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
 
-        // MultipartBody.Part — el nombre "imagen" debe coincidir con upload.single("imagen")
         val part = MultipartBody.Part.createFormData(
             name = "imagen",
             filename = "profile_${System.currentTimeMillis()}.jpg",
             body = requestBody
         )
 
-        // Llamada real al endpoint RetrofitInstance.api.uploadImage
         RetrofitInstance.api.uploadImage(part)
     }
 }

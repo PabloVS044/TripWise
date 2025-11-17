@@ -7,21 +7,12 @@ import uvg.edu.tripwise.network.ReservationResponse
 import uvg.edu.tripwise.network.UpdateReservationRequest
 import uvg.edu.tripwise.network.PropertyDeleted
 
-/**
- * Repositorio para reservas del host.
- * Envuelve los endpoints existentes del ApiService.
- */
 class ReservationRepository {
     private val api = RetrofitInstance.api
 
-    /**
-     * Lista reservas por propiedad (host).
-     * Convierte la respuesta del API al formato ReservationResponse.
-     */
     suspend fun getByProperty(propertyId: String): List<ReservationResponse> {
         val response = api.getReservationsProperty(propertyId)
 
-        // Convertir ReservationItem a ReservationResponse
         return response.reservations.map { item ->
             ReservationResponse(
                 id = item.reservationId,
@@ -69,7 +60,6 @@ class ReservationRepository {
         }
     }
 
-    /** Actualiza sólo el estado (opcional para futuras acciones). */
     suspend fun updateState(id: String, state: String): ReservationResponse? =
         api.updateReservation(id, UpdateReservationRequest(state = state)).body()
 
