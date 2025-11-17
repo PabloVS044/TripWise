@@ -2,7 +2,6 @@ package uvg.edu.tripwise.host
 
 import android.app.Activity
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -15,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +47,14 @@ import uvg.edu.tripwise.network.CreatePropertyRequest
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.ui.components.LogoAppTopBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+
+
+
 
 class CreatePropertyActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,19 +81,14 @@ private val SoftGray     = Color(0xFFE8ECF2)
 private val SelectedBg   = Color(0xFFEFF4FF)
 private val Corner       = 12.dp
 
-/* ======= KNOBS: TAMAÑOS MANEJABLES DESDE AQUÍ ======= */
-// TextFields
 private const val FIELD_WIDTH_FRACTION = 1f
 private val FIELD_MIN_HEIGHT           = 52.dp
-
-// Property Type (cards + ícono + texto)
 private val TYPE_CARD_WIDTH            = 110.dp
 private val TYPE_CARD_HEIGHT           = 96.dp
 private val TYPE_ICON_BOX_WIDTH        = 36.dp
 private val TYPE_ICON_BOX_HEIGHT       = 32.dp
 private val TYPE_TEXT_SIZE             = 12.sp
 
-// Amenities (card + ícono + texto)
 private val AMENITY_CARD_HEIGHT        = 50.dp
 private val AMENITY_ICON_BOX_WIDTH     = 30.dp
 private val AMENITY_ICON_BOX_HEIGHT    = 22.dp
@@ -111,7 +114,6 @@ fun CreatePropertyScreen(
     val propertyTypes = listOf(
         PType("house", stringResource(R.string.type_house), Icons.Filled.Home),
         PType("apartment", stringResource(R.string.type_apartment), Icons.Filled.Apartment),
-        // 👇 Cambiado: antes "cabin", ahora el backend espera "cottage"
         PType("cottage", stringResource(R.string.type_cabin), Icons.Filled.HolidayVillage),
         PType("hotel", stringResource(R.string.type_hotel), Icons.Filled.Hotel)
     )
@@ -137,13 +139,50 @@ fun CreatePropertyScreen(
         position = CameraPosition.fromLatLngZoom(defaultLatLng, 8f)
     }
 
-    var pictureUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-    val imagesPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-        if (uris != null) pictureUris = uris
-    }
+    var pictureUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+    var uploading by remember { mutableStateOf(false) }
 
     var isSubmitting by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
+
+    val imagesPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNullOrEmpty()) return@rememberLauncherForActivityResult
+
+        uploading = true
+        scope.launch {
+            try {
+                val resolver = context.contentResolver
+                val newUrls = mutableListOf<String>()
+
+                for (u in uris) {
+                    val mimeType = resolver.getType(u) ?: "image/*"
+
+                    val inputStream = resolver.openInputStream(u)
+                        ?: continue
+
+                    val bytes = inputStream.use { it.readBytes() }
+
+                    val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+                    val fileName = "prop_${System.currentTimeMillis()}.jpg"
+                    val part = MultipartBody.Part.createFormData(
+                        "imagen",
+                        fileName,
+                        requestBody
+                    )
+                    val uploadResponse = RetrofitInstance.api.uploadImage(part)
+                    newUrls += uploadResponse.url
+                }
+                pictureUrls = (pictureUrls + newUrls).distinct()
+            } catch (e: Exception) {
+                Log.e("CreateProperty", "Error subiendo imagen", e)
+                errorMsg = e.message ?: "Error al subir imagen"
+            } finally {
+                uploading = false
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -180,8 +219,6 @@ fun CreatePropertyScreen(
                 color = BrandBlue
             )
             Spacer(Modifier.height(12.dp))
-
-            // ====== Inputs ======
             StyledTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -204,7 +241,10 @@ fun CreatePropertyScreen(
             )
             Spacer(Modifier.height(12.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 StyledTextField(
                     value = price,
                     onValueChange = { price = it.filter { ch -> ch.isDigit() || ch == '.' } },
@@ -226,9 +266,10 @@ fun CreatePropertyScreen(
             Spacer(Modifier.height(18.dp))
             Text(stringResource(R.string.property_type_title), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
-
-            // ====== Tipos ======
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(horizontal = 2.dp)) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 2.dp)
+            ) {
                 items(propertyTypes) { type ->
                     val selected = selectedType?.key == type.key
                     TypeCard(
@@ -276,7 +317,10 @@ fun CreatePropertyScreen(
             }
 
             Spacer(Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 StyledTextField(
                     value = latitude?.toString().orEmpty(),
                     onValueChange = { latitude = it.toDoubleOrNull() },
@@ -301,7 +345,10 @@ fun CreatePropertyScreen(
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 amenityPresets.chunked(2).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         row.forEach { amenity ->
                             val sel = amenity.name in selectedAmenities
                             AmenityCard(
@@ -334,7 +381,9 @@ fun CreatePropertyScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .clip(CircleShape)
-                        .clickable(enabled = !isSubmitting) { imagesPicker.launch("image/*") }
+                        .clickable(enabled = !isSubmitting && !uploading) {
+                            imagesPicker.launch("image/*")
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -345,18 +394,67 @@ fun CreatePropertyScreen(
                     }
                 }
                 Spacer(Modifier.width(10.dp))
-                val picsText =
-                    if (pictureUris.isEmpty()) stringResource(R.string.no_images_selected)
-                    else stringResource(R.string.images_selected_count, pictureUris.size)
+                val picsText = when {
+                    uploading -> "Subiendo…"
+                    pictureUrls.isEmpty() -> stringResource(R.string.no_images_selected)
+                    else -> stringResource(R.string.images_selected_count, pictureUrls.size)
+                }
                 Text(text = picsText, color = Color(0xFF475569))
             }
+            if (pictureUrls.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    itemsIndexed(pictureUrls) { index, url ->
+                        Box(
+                            modifier = Modifier.size(80.dp)
+                        ) {
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            IconButton(
+                                onClick = {
+                                    pictureUrls = pictureUrls.toMutableList().also { it.removeAt(index) }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                                    .size(24.dp)
+                                    .background(Color.White, CircleShape)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Remove image",
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
 
             Spacer(Modifier.height(24.dp))
             errorMsg?.let { msg ->
-                Text(msg, color = Color(0xFFDC2626), modifier = Modifier.padding(bottom = 12.dp))
+                Text(
+                    msg,
+                    color = Color(0xFFDC2626),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
             }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 OutlinedButton(
                     onClick = onBack,
                     modifier = Modifier.weight(1f),
@@ -386,30 +484,26 @@ fun CreatePropertyScreen(
                                 scope.launch {
                                     isSubmitting = true
                                     try {
-                                        val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-                                        val ownerId = prefs.getString("USER_ID", prefs.getString("user_id", null))
+                                        val prefs = context.getSharedPreferences(
+                                            "auth",
+                                            Context.MODE_PRIVATE
+                                        )
+                                        val ownerId = prefs.getString(
+                                            "USER_ID",
+                                            prefs.getString("user_id", null)
+                                        )
                                         if (ownerId.isNullOrBlank()) {
                                             errorMsg = context.getString(R.string.error_no_user_session)
                                             isSubmitting = false
                                             return@launch
                                         }
-
-                                        // Mapear imágenes: enviar [] si no son URLs públicas todavía
-                                        val mapped = pictureUris.map { it.toString() }
-                                        val picturesField =
-                                            if (mapped.isNotEmpty() && mapped.all { it.startsWith("http://") || it.startsWith("https://") }) {
-                                                mapped
-                                            } else {
-                                                emptyList()
-                                            }
-
                                         val req = CreatePropertyRequest(
                                             name = name,
                                             description = description,
                                             location = location,
                                             pricePerNight = priceVal,
                                             capacity = capVal,
-                                            pictures = picturesField,
+                                            pictures = pictureUrls,
                                             amenities = selectedAmenities.toList(),
                                             propertyType = selectedType!!.key,
                                             owner = ownerId,
@@ -423,12 +517,23 @@ fun CreatePropertyScreen(
                                             onCreated()
                                         } else {
                                             val body = resp.errorBody()?.string()
-                                            errorMsg = body ?: context.getString(R.string.server_error_with_code, resp.code())
-                                            Log.e("CreateProperty", "createProperty failed: code=${resp.code()} body=$body")
+                                            errorMsg = body ?: context.getString(
+                                                R.string.server_error_with_code,
+                                                resp.code()
+                                            )
+                                            Log.e(
+                                                "CreateProperty",
+                                                "createProperty failed: code=${resp.code()} body=$body"
+                                            )
                                         }
                                     } catch (e: Exception) {
-                                        errorMsg = e.message ?: context.getString(R.string.network_error)
-                                        Log.e("CreateProperty", "exception on createProperty", e)
+                                        errorMsg = e.message
+                                            ?: context.getString(R.string.network_error)
+                                        Log.e(
+                                            "CreateProperty",
+                                            "exception on createProperty",
+                                            e
+                                        )
                                     } finally {
                                         isSubmitting = false
                                     }
@@ -437,9 +542,12 @@ fun CreatePropertyScreen(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = !isSubmitting,
+                    enabled = !isSubmitting && !uploading,
                     shape = RoundedCornerShape(Corner),
-                    colors = ButtonDefaults.buttonColors(containerColor = SelectedBlue, contentColor = Color.White)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = SelectedBlue,
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(stringResource(R.string.action_add_property))
                 }
@@ -499,23 +607,39 @@ private fun TypeCard(
         shape = RoundedCornerShape(Corner),
         border = BorderStroke(1.5.dp, borderColor),
         colors = CardDefaults.outlinedCardColors(containerColor = bgColor),
-        modifier = Modifier.width(width).height(height)
+        modifier = Modifier
+            .width(width)
+            .height(height)
     ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ) {
-            Surface(shape = RoundedCornerShape(10.dp), color = if (selected) SelectedBlue else Color(0xFFF2F4F8)) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = if (selected) SelectedBlue else Color(0xFFF2F4F8)
+            ) {
                 Box(
-                    Modifier.size(width = TYPE_ICON_BOX_WIDTH, height = TYPE_ICON_BOX_HEIGHT),
+                    Modifier.size(
+                        width = TYPE_ICON_BOX_WIDTH,
+                        height = TYPE_ICON_BOX_HEIGHT
+                    ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(icon, contentDescription = null, tint = if (selected) Color.White else Color(0xFF6B7280))
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = if (selected) Color.White else Color(0xFF6B7280)
+                    )
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text(label, fontSize = TYPE_TEXT_SIZE, color = if (selected) SelectedBlue else Color.Black)
+            Text(
+                label,
+                fontSize = TYPE_TEXT_SIZE,
+                color = if (selected) SelectedBlue else Color.Black
+            )
         }
     }
 }
@@ -546,12 +670,23 @@ private fun AmenityCard(
                 .padding(horizontal = 12.dp)
         ) {
             Box(
-                Modifier.size(width = AMENITY_ICON_BOX_WIDTH, height = AMENITY_ICON_BOX_HEIGHT),
+                Modifier.size(
+                    width = AMENITY_ICON_BOX_WIDTH,
+                    height = AMENITY_ICON_BOX_HEIGHT
+                ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icon, contentDescription = null, tint = if (selected) SelectedBlue else Color(0xFF6B7280))
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = if (selected) SelectedBlue else Color(0xFF6B7280)
+                )
             }
-            Text(label, fontSize = AMENITY_TEXT_SIZE, color = if (selected) SelectedBlue else Color.Black)
+            Text(
+                label,
+                fontSize = AMENITY_TEXT_SIZE,
+                color = if (selected) SelectedBlue else Color.Black
+            )
         }
     }
 }

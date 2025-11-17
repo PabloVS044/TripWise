@@ -5,10 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -31,9 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.repository.ReservationRepository
 import uvg.edu.tripwise.network.ReservationResponse
 import java.text.NumberFormat
@@ -47,10 +47,6 @@ private val PrimaryBlue  = Color(0xFF2563EB)
 private val SuccessGreen = Color(0xFF0AA12E)
 private val DangerRed    = Color(0xFFE2265B)
 
-/**
- * Sección de reservas dentro del Host.
- * SIN LazyColumn. El scroll lo lleva el contenedor padre (PropertiesHost).
- */
 @Composable
 fun ReservationsSection(
     propertyId: String,
@@ -62,8 +58,6 @@ fun ReservationsSection(
     var error     by remember { mutableStateOf<String?>(null) }
     var items     by remember { mutableStateOf<List<ReservationResponse>>(emptyList()) }
     var selectedIndex by remember { mutableStateOf(-1) }
-
-    // Recarga automática por cambio de propiedad o reload global
     val currentPropertyId by rememberUpdatedState(propertyId)
     LaunchedEffect(currentPropertyId, reloadKey) {
         isLoading = true
@@ -81,8 +75,9 @@ fun ReservationsSection(
         items.sortedWith(compareBy { toDateSafe(it.checkInDate) ?: Date(Long.MAX_VALUE) })
     }
     val activeCount = reservations.count { it.state.equals("confirmed", ignoreCase = true) }
+    val guestFallback = stringResource(R.string.guest_default)
 
-    // Sin scroll interno: el padre (PropertiesHost) ya es verticalScroll
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -93,23 +88,28 @@ fun ReservationsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Your bookings",
+                text = stringResource(R.string.your_bookings_title),
                 color = PrimaryBlue,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
-            PillTag(text = "$activeCount active", color = SuccessGreen)
+            PillTag(
+                text = stringResource(R.string.active_count, activeCount),
+                color = SuccessGreen
+            )
         }
         Spacer(Modifier.height(14.dp))
 
         when {
             isLoading -> LoadingCard()
             error != null -> ErrorCard(error!!)
-            reservations.isEmpty() -> EmptyCard("No bookings yet")
+            reservations.isEmpty() -> EmptyCard(
+                text = stringResource(R.string.no_bookings_yet)
+            )
             else -> {
                 reservations.forEachIndexed { index, r ->
                     ReservationItemBound(
-                        name      = resolveGuestName(r),
+                        name      = resolveGuestName(r, guestFallback),
                         dateRange = formatRange(r.checkInDate, r.checkOutDate),
                         amount    = formatMoney(r.payment),
                         state     = r.state,
@@ -123,9 +123,6 @@ fun ReservationsSection(
     }
 }
 
-/* =========================
-   Components
-   ========================= */
 
 @Composable
 private fun PillTag(text: String, color: Color) {
@@ -157,9 +154,9 @@ private fun ReservationItemBound(
     else BorderStroke(1.dp, Color(0xFFE8E8F0))
 
     val (statusColor, statusText) = when (state.lowercase(Locale.US)) {
-        "confirmed" -> SuccessGreen to "Confirmed"
-        "pending"   -> DangerRed    to "Pending"
-        "cancelled" -> Color(0xFF9CA3AF) to "Cancelled"
+        "confirmed" -> SuccessGreen      to stringResource(R.string.status_confirmed)
+        "pending"   -> DangerRed         to stringResource(R.string.status_pending)
+        "cancelled" -> Color(0xFF9CA3AF) to stringResource(R.string.status_cancelled)
         else        -> Color(0xFF9CA3AF) to state
     }
 
@@ -178,7 +175,7 @@ private fun ReservationItemBound(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 Text(
                     name,
                     fontSize = 20.sp,
@@ -197,7 +194,7 @@ private fun ReservationItemBound(
                     Text(" $persons", color = Color(0xFF6B7A90))
                 }
             }
-            androidx.compose.foundation.layout.Column(horizontalAlignment = Alignment.End) {
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
                     amount,
                     color = SuccessGreen,
@@ -227,9 +224,20 @@ private fun StatusChip(text: String, color: Color) {
     }
 }
 
-@Composable private fun LoadingCard() = PlaceholderCard("Loading…")
-@Composable private fun EmptyCard(text: String) = PlaceholderCard(text)
-@Composable private fun ErrorCard(message: String) = PlaceholderCard("Error: $message")
+@Composable
+private fun LoadingCard() {
+    PlaceholderCard(text = stringResource(R.string.loading_ellipsis))
+}
+
+@Composable
+private fun EmptyCard(text: String) {
+    PlaceholderCard(text = text)
+}
+
+@Composable
+private fun ErrorCard(message: String) {
+    PlaceholderCard(text = stringResource(R.string.error_with_message, message))
+}
 
 @Composable
 private fun PlaceholderCard(text: String) {
@@ -250,33 +258,34 @@ private fun PlaceholderCard(text: String) {
     }
 }
 
-/* =========================
-   Helpers
-   ========================= */
-
-private fun resolveGuestName(r: ReservationResponse): String {
+private fun resolveGuestName(
+    r: ReservationResponse,
+    fallback: String
+): String {
     return try {
         if (r.reservationUser is uvg.edu.tripwise.network.ApiUser) {
             r.reservationUser.name
         } else {
             @Suppress("UNCHECKED_CAST")
-            (r.reservationUser as? Map<*, *>)?.get("name") as? String ?: "Guest"
+            (r.reservationUser as? Map<*, *>)?.get("name") as? String ?: fallback
         }
     } catch (_: Throwable) {
-        "Guest"
+        fallback
     }
 }
 
 private fun toDateSafe(raw: String?): Date? {
     if (raw.isNullOrBlank()) return null
     raw.toLongOrNull()?.let { ms ->
-        val minMs = 946684800000L // 2000-01-01
+        val minMs = 946684800000L
         return if (ms >= minMs) Date(ms) else null
     }
     val utc = TimeZone.getTimeZone("UTC")
     val f1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply { timeZone = utc }
     val f2 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'",       Locale.US).apply { timeZone = utc }
-    return try { f1.parse(raw) } catch (_: ParseException) { try { f2.parse(raw) } catch (_: ParseException) { null } }
+    return try { f1.parse(raw) } catch (_: ParseException) {
+        try { f2.parse(raw) } catch (_: ParseException) { null }
+    }
 }
 
 private fun formatRange(ci: String?, co: String?): String {

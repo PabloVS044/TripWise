@@ -7,10 +7,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.repository.AvailabilityRepository
 import java.text.DateFormatSymbols
 import java.util.Calendar
@@ -19,32 +21,36 @@ import java.util.Locale
 @Composable
 fun CalendarSection(
     propertyId: String,
-    reloadKey: Int, // ✅ para recarga vía pull-to-refresh global
+    reloadKey: Int,
     modifier: Modifier = Modifier,
     vm: CalendarViewModel = viewModel(
         factory = CalendarViewModelFactory(AvailabilityRepository())
     )
 ) {
-    // recarga al entrar / cambiar propiedad / refrescar manual
     LaunchedEffect(propertyId, reloadKey) { vm.loadAvailability(propertyId) }
 
     val state by vm.state.collectAsState()
 
-    // Estado del mes actual sin java.time
     var year by remember { mutableStateOf(Calendar.getInstance().get(Calendar.YEAR)) }
     var monthZero by remember { mutableStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
 
     Column(modifier = modifier.padding(16.dp)) {
 
-        // Header con navegación de mes
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
         ) {
             TextButton(onClick = {
-                if (monthZero == 0) { monthZero = 11; year -= 1 } else { monthZero -= 1 }
-            }) { Text("◀") }
+                if (monthZero == 0) {
+                    monthZero = 11
+                    year -= 1
+                } else {
+                    monthZero -= 1
+                }
+            }) {
+                Text(text = stringResource(R.string.calendar_prev_month))
+            }
 
             Text(
                 text = monthTitle(year, monthZero),
@@ -53,8 +59,15 @@ fun CalendarSection(
             )
 
             TextButton(onClick = {
-                if (monthZero == 11) { monthZero = 0; year += 1 } else { monthZero += 1 }
-            }) { Text("▶") }
+                if (monthZero == 11) {
+                    monthZero = 0
+                    year += 1
+                } else {
+                    monthZero += 1
+                }
+            }) {
+                Text(text = stringResource(R.string.calendar_next_month))
+            }
         }
 
         Spacer(Modifier.height(8.dp))
@@ -62,7 +75,7 @@ fun CalendarSection(
         when {
             state.loading -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             state.error != null -> Text(
-                text = state.error ?: "Error",
+                text = state.error ?: stringResource(R.string.label_error),
                 color = MaterialTheme.colorScheme.error
             )
         }
@@ -79,7 +92,9 @@ fun CalendarSection(
 
 private fun monthTitle(year: Int, monthZero: Int): String {
     val months = DateFormatSymbols(Locale.getDefault()).months
-    val name = months[monthZero].replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+    val name = months[monthZero].replaceFirstChar {
+        if (it.isLowerCase()) it.titlecase() else it.toString()
+    }
     return "$name $year"
 }
 
@@ -87,17 +102,19 @@ private fun monthTitle(year: Int, monthZero: Int): String {
 private fun MonthGrid(
     year: Int,
     monthZero: Int,
-    unavailable: Set<String> // "YYYY-MM-DD"
+    unavailable: Set<String>
 ) {
     val cal = Calendar.getInstance().apply {
         set(Calendar.YEAR, year)
         set(Calendar.MONTH, monthZero)
         set(Calendar.DAY_OF_MONTH, 1)
-        set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
     }
 
-    val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) // 1=Dom ... 7=Sáb
+    val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
     val firstDayOfWeek = Calendar.MONDAY
     val leadingEmpty = ((dayOfWeek - firstDayOfWeek + 7) % 7)
     val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
@@ -108,7 +125,6 @@ private fun MonthGrid(
         while (size % 7 != 0) add(null)
     }
 
-    // Encabezado
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         val order = listOf(
             Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY,
@@ -128,7 +144,6 @@ private fun MonthGrid(
 
     Spacer(Modifier.height(6.dp))
 
-    // ⛔️ Sin LazyColumn (scroll lo hace el padre)
     val rows = remember(cells) { cells.chunked(7) }
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         rows.forEach { row ->

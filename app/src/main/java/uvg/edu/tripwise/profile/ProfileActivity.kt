@@ -8,17 +8,18 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background // ++ IMPORTACIÓN AÑADIDA ++
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions // ++ NUEVO ++
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.filled.Visibility // ++ NUEVO ++
-import androidx.compose.material.icons.filled.VisibilityOff // ++ NUEVO ++
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,15 +28,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType // ++ NUEVO ++
-import androidx.compose.ui.text.input.PasswordVisualTransformation // ++ NUEVO ++
-import androidx.compose.ui.text.input.VisualTransformation // ++ NUEVO ++
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import androidx.compose.ui.platform.LocalContext
 import uvg.edu.tripwise.R
 import uvg.edu.tripwise.ui.components.AppBottomNavBar
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -65,6 +66,8 @@ data class InterestItem(
 fun ProfileScreen(viewModel: ProfileViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
+
+    // El contexto se declara aquí y AHORA SÍ se va a usar
     val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
@@ -72,7 +75,6 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedInterests by remember { mutableStateOf(emptySet<String>()) }
 
-    // --- INICIO DE CAMBIOS ---
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -80,7 +82,6 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
     var currentPasswordVisible by remember { mutableStateOf(false) }
     var newPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-    // --- FIN DE CAMBIOS ---
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -150,13 +151,12 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // ... (Sección de Imagen y Nombre de Usuario - sin cambios) ...
+                // --- Sección de Imagen con Ícono de Edición ---
                 item {
                     Spacer(Modifier.height(24.dp))
                     Box(
                         modifier = Modifier
                             .size(120.dp)
-                            .clip(CircleShape)
                             .clickable { imagePickerLauncher.launch("image/*") }
                     ) {
                         Image(
@@ -164,14 +164,29 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                                 model = selectedImageUri ?: user.pfp
                             ),
                             contentDescription = "Profile Picture",
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
+                        )
+                        // ++ ICONO DE EDICIÓN AÑADIDO ++
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar foto",
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .size(30.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .padding(6.dp),
+                            tint = Color.White
                         )
                     }
                     Spacer(Modifier.height(24.dp))
                     Text("Edita tu información", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(Modifier.height(24.dp))
                 }
+
+                // --- Campos de Texto ---
                 item {
                     OutlinedTextField(
                         value = name,
@@ -192,7 +207,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     Spacer(Modifier.height(16.dp))
                 }
 
-                // --- INICIO DE CAMBIOS (Campos de Contraseña) ---
+                // --- Campos de Contraseña ---
                 item {
                     OutlinedTextField(
                         value = currentPassword,
@@ -202,10 +217,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                         visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
-                            val image = if (currentPasswordVisible)
-                                Icons.Filled.Visibility
-                            else Icons.Filled.VisibilityOff
-
+                            val image = if (currentPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { currentPasswordVisible = !currentPasswordVisible }) {
                                 Icon(imageVector = image, "toggle password visibility")
                             }
@@ -223,10 +235,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
-                            val image = if (newPasswordVisible)
-                                Icons.Filled.Visibility
-                            else Icons.Filled.VisibilityOff
-
+                            val image = if (newPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
                                 Icon(imageVector = image, "toggle password visibility")
                             }
@@ -244,10 +253,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
-                            val image = if (confirmPasswordVisible)
-                                Icons.Filled.Visibility
-                            else Icons.Filled.VisibilityOff
-
+                            val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                 Icon(imageVector = image, "toggle password visibility")
                             }
@@ -255,9 +261,8 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     )
                     Spacer(Modifier.height(32.dp))
                 }
-                // --- FIN DE CAMBIOS ---
 
-                // ... (Sección de Intereses y Botón de Guardar - sin cambios) ...
+                // --- Sección de Intereses ---
                 item {
                     Text("Tus Intereses", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(Modifier.height(16.dp))
@@ -290,10 +295,14 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     }
                 }
 
+                // --- Botón de Guardar ---
                 item {
                     Spacer(Modifier.height(32.dp))
                     Button(
                         onClick = {
+                            // --- ¡CORRECCIÓN APLICADA! ---
+                            // Volvemos a añadir el 'context = context'
+                            // Ahora el ViewModel (versión Cloudinary) SÍ lo necesita.
                             viewModel.updateProfile(
                                 name = name,
                                 email = email,
@@ -301,8 +310,10 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                                 interests = selectedInterests.toList(),
                                 currentPassword = currentPassword,
                                 newPassword = newPassword,
-                                confirmPassword = confirmPassword
+                                confirmPassword = confirmPassword,
+                                context = context // ¡Este parámetro ahora es correcto!
                             )
+                            // --- FIN DE LA CORRECCIÓN ---
                         },
                         modifier = Modifier
                             .fillMaxWidth()

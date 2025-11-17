@@ -1,11 +1,14 @@
 package uvg.edu.tripwise.data.repository
 
-
+import android.content.Context
+import android.net.Uri
 import uvg.edu.tripwise.data.model.Deleted
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.network.RetrofitInstance
 import uvg.edu.tripwise.network.UpdatePasswordRequest
 import uvg.edu.tripwise.network.UpdateUserRequest
+import uvg.edu.tripwise.network.UploadImageResponse
+import uvg.edu.tripwise.utils.createMultipartBodyFromUri
 
 
 class UserRepository {
@@ -54,23 +57,20 @@ class UserRepository {
     }
 
 
-    // --- FUNCIÓN 'updateUser' CORREGIDA ---
-    // Ahora acepta 'role' como parámetro
     suspend fun updateUser(
         id: String,
         name: String?,
         email: String,
         pfp: String?,
-        role: String?, // <-- CAMBIO: Parámetro añadido
+        role: String?,
         interests: List<String>?
     ): User {
 
-        // Pasamos el 'role' al request
         val req = UpdateUserRequest(
             name = name,
             email = email,
             pfp = pfp,
-            role = role, // <-- CAMBIO: Parámetro añadido
+            role = role,
             interests = interests
         )
 
@@ -100,5 +100,10 @@ class UserRepository {
         } catch (e: Exception) {
             false
         }
+    }
+
+    suspend fun uploadImage(imageUri: Uri, context: Context): UploadImageResponse {
+        val imagePart = createMultipartBodyFromUri(imageUri, context, "imagen")
+        return api.uploadImage(imagePart)
     }
 }

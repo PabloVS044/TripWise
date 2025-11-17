@@ -475,4 +475,93 @@
     <string name="capacity_info">Capacity: %1$d</string>
     <string name="price_per_night_info">Price per night: Q%1$s</string>
     <string name ="ic_user_placeholder">Imagen</string>
+    <string name="photos_title">Property Photos</string>
+    <string name="photos_not_available">No photos available</string>
+
+    <!-- Calendar navigation -->
+    <string name="calendar_prev_month">&lt;</string>
+    <string name="calendar_next_month">&gt;</string>
+
+
+    <!-- Bookings details -->
+    <string name="no_bookings_yet">You don\'t have any bookings yet</string>
+    <string name="guest_default">Guest</string>
+    <string name="status_cancelled">Cancelled</string>
+
+    <!-- ========================= REVIEWS ========================= -->
+    <string name="reviews_title">Guest reviews</string>
+    <string name="reviews_count">%1$d reviews</string>
+    <string name="reviews_score_count">· %1$d</string>
+
+    <!-- Comments count -->
+    <string name="review_one_comment">1 comment</string>
+    <string name="review_multiple_comments">%1$d comments</string>
+
+    <!-- Relative time -->
+    <string name="review_time_today">Today</string>
+    <string name="review_time_one_day">1 day ago</string>
+    <string name="review_time_days">%1$d days ago</string>
+    <string name="review_time_one_week">1 week ago</string>
+    <string name="review_time_weeks">%1$d weeks ago</string>
+    <string name="review_time_one_month">1 month ago</string>
+    <string name="review_time_months">%1$d months ago</string>
+
+    <!-- Generic actions -->
+    <string name="action_edit">Edit</string>
+
+    <!-- Price of overview -->
+    <string name="overview_price_value">$%1$s</string>
+
+    <!-- Edit property / images -->
+    <string name="uploading_images">Uploading…</string>
+    <string name="error_uploading_image">Error uploading image</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_property_image">Property image</string>
+    <string name="cd_remove_image">Remove image</string>
+
+    <!-- Actions -->
+    <string name="action_confirm_settings">Confirm settings</string>
+
+
+    <!-- Perfil host -->
+    <string name="edit_profile_title">Edita tu información</string>
+
+    <!-- Campos de formulario perfil -->
+    <string name="label_full_name">Nombre completo</string>
+    <string name="label_email">Correo electrónico</string>
+    <string name="label_current_password">Contraseña actual</string>
+    <string name="label_new_password">Nueva contraseña</string>
+    <string name="label_confirm_new_password">Confirmar nueva contraseña</string>
+
+    <!-- Botones / acciones -->
+    <string name="action_save_changes">Guardar cambios</string>
+    <string name="action_saving_ellipsis">Guardando…</string>
+
+    <!-- Mensajes de imagen -->
+    <string name="success_image_uploaded">Imagen subida correctamente</string>
+    <string name="error_uploading_image_detail">Error al subir imagen: %1$s</string>
+
+    <!-- Validaciones y mensajes de perfil -->
+    <string name="error_name_email_required">Nombre y correo no pueden estar vacíos.</string>
+    <string name="error_password_mismatch">La nueva contraseña y su confirmación no coinciden.</string>
+    <string name="error_current_password_incorrect">La contraseña actual es incorrecta.</string>
+    <string name="error_update_password_generic">Error al actualizar la contraseña.</string>
+    <string name="success_profile_updated">Datos actualizados correctamente.</string>
+    <string name="error_saving_changes_detail">Error al guardar cambios: %1$s</string>
+
+    <!-- Meses para "Miembro desde" -->
+    <string name="month_january">Enero</string>
+    <string name="month_february">Febrero</string>
+    <string name="month_march">Marzo</string>
+    <string name="month_april">Abril</string>
+    <string name="month_may">Mayo</string>
+    <string name="month_june">Junio</string>
+    <string name="month_july">Julio</string>
+    <string name="month_august">Agosto</string>
+    <string name="month_september">Septiembre</string>
+    <string name="month_october">Octubre</string>
+    <string name="month_november">Noviembre</string>
+    <string name="month_december">Diciembre</string>
+
 </resources>

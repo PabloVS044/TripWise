@@ -15,7 +15,6 @@ class PropertyRepository {
 
     private val api = RetrofitInstance.api
 
-    // Mapper → dominio
     private fun ApiProperty.toDomain(): Property = Property(
         id = _id,
         name = name,
@@ -37,7 +36,6 @@ class PropertyRepository {
         )
     )
 
-    // READ
     suspend fun getProperties(): List<Property> =
         api.getProperties().map { it.toDomain() }
 
@@ -47,7 +45,6 @@ class PropertyRepository {
     suspend fun getPropertyById(id: String): Property =
         api.getPropertyById(id).toDomain()
 
-    // CREATE
     suspend fun createProperty(
         ownerId: String,
         name: String,
@@ -84,7 +81,6 @@ class PropertyRepository {
         return resp.body()!!.toDomain()
     }
 
-    // UPDATE
     suspend fun updateProperty(id: String, request: UpdatePropertyRequest): Property {
         val resp = api.updateProperty(id, request)
         if (!resp.isSuccessful || resp.body() == null) {
@@ -93,7 +89,6 @@ class PropertyRepository {
         return resp.body()!!.toDomain()
     }
 
-    // DELETE
     suspend fun deleteProperty(id: String): Boolean =
         try {
             val resp = api.deleteProperty(id)
@@ -102,7 +97,6 @@ class PropertyRepository {
             false
         }
 
-    // REVIEWS
     suspend fun getReviewsByProperty(propertyId: String): PropertyReviews {
         val resp: Response<ApiReviewsResponse> = api.getReviewsByProperty(propertyId)
         if (!resp.isSuccessful || resp.body() == null) {
@@ -115,7 +109,6 @@ class PropertyRepository {
             k.toIntOrNull()?.let { converted[it] = v }
         }
 
-        // Asegura claves 1..5
         for (s in 1..5) if (s !in converted) converted[s] = 0
 
         return PropertyReviews(

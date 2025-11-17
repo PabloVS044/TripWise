@@ -135,6 +135,10 @@
             android:name="uvg.edu.tripwise.host.CreatePropertyActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".host.EditPropertyActivity"
+            android:exported="false" />
+
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
