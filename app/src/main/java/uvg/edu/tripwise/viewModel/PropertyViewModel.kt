@@ -27,7 +27,7 @@ class PropertyViewModel : ViewModel() {
             try {
                 _properties.value = repository.getProperties()
             } catch (e: Exception) {
-                // Manejar error
+
             }
         }
     }
@@ -38,7 +38,7 @@ class PropertyViewModel : ViewModel() {
                 val property = _properties.value.find { it.id == id }
                 _selectedProperty.value = property
             } catch (e: Exception) {
-                // Manejar error
+
             }
         }
     }

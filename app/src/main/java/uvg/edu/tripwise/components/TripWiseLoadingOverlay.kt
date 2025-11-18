@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +28,7 @@ import kotlin.math.sin
 @Composable
 fun TripWiseLoadingOverlay(
     modifier: Modifier = Modifier,
-    message: String = "Loading your experience..."
+    message: String = stringResource(R.string.loading_experience)
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "loadingAnimation")
 
@@ -103,7 +104,7 @@ fun TripWiseLoadingOverlay(
 
                 Image(
                     painter = painterResource(id = R.drawable.logotripwise),
-                    contentDescription = "TripWise Logo",
+                    contentDescription = stringResource(R.string.cd_tripwise_logo),
                     modifier = Modifier.size(70.dp)
                 )
 
@@ -121,7 +122,7 @@ fun TripWiseLoadingOverlay(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_plane),
-                        contentDescription = "Avión",
+                        contentDescription = stringResource(R.string.cd_plane),
                         modifier = Modifier.size(40.dp)
                     )
                 }

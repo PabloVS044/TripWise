@@ -66,8 +66,7 @@ data class InterestItem(
 fun ProfileScreen(viewModel: ProfileViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
-
-    // El contexto se declara aquí y AHORA SÍ se va a usar
+    
     val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
@@ -98,6 +97,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val successMessage = stringResource(R.string.profile_update_success)
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {
@@ -108,7 +108,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
 
     LaunchedEffect(uiState.isUpdateSuccess) {
         if (uiState.isUpdateSuccess) {
-            snackbarHostState.showSnackbar("¡Perfil actualizado con éxito!")
+            snackbarHostState.showSnackbar(successMessage)
         }
     }
 
@@ -129,7 +129,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mi Perfil", fontWeight = FontWeight.Bold, color = Color(0xFF0066CC)) },
+                title = { Text(stringResource(R.string.my_profile), fontWeight = FontWeight.Bold, color = Color(0xFF0066CC)) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
@@ -151,7 +151,6 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // --- Sección de Imagen con Ícono de Edición ---
                 item {
                     Spacer(Modifier.height(24.dp))
                     Box(
@@ -163,16 +162,16 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                             painter = rememberAsyncImagePainter(
                                 model = selectedImageUri ?: user.pfp
                             ),
-                            contentDescription = "Profile Picture",
+                            contentDescription = stringResource(R.string.profile_picture),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                        // ++ ICONO DE EDICIÓN AÑADIDO ++
+
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar foto",
+                            contentDescription = stringResource(R.string.edit_photo),
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .size(30.dp)
@@ -182,16 +181,15 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                         )
                     }
                     Spacer(Modifier.height(24.dp))
-                    Text("Edita tu información", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(stringResource(R.string.edit_profile_title), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(Modifier.height(24.dp))
                 }
 
-                // --- Campos de Texto ---
                 item {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nombre Completo") },
+                        label = { Text(stringResource(R.string.label_full_name)) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(16.dp))
@@ -200,26 +198,25 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     OutlinedTextField(
                         value = email,
                         onValueChange = { },
-                        label = { Text("Correo Electrónico") },
+                        label = { Text(stringResource(R.string.label_email)) },
                         modifier = Modifier.fillMaxWidth(),
                         readOnly = true
                     )
                     Spacer(Modifier.height(16.dp))
                 }
 
-                // --- Campos de Contraseña ---
                 item {
                     OutlinedTextField(
                         value = currentPassword,
                         onValueChange = { currentPassword = it },
-                        label = { Text("Contraseña Actual") },
+                        label = { Text(stringResource(R.string.label_current_password)) },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (currentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             val image = if (currentPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { currentPasswordVisible = !currentPasswordVisible }) {
-                                Icon(imageVector = image, "toggle password visibility")
+                                Icon(imageVector = image, stringResource(R.string.toggle_password_visibility))
                             }
                         }
                     )
@@ -230,14 +227,14 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     OutlinedTextField(
                         value = newPassword,
                         onValueChange = { newPassword = it },
-                        label = { Text("Nueva Contraseña") },
+                        label = { Text(stringResource(R.string.label_new_password)) },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (newPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             val image = if (newPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { newPasswordVisible = !newPasswordVisible }) {
-                                Icon(imageVector = image, "toggle password visibility")
+                                Icon(imageVector = image, stringResource(R.string.toggle_password_visibility))
                             }
                         }
                     )
@@ -248,23 +245,22 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Confirmar Nueva Contraseña") },
+                        label = { Text(stringResource(R.string.label_confirm_new_password)) },
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                             IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                                Icon(imageVector = image, "toggle password visibility")
+                                Icon(imageVector = image, stringResource(R.string.toggle_password_visibility))
                             }
                         }
                     )
                     Spacer(Modifier.height(32.dp))
                 }
 
-                // --- Sección de Intereses ---
                 item {
-                    Text("Tus Intereses", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(stringResource(R.string.your_interests_label), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
                     Spacer(Modifier.height(16.dp))
                 }
 
@@ -295,14 +291,10 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                     }
                 }
 
-                // --- Botón de Guardar ---
                 item {
                     Spacer(Modifier.height(32.dp))
                     Button(
                         onClick = {
-                            // --- ¡CORRECCIÓN APLICADA! ---
-                            // Volvemos a añadir el 'context = context'
-                            // Ahora el ViewModel (versión Cloudinary) SÍ lo necesita.
                             viewModel.updateProfile(
                                 name = name,
                                 email = email,
@@ -311,9 +303,8 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                                 currentPassword = currentPassword,
                                 newPassword = newPassword,
                                 confirmPassword = confirmPassword,
-                                context = context // ¡Este parámetro ahora es correcto!
+                                context = context
                             )
-                            // --- FIN DE LA CORRECCIÓN ---
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -325,7 +316,7 @@ fun ProfileScreen(viewModel: ProfileViewModel) {
                         if (uiState.isLoading || uiState.isImageUploading) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Guardar Cambios", color = Color.White)
+                            Text(stringResource(R.string.action_save_changes), color = Color.White)
                         }
                     }
                     Spacer(Modifier.height(16.dp))

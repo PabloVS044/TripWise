@@ -18,11 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import uvg.edu.tripwise.MainActivity
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.UserRepository
 import uvg.edu.tripwise.ui.theme.TripWiseTheme
@@ -58,7 +60,7 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
     // Estados para los campos editables
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("") } // <-- CAMBIO: Añadido estado para rol
+    var role by remember { mutableStateOf("") }
 
     LaunchedEffect(userId) {
         scope.launch {
@@ -67,12 +69,11 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
                 val u = userRepository.getUserById(userId)
                 user = u
 
-                // Inicializar estados
                 name = u.name
                 email = u.email
-                role = u.role ?: "user" // <-- CAMBIO: Inicializar rol (default 'user' si es null)
+                role = u.role ?: "user"
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al cargar el usuario", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.error_loading_user), Toast.LENGTH_SHORT).show()
             } finally {
                 isLoading = false
             }
@@ -85,20 +86,19 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
         scope.launch {
             isSaving = true
             try {
-                // Pasamos el 'role' a la función de update
                 userRepository.updateUser(
                     id = currentUser.id,
                     name = name,
                     email = email,
                     pfp = currentUser.pfp,
-                    role = role, // <-- CAMBIO: Pasamos el nuevo rol
+                    role = role,
                     interests = currentUser.interests
                 )
-                Toast.makeText(context, "Usuario actualizado", Toast.LENGTH_SHORT).show()
-                onBack() // Regresar
+                Toast.makeText(context, context.getString(R.string.user_updated_success), Toast.LENGTH_SHORT).show()
+                onBack()
 
             } catch (e: Exception) {
-                Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.error_saving_changes_detail, e.message), Toast.LENGTH_LONG).show()
             } finally {
                 isSaving = false
             }
@@ -108,15 +108,15 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("User Details") },
+                title = { Text(stringResource(R.string.user_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, contentDescription = "Logout")
+                        Icon(Icons.Default.ExitToApp, contentDescription = stringResource(R.string.cd_logout))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -138,7 +138,7 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                Text("User not found", color = Color.Gray)
+                Text(stringResource(R.string.user_not_found), color = Color.Gray)
             }
         } else {
             UserDetailContent(
@@ -148,8 +148,8 @@ fun UserDetailScreen(userId: String, onBack: () -> Unit, onLogout: () -> Unit = 
                 onNameChange = { name = it },
                 email = email,
                 onEmailChange = { email = it },
-                role = role, // <-- CAMBIO: Pasamos el estado
-                onRoleChange = { role = it }, // <-- CAMBIO: Pasamos el setter
+                role = role,
+                onRoleChange = { role = it },
                 isSaving = isSaving,
                 onSaveClick = { onSaveChanges() }
             )
@@ -165,12 +165,11 @@ fun UserDetailContent(
     onNameChange: (String) -> Unit,
     email: String,
     onEmailChange: (String) -> Unit,
-    role: String, // <-- CAMBIO: Parámetro añadido
-    onRoleChange: (String) -> Unit, // <-- CAMBIO: Parámetro añadido
+    role: String,
+    onRoleChange: (String) -> Unit,
     isSaving: Boolean,
     onSaveClick: () -> Unit
 ) {
-    // Opciones de rol basadas en tu user.model.js
     val roleOptions = listOf("user", "owner", "admin")
 
     Column(
@@ -180,7 +179,6 @@ fun UserDetailContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Card con información no editable
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9))
@@ -189,24 +187,28 @@ fun UserDetailContent(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                InfoRow(label = "User ID", value = user.id)
-                InfoRow(label = "Status", value = if (user.deleted?.isDeleted == true) "Inactive" else "Active")
-                // InfoRow(label = "Role", value = user.role ?: "N/A") // Ya no es necesario, se edita abajo
+                InfoRow(label = stringResource(R.string.user_id), value = user.id)
+                InfoRow(
+                    label = stringResource(R.string.status),
+                    value = if (user.deleted?.isDeleted == true)
+                        stringResource(R.string.status_inactive)
+                    else
+                        stringResource(R.string.status_active)
+                )
             }
         }
 
         Text(
-            text = "Edit User",
+            text = stringResource(R.string.edit_user),
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.Black
         )
 
-        // Campos editables
         OutlinedTextField(
             value = name,
             onValueChange = onNameChange,
-            label = { Text("Name") },
+            label = { Text(stringResource(R.string.name)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isSaving
         )
@@ -214,20 +216,18 @@ fun UserDetailContent(
         OutlinedTextField(
             value = email,
             onValueChange = onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email)) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isSaving
         )
 
-        // --- CAMBIO: De TextField a Dropdown ---
         EnumDropdownSelector(
-            label = "Role",
+            label = stringResource(R.string.role),
             options = roleOptions,
             selectedOption = role,
             onOptionSelected = onRoleChange,
             enabled = !isSaving
         )
-        // --- FIN DEL CAMBIO ---
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -247,7 +247,7 @@ fun UserDetailContent(
                     strokeWidth = 3.dp
                 )
             } else {
-                Text("Save Changes", color = Color.White)
+                Text(stringResource(R.string.save_changes), color = Color.White)
             }
         }
     }

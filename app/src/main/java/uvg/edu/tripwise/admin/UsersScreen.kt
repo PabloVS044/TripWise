@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.components.BottomNavigation
 import uvg.edu.tripwise.components.UserCard
 import uvg.edu.tripwise.data.model.User
@@ -44,7 +46,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
     val userRepository = remember { UserRepository() }
 
     Scaffold(topBar = { LogoAppTopBar(onLogout) }) {
-        innerPadding ->
+            innerPadding ->
         fun loadUsers() {
             coroutineScope.launch {
                 try {
@@ -57,7 +59,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
                     Log.d("UsersActivity", "Successfully mapped ${users.size} users")
                 } catch (e: Exception) {
                     Log.e("UsersActivity", "Error loading users: ${e.message}", e)
-                    errorMessage = "Error al cargar usuarios: ${e.message}"
+                    errorMessage = context.getString(R.string.error_loading_users_detail, e.message)
                     showRetry = true
                 } finally {
                     isLoading = false
@@ -84,7 +86,6 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
             Spacer(modifier = Modifier.height(24.dp))
 
 
-            // Search Bar (mismo estilo que Users)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -102,7 +103,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Search users...")
+                        Text(stringResource(R.string.search_users))
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -127,7 +128,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = Color(0xFF2563EB))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Cargando usuarios...", color = Color.Gray)
+                            Text(stringResource(R.string.loading_users), color = Color.Gray)
                         }
                     }
                 }
@@ -140,7 +141,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = errorMessage ?: "Error desconocido",
+                                text = errorMessage ?: stringResource(R.string.unknown_error),
                                 color = Color.Red,
                                 modifier = Modifier.padding(horizontal = 20.dp)
                             )
@@ -149,7 +150,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
                                 onClick = { loadUsers() },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
                             ) {
-                                Text("Reintentar", color = Color.White)
+                                Text(stringResource(R.string.retry), color = Color.White)
                             }
                         }
                     }
@@ -178,7 +179,7 @@ fun UsersScreen( onLogout: () -> Unit = {} ) {
             }
 
             BottomNavigation(context = context)
-    }
+        }
 
     }
 }
