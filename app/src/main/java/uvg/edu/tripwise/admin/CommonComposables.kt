@@ -15,9 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/**
- * Un Composable común para mostrar una fila de información con etiqueta y valor.
- */
+
 @Composable
 fun InfoRow(label: String, value: String) {
     Row(
@@ -38,10 +36,6 @@ fun InfoRow(label: String, value: String) {
     }
 }
 
-/**
- * (NUEVO)
- * Un Composable reutilizable para campos 'enum' que usa un dropdown.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnumDropdownSelector(
@@ -61,7 +55,7 @@ fun EnumDropdownSelector(
     ) {
         OutlinedTextField(
             value = selectedOption,
-            onValueChange = {}, // El valor se cambia desde el menú
+            onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             trailingIcon = {
@@ -70,7 +64,7 @@ fun EnumDropdownSelector(
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             modifier = Modifier
                 .fillMaxWidth()
-                .menuAnchor(), // Importante para anclar el menú
+                .menuAnchor(),
             enabled = enabled
         )
 

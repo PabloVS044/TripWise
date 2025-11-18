@@ -44,7 +44,6 @@ fun DashboardScreen(
     val userRepository = remember { UserRepository() }
     val propertyRepository = remember { PropertyRepository() }
 
-    // Estadísticas calculadas
     val totalUsers = users.size
     val activeUsers = users.count { it.deleted?.isDeleted?.not() ?: true }
     val inactiveUsers = users.count { it.deleted?.isDeleted ?: false }
@@ -90,10 +89,8 @@ fun DashboardScreen(
                 .fillMaxSize()
                 .background(Color(0xFFF8F9FA))
         ) {
-            // Status Bar
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Title
             Text(
                 text = stringResource(R.string.dashboard),
                 fontSize = 24.sp,
@@ -104,7 +101,6 @@ fun DashboardScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Content
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
                 onRefresh = { refreshData() },
@@ -125,7 +121,6 @@ fun DashboardScreen(
                             .padding(horizontal = 20.dp, vertical = 10.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Statistics Cards
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -146,7 +141,6 @@ fun DashboardScreen(
                             )
                         }
 
-                        // Users Overview
                         OverviewCard(
                             title = stringResource(R.string.users_overview),
                             icon = Icons.Default.Person,
@@ -156,7 +150,6 @@ fun DashboardScreen(
                             )
                         )
 
-                        // Properties Overview
                         OverviewCard(
                             title = stringResource(R.string.properties_status),
                             icon = Icons.Default.Home,
@@ -167,7 +160,6 @@ fun DashboardScreen(
                             )
                         )
 
-                        // Quick Actions
                         QuickActionsCard()
 
                         Spacer(modifier = Modifier.height(20.dp))
@@ -175,9 +167,8 @@ fun DashboardScreen(
                 }
             }
 
-            // Bottom Navigation
-            BottomNavigation(context = context, currentScreen = "Dashboard")
-    }
+            BottomNavigation(context = context, currentScreen = stringResource(R.string.dashboard))
+        }
 
     }
 }
@@ -301,7 +292,6 @@ fun QuickActionsCard() {
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Action Buttons
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {

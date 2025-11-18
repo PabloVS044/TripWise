@@ -13,9 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.admin.DashboardActivity
 import uvg.edu.tripwise.admin.PropertiesActivity
 import uvg.edu.tripwise.admin.UsersActivity
@@ -33,26 +35,30 @@ fun BottomNavigation(context: Context, currentScreen: String = "") {
                 .padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            val dashboardTitle = stringResource(R.string.dashboard)
+            val usersTitle = stringResource(R.string.nav_users)
+            val propertiesTitle = stringResource(R.string.properties_title)
+
             CustomBottomNavItem(
-                title = "Dashboard",
+                title = dashboardTitle,
                 icon = Icons.Default.Dashboard,
-                isSelected = currentScreen == "Dashboard",
+                isSelected = currentScreen == dashboardTitle,
                 onClick = {
                     context.startActivity(Intent(context, DashboardActivity::class.java))
                 }
             )
             CustomBottomNavItem(
-                title = "Users",
+                title = usersTitle,
                 icon = Icons.Default.People,
-                isSelected = currentScreen == "Users",
+                isSelected = currentScreen == usersTitle,
                 onClick = {
                     context.startActivity(Intent(context, UsersActivity::class.java))
                 }
             )
             CustomBottomNavItem(
-                title = "Properties",
+                title = propertiesTitle,
                 icon = Icons.Default.Home,
-                isSelected = currentScreen == "Properties",
+                isSelected = currentScreen == propertiesTitle,
                 onClick = {
                     context.startActivity(Intent(context, PropertiesActivity::class.java))
                 }

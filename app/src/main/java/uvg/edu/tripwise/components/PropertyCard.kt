@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,11 +46,14 @@ fun PropertyCard(
 
     if (showConfirmationDialog) {
         ConfirmationDialog(
-            title = if (property.deleted.isDeleted) "Enable Property" else "Disable Property",
-            message = if (property.deleted.isDeleted)
-                "Are you sure you want to enable ${property.name}? It will be visible to users again."
+            title = if (property.deleted.isDeleted)
+                stringResource(R.string.dialog_title_enable_property)
             else
-                "Are you sure you want to disable ${property.name}? It will be hidden from users.",
+                stringResource(R.string.dialog_title_disable_property),
+            message = if (property.deleted.isDeleted)
+                stringResource(R.string.dialog_message_enable_property, property.name)
+            else
+                stringResource(R.string.dialog_message_disable_property, property.name),
             onConfirm = {
                 coroutineScope.launch {
                     try {
@@ -170,7 +174,7 @@ fun PropertyCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Home,
-                        contentDescription = "No image",
+                        contentDescription = stringResource(R.string.cd_no_image),
                         tint = Color(0xFF9CA3AF),
                         modifier = Modifier.size(32.dp)
                     )
@@ -222,7 +226,7 @@ fun PropertyCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${property.capacity} guests",
+                            text = stringResource(R.string.property_capacity_guests, property.capacity),
                             fontSize = 12.sp,
                             color = Color(0xFFDB2777),
                             fontWeight = FontWeight.Medium
@@ -246,7 +250,7 @@ fun PropertyCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "$${property.pricePerNight}/night",
+                            text = stringResource(R.string.property_price_per_night, property.pricePerNight),
                             fontSize = 12.sp,
                             color = Color(0xFF059669),
                             fontWeight = FontWeight.Medium
@@ -269,7 +273,7 @@ fun PropertyCard(
                     )
                 ) {
                     Text(
-                        text = if (property.deleted.isDeleted) "Enable" else "Disable",
+                        text = stringResource(if (property.deleted.isDeleted) R.string.action_enable else R.string.action_disable),
                         fontSize = 14.sp
                     )
                 }
@@ -288,7 +292,7 @@ fun PropertyCard(
                     )
                 ) {
                     Text(
-                        text = "Details",
+                        text = stringResource(R.string.action_details),
                         fontSize = 14.sp,
                         color = Color.White
                     )

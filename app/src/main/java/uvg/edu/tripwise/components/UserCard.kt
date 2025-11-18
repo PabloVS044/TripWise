@@ -20,10 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.admin.UserDetailActivity
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.UserRepository
@@ -33,7 +35,7 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
     val coroutineScope = rememberCoroutineScope()
     val userRepository = remember { UserRepository() }
     val context = LocalContext.current
-    val initial = user.name.firstOrNull()?.uppercase() ?: "U"
+    val initial = user.name.firstOrNull()?.uppercase() ?: stringResource(R.string.default_avatar_initial)
     val isActive = user.deleted?.isDeleted?.not() ?: true
     val avatarColor = getAvatarColor(user.name)
 
@@ -41,11 +43,14 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
 
     if (showConfirmationDialog) {
         ConfirmationDialog(
-            title = if (isActive) "Disable User" else "Enable User",
-            message = if (isActive)
-                "Are you sure you want to disable ${user.name}? They will not be able to access the system."
+            title = if (isActive)
+                stringResource(R.string.dialog_title_disable_user)
             else
-                "Are you sure you want to enable ${user.name}? They will regain access to the system.",
+                stringResource(R.string.dialog_title_enable_user),
+            message = if (isActive)
+                stringResource(R.string.dialog_message_disable_user, user.name)
+            else
+                stringResource(R.string.dialog_message_enable_user, user.name),
             onConfirm = {
                 coroutineScope.launch {
                     try {
@@ -129,7 +134,7 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "User",
+                            text = stringResource(R.string.role_user),
                             fontSize = 12.sp,
                             color = Color(0xFF2563EB),
                             fontWeight = FontWeight.Medium
@@ -153,7 +158,7 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (isActive) "Active" else "Inactive",
+                            text = stringResource(if (isActive) R.string.status_active else R.string.status_inactive),
                             fontSize = 12.sp,
                             color = if (isActive) Color(0xFF059669) else Color(0xFFDC2626),
                             fontWeight = FontWeight.Medium
@@ -176,7 +181,7 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
                     )
                 ) {
                     Text(
-                        text = if (isActive) "Disable" else "Enable",
+                        text = stringResource(if (isActive) R.string.action_disable else R.string.action_enable),
                         fontSize = 14.sp
                     )
                 }
@@ -195,7 +200,7 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
                     )
                 ) {
                     Text(
-                        text = "Details",
+                        text = stringResource(R.string.action_details),
                         fontSize = 14.sp,
                         color = Color.White
                     )
@@ -207,12 +212,12 @@ fun UserCard(user: User, onRefresh: () -> Unit = {}) {
 
 fun getAvatarColor(name: String): Color {
     val colors = listOf(
-        Color(0xFF8B5CF6), // Purple
-        Color(0xFF06B6D4), // Cyan
-        Color(0xFF10B981), // Emerald
-        Color(0xFFF59E0B), // Amber
-        Color(0xFFEF4444), // Red
-        Color(0xFF3B82F6)  // Blue
+        Color(0xFF8B5CF6),
+        Color(0xFF06B6D4),
+        Color(0xFF10B981),
+        Color(0xFFF59E0B),
+        Color(0xFFEF4444),
+        Color(0xFF3B82F6)
     )
     return colors[name.hashCode().mod(colors.size)]
 }

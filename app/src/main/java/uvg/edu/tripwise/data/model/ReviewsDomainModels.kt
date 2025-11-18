@@ -17,5 +17,5 @@ data class ReviewItem(
     val date: String,
     val likes: Int,
     val commentsCount: Int,
-    val commentText: String?    // <- NUEVO
+    val commentText: String?
 )
