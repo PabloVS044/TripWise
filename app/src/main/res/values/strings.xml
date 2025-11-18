@@ -434,7 +434,7 @@
     <string name="day_header">Day %1$d</string>
     <string name="location_unavailable">Location unavailable</string>
     <string name="view_on_map">View on map</string>
-    
+
     <!-- Budget Info -->
     <string name="budget_title">Trip Budget</string>
     <string name="budget_total">Total: Q%1$s for %2$d days</string>
@@ -443,7 +443,7 @@
     <string name="budget_places">Places</string>
     <string name="budget_activities">Activities</string>
     <string name="budget_percentage">Q%1$s (%2$d%%)</string>
-    
+
     <!-- Reservation Page 1 -->
     <string name="reservation_title">Reservation</string>
     <string name="check_in">Check-in</string>
@@ -469,7 +469,7 @@
     <string name="food_category">Food</string>
     <string name="places_category">Tourist Places</string>
     <string name="activities_category">Activities</string>
-    
+
     <!-- Property Info -->
     <string name="location_label">Location: %1$s</string>
     <string name="capacity_info">Capacity: %1$d</string>
@@ -563,5 +563,52 @@
     <string name="month_october">Octubre</string>
     <string name="month_november">Noviembre</string>
     <string name="month_december">Diciembre</string>
+
+
+
+    <string name="error_loading_users_detail">Error al cargar usuarios: %1$s</string>
+    <string name="unknown_error">Error desconocido</string>
+
+    <string name="properties_title">Properties</string>
+
+    <string name="error_loading_property">Error al cargar la propiedad</string>
+    <string name="property_updated_success">Propiedad actualizada</string>
+    <string name="error_loading_user">Error al cargar el usuario</string>
+    <string name="user_updated_success">Usuario actualizado</string>
+    <string name="status_active">Active</string>
+    <string name="status_inactive">Inactive</string>
+    <string name="role">Role</string>
+
+
+    <string name="profile_update_success">¡Perfil actualizado con éxito!</string>
+    <string name="my_profile">Mi Perfil</string>
+    <string name="profile_picture">Foto de perfil</string>
+    <string name="edit_photo">Editar foto</string>
+    <string name="toggle_password_visibility">Mostrar/ocultar contraseña</string>
+    <string name="your_interests_label">Tus Intereses</string>
+
+    <string name="loading_experience">Cargando tu experiencia...</string>
+    <string name="cd_tripwise_logo">Logo de TripWise</string>
+    <string name="cd_plane">Avión</string>
+
+    <string name="nav_users">Users</string>
+
+    <string name="default_avatar_initial">U</string>
+    <string name="dialog_title_disable_user">Deshabilitar Usuario</string>
+    <string name="dialog_title_enable_user">Habilitar Usuario</string>
+    <string name="dialog_message_disable_user">¿Seguro que quieres deshabilitar a %1$s? No podrá acceder al sistema.</string>
+    <string name="dialog_message_enable_user">¿Seguro que quieres habilitar a %1$s? Recuperará el acceso al sistema.</string>
+    <string name="role_user">User</string>
+    <string name="action_disable">Deshabilitar</string>
+    <string name="action_enable">Habilitar</string>
+    <string name="action_details">Detalles</string>
+
+    <string name="dialog_title_disable_property">Deshabilitar Propiedad</string>
+    <string name="dialog_title_enable_property">Habilitar Propiedad</string>
+    <string name="dialog_message_disable_property">¿Seguro que quieres deshabilitar %1$s? Se ocultará de los usuarios.</string>
+    <string name="dialog_message_enable_property">¿Seguro que quieres habilitar %1$s? Será visible para los usuarios de nuevo.</string>
+    <string name="cd_no_image">No hay imagen</string>
+    <string name="property_capacity_guests">%1$d huéspedes</string>
+    <string name="property_price_per_night">$%1$s/noche</string>
 
 </resources>

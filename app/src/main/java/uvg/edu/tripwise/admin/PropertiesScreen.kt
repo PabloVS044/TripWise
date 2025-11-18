@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
+import uvg.edu.tripwise.R
 import uvg.edu.tripwise.components.BottomNavigation
 import uvg.edu.tripwise.components.PropertyCard
 import uvg.edu.tripwise.data.model.Property
@@ -43,7 +45,7 @@ fun PropertiesScreen(
     val propertyRepository = remember { PropertyRepository() }
 
     Scaffold (topBar = { LogoAppTopBar(onLogout) }) {
-        innerPadding ->
+            innerPadding ->
         fun loadProperties() {
             scope.launch {
                 try {
@@ -91,11 +93,10 @@ fun PropertiesScreen(
                 .padding(innerPadding)
                 .background(Color(0xFFF8FAFC))
         ) {
-            // Status Bar
+
             Spacer(modifier = Modifier.height(24.dp))
 
 
-            // Search Bar (mismo estilo que Users)
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -113,7 +114,7 @@ fun PropertiesScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Search properties...")
+                        Text(stringResource(R.string.search_properties))
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
@@ -127,7 +128,6 @@ fun PropertiesScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Content
             SwipeRefresh(
                 state = rememberSwipeRefreshState(isRefreshing),
                 onRefresh = { refreshProperties() },
@@ -144,7 +144,7 @@ fun PropertiesScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 CircularProgressIndicator(color = Color(0xFF2563EB))
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text("Loading properties...", color = Color.Gray)
+                                Text(stringResource(R.string.loading_properties), color = Color.Gray)
                             }
                         }
                     }
@@ -157,7 +157,7 @@ fun PropertiesScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
-                                    text = "Error loading properties",
+                                    text = stringResource(R.string.error_loading_properties),
                                     color = Color.Red,
                                     modifier = Modifier.padding(horizontal = 20.dp)
                                 )
@@ -166,7 +166,7 @@ fun PropertiesScreen(
                                     onClick = { loadProperties() },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
                                 ) {
-                                    Text("Retry", color = Color.White)
+                                    Text(stringResource(R.string.retry), color = Color.White)
                                 }
                             }
                         }
@@ -179,7 +179,7 @@ fun PropertiesScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = if (searchQuery.isEmpty()) "No properties found" else "No properties match your search",
+                                text = if (searchQuery.isEmpty()) stringResource(R.string.no_properties_found) else stringResource(R.string.no_match_search),
                                 fontSize = 16.sp,
                                 color = Color.Gray
                             )
@@ -193,7 +193,7 @@ fun PropertiesScreen(
                             items(filteredProperties) { property ->
                                 PropertyCard(
                                     property = property,
-                                    onRefresh = { loadProperties() } // Pasar la función de refresh
+                                    onRefresh = { loadProperties() }
                                 )
                             }
                         }
@@ -201,8 +201,7 @@ fun PropertiesScreen(
                 }
             }
 
-            // Bottom Navigation
-            BottomNavigation(context = context, currentScreen = "Properties")
+            BottomNavigation(context = context, currentScreen = stringResource(R.string.properties_title))
         }
     }
 

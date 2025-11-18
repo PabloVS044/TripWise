@@ -14,7 +14,7 @@ import uvg.edu.tripwise.auth.SessionManager
 import uvg.edu.tripwise.data.model.User
 import uvg.edu.tripwise.data.repository.UserRepository
 
-// El UiState es el mismo
+
 data class ProfileUiState(
     val user: User? = null,
     val isLoading: Boolean = false,
@@ -26,13 +26,13 @@ data class ProfileUiState(
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userRepository = UserRepository()
-    // Usa tu SessionManager existente
+
     private val sessionManager = SessionManager(application)
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    // Usa el método de tu SessionManager
+
     private val currentUserId: String? = sessionManager.getUserId()
 
     init {
@@ -60,9 +60,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * Esta función AHORA SÍ usa el 'context' para la subida a Cloudinary
-     */
+
     fun updateProfile(
         name: String?,
         email: String,
@@ -71,7 +69,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         currentPassword: String?,
         newPassword: String?,
         confirmPassword: String?,
-        context: Context // ++ PARÁMETRO AÑADIDO (Y NECESARIO) ++
+        context: Context
     ) {
         if (currentUserId == null) {
             _uiState.update { it.copy(errorMessage = "Error de autenticación. No se puede actualizar.") }
@@ -82,7 +80,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             _uiState.update { it.copy(isLoading = true, isUpdateSuccess = false) }
 
             try {
-                // --- PASO 1: Actualizar Contraseña ---
+
                 if (!newPassword.isNullOrBlank()) {
                     if (currentPassword.isNullOrBlank()) {
                         throw IllegalStateException("Debes ingresar tu contraseña actual para cambiarla.")
@@ -96,41 +94,40 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
 
-                // --- PASO 2: Subir Imagen (Lógica de Cloudinary) ---
-                var newPfpUrl: String? = uiState.value.user?.pfp // URL antigua por defecto
+
+                var newPfpUrl: String? = uiState.value.user?.pfp
 
                 if (profileImageUri != null) {
                     _uiState.update { it.copy(isImageUploading = true) }
 
-                    // Llama al repositorio para subir a Cloudinary
+
                     val response = userRepository.uploadImage(profileImageUri, context)
-                    newPfpUrl = response.url // Obtiene la nueva URL de Cloudinary
+                    newPfpUrl = response.url
 
                     _uiState.update { it.copy(isImageUploading = false) }
                 }
 
-                // --- PASO 3: Actualizar Datos del Usuario ---
+
                 val updatedUser = userRepository.updateUser(
                     id = currentUserId,
                     name = name,
                     email = email,
-                    pfp = newPfpUrl, // Pasa la URL (nueva o antigua)
-                    role = uiState.value.user?.role, // Pasa el rol actual
+                    pfp = newPfpUrl,
+                    role = uiState.value.user?.role,
                     interests = interests
                 )
 
-                // --- PASO 4: Éxito Total ---
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        user = updatedUser, // Muestra el usuario actualizado
+                        user = updatedUser,
                         isUpdateSuccess = true,
                         isImageUploading = false
                     )
                 }
 
             } catch (e: Exception) {
-                // --- MANEJO DE ERRORES ---
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -142,9 +139,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * Limpia el mensaje de error una vez que se ha mostrado (ej. en un Snackbar)
-     */
+
     fun dismissError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
